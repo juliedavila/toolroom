@@ -1,0 +1,47 @@
+# Shared layer 0.1.1: the manual-work catalog. Generated; do not edit.
+namespace: shared
+version: 0.1.1
+schema: 
+  model: 5
+  design_engine: "0.4"
+manual_work: 
+  - id: finding-triage
+    name: Manual triage and validation of findings
+    description: "Reading scanner, report and tool output by hand to decide which findings are real, duplicated or worth working first, and reproducing each one to confirm it before anyone fixes it."
+    flow_item: risk
+  - id: manual-testing
+    name: Manual security testing
+    description: "Testing a target by hand, as in a penetration test or a scripted probe, to find a weakness and show a path through it."
+    flow_item: risk
+  - id: fix-retest
+    name: Manual retest after a fix
+    description: "Re-running a demonstrated attack by hand to confirm that a fix holds where it is deployed, and checking again later that it still holds."
+    flow_item: risk
+  - id: run-approval
+    name: Manual scoping and approval of test runs
+    description: "Writing the scope of each test run, getting a person's sign-off for it, and agreeing its window with the owner of the target."
+    flow_item: risk
+  - id: fix-work
+    name: Manual fix work on findings
+    description: "An owning team working a security finding from a ticket: reproducing it, finding the cause, and writing and testing the fix by hand."
+    flow_item: risk
+  - id: scanner-upkeep
+    name: Manual upkeep of scanning tools
+    description: "Tuning scanner rules, suppressing noise, and deciding by judgment which tools and rules to keep."
+    flow_item: debt
+  - id: test-upkeep
+    name: Manual upkeep of security regression tests
+    description: "Fixing broken test fixtures, checking by hand that old tests still catch their weakness, and pruning tests that no longer earn their run time."
+    flow_item: debt
+  - id: audit-evidence
+    name: Manual evidence gathering for audits
+    description: "Collecting logs, tickets, screenshots and sign-offs to show that a control ran or a fix held, and assembling them for audits and assurance reviews."
+    flow_item: risk
+  - id: change-review
+    name: Manual security review of code changes
+    description: "Reading code changes by hand to catch known weakness classes before they merge, including changes a coding agent wrote."
+    flow_item: risk
+  - id: finding-routing
+    name: Manual routing and follow-up of findings to owners
+    description: "Opening and linking tickets, handing each finding to the team that owns the fix, and following up with that team until the work is done."
+    flow_item: risk

@@ -1,0 +1,60 @@
+# Jig edition 0.1.3: the record of this folder, generated with it; do not edit. files lists every other
+# file here with its SHA-256, sorted by path in byte order; digest is the SHA-256 of that list as sha256sum prints it,
+# one "<sha256>  <path>" line per file. A pin names another line's edition by the SHA-256 of its edition.yaml.
+line: "jig"
+namespace: "jig"
+version: "0.1.3"
+released: true
+date: "2026-10-29"
+build: "4738007f"
+schema:
+  model: 5
+  design_engine: "0.4"
+shared:
+  path: "seams.yaml"
+  namespace: "shared"
+  version: "0.1.1"
+  sha256: "ddb2561246a0e9d77c9e9ba6cce3f06bd636e19c2a9883fb53142f211ddabc9b"
+manual_work:
+  path: "manual-work.yaml"
+  sha256: "c096880b7da1b07938039fc7738063799a8ad5cf45b59cb60bd9a6fdb735385c"
+pins: []
+plumb:
+  interface: 1
+  engine: "plumb/engine.yaml"
+  model: "plumb/model.yaml"
+  plan: "plumb/plan.yaml"
+files:
+  - path: "CHANGELOG.md"
+    sha256: "4674a1dd63d1266db37260562885ea68c21771505f7e02cb96652cebf09b2f59"
+  - path: "README.md"
+    sha256: "88aa912ec0eded12bc6b32abe9b508e713eaa3070b45342cac1b4040eaadfd73"
+  - path: "claims.yaml"
+    sha256: "2e0625d68595705b82900aa556a65d130ea10912d415d4aa31b89d744d68b449"
+  - path: "failures.yaml"
+    sha256: "3c4c13647ff78e05359547386513472b98eba46aa6cdcd01bafe310bf9acca56"
+  - path: "manual-work.yaml"
+    sha256: "c096880b7da1b07938039fc7738063799a8ad5cf45b59cb60bd9a6fdb735385c"
+  - path: "model.yaml"
+    sha256: "870fad18097eddb4b5aad4e55dc9d68e213ce0833973ecc3ba3d25aa404694a9"
+  - path: "moved.yaml"
+    sha256: "47fbb5231e92aa5ee65d41926746401ac816a5e4f953e62752927edc276bcd62"
+  - path: "overlay-aws.yaml"
+    sha256: "04e26b91990b594d5a1f0931cb377cfcdd7dd620c3d2767f60d09cec94129874"
+  - path: "phases.yaml"
+    sha256: "89abc95ef0fb62dee3e864704df776948c82f80b59e3dfc22b03365b0c09a793"
+  - path: "plumb/engine.yaml"
+    sha256: "94b8c348f69003ff351b77b34c87ea937eb8c47a97de1a5fec651430c5cf1672"
+  - path: "plumb/model.yaml"
+    sha256: "699495fc3d875b21850d57705c38f0950562b26e9068f002616617a9a157c44e"
+  - path: "plumb/plan.yaml"
+    sha256: "8a5ec9b964e3a31eb9fdd7b7e88d65332c102fbff6605a0d75d290f7b372f8d4"
+  - path: "quality.yaml"
+    sha256: "074731bcfce9b1e523b3d5aafe51e9312c9be89d91354cb8ee50c8ee35afda31"
+  - path: "realization.yaml"
+    sha256: "8b1214bb7c55cd0c1d5b0f724fbfaa74c5bd1415b85b79f341d65202fd2376cd"
+  - path: "seams.yaml"
+    sha256: "ddb2561246a0e9d77c9e9ba6cce3f06bd636e19c2a9883fb53142f211ddabc9b"
+  - path: "units.yaml"
+    sha256: "aba9a4f9e7ee02f636e356ee6c05ab8b4e7fad5ca6ec1ee2cff279446a5b4816"
+digest: "d5e34081c365a214ba1f1307c9129ab3a05341e7e600499577663dbf1dd8b574"

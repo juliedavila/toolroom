@@ -1,0 +1,1264 @@
+# Jig edition 0.1.3. Generated; do not edit.
+edition: 0.1.3
+systems: 
+  []
+trust_zones: 
+  []
+elements: 
+  - id: secure-creation
+    name: "Jig (secure creation at the developer's edit)"
+    aliases: 
+      - Secure-creation loop
+      - Secure-creation companion
+    system: shared:EXT
+    level: container
+    kind: external-system
+    responsibility: "The organization's secure-creation loop, where developers and coding agents write code, drawn as its planes: the context plane that steers what the agent copies, the inner loop of the agent's turn, the commit and push boundary, the pull-request plane and the measurement plane. Ratchet is its learning plane. A sibling design that runs alone or beside this loop. Coding agents run inside it, so it is agent-reachable: it receives proven failure classes, road entries with a current assurance record, derived checks that report pass or fail and fix briefs, and never a kept regression, a proof condition, an expected-outcome hash or text an outsider wrote. Its controlled-environment premise is declared as assumptions, each with the parts that rely on it and a fallback that does not."
+    role_class: existing
+    trust_zone: shared:existing
+    agent_reachable: true
+    owner: null
+    module: secure-creation
+    assumptions: 
+      - id: managed-endpoints
+        statement: "Developer endpoints are managed: device management, endpoint detection, data-loss prevention and governance of agents and editor extensions."
+        relied_on_by: 
+          - harness-full-parity
+          - harness-no-pinning
+          - harness-no-stop-gate
+          - edit-checks
+          - stop-gate
+          - precommit-gate
+        fallback: "Rule 2 falls back to the server-side required checks: a local check that was skipped or reconfigured is caught at the protected branch, where rule 1 also holds."
+        fallback_by: 
+          - protected-branch
+      - id: mirrored-dependencies
+        statement: "Developers and their build jobs install dependencies only through the organization's mirrors."
+        relied_on_by: 
+          - p55-r8
+          - stop-gate
+        fallback: "The dependency policy runs again in the server-side required checks against the mirror's admission record, so a dependency from outside the mirror fails before merge."
+        fallback_by: 
+          - protected-branch
+      - id: code-from-engineers
+        statement: "Code in the organization's repositories arrives only from its own engineers, through the protected branch."
+        relied_on_by: 
+          - p55-r8
+        fallback: "Text from an outside contributor is outsider text: it reaches the coding agent only through the quarantined reader, and the change still merges only through the protected branch with an independent reviewer."
+        fallback_by: 
+          - quarantined-reader
+          - reader-schema-gate
+          - protected-branch
+      - id: locked-policy
+        statement: Policy files and hook configuration are delivered and locked centrally on every endpoint.
+        relied_on_by: 
+          - harness-full-parity
+          - harness-no-pinning
+          - harness-no-stop-gate
+          - edit-checks
+          - stop-gate
+          - precommit-gate
+        fallback: The same suite at the same versions runs as server-side required checks that the agent cannot skip or reconfigure.
+        fallback_by: 
+          - protected-branch
+          - check-suite
+  - id: context-plane
+    name: "Context plane: paved-road guidance and skills"
+    aliases: 
+      - Jig context plane
+    system: shared:EXT
+    level: component
+    parent: secure-creation
+    kind: registry
+    responsibility: "What the coding agent copies from: paved-road references in the codebase, a skill per paved road, short instruction files under code ownership, the security constraints written into the task's spec for high-risk work, and the diff-size budget per task. Steers toward proven classes and toward road entries whose assurance record is current. Holds proven classes until the policy-owning team turns each into a rule. Guidance only: instruction files are hygiene and enforce nothing. It keeps only the current version of each proven class, replacing any earlier spans and consequence tier when a class gains an open member. It exposes road assurance per entry version only as current or not current, with no class outcomes or failure or withdrawal reasons. The model provider is a reader through the coding agent's model route, and guidance sent on that route obeys the same projection limits."
+    role_class: existing
+    trust_zone: shared:existing
+    agent_reachable: true
+    unpartitioned: "Holds guidance (road references, skills, instruction files, spec constraints and proven classes as projected for this loop), never evidence content"
+    owner: Policy-owning team
+    module: secure-creation
+  - id: check-suite
+    name: Shared check suite and policy source
+    aliases: 
+      - One policy source
+      - Jig check suite
+    system: shared:EXT
+    level: component
+    parent: secure-creation
+    kind: registry
+    responsibility: "The one policy source, compiled into every harness's locked configuration, the git hooks and the server-side required checks, so the same checks at the same versions run at every point from the agent's turn to the pull request. Holds the rules (type checks, linters, diff-scoped analysis, secret scanning, dependency policy, authorization-pattern rules), the derived checks Ratchet sends, and each rule the policy-owning team turned from a proven class with its class test. Logs every derived check it drops or disables. It gates on a rule turned from a proven class only once a class test at the rule's version has passed (the rule caught every member it ran against, and ran against at least one), and until then the rule steers and reports. It receives only rule id, rule version and pass or fail for each class test, and passes only that binary result to the measurement plane; no per-class counts reach it."
+    role_class: existing
+    trust_zone: shared:existing
+    agent_reachable: true
+    unpartitioned: "Holds rules, check versions and binary class-test results, never per-class counts or evidence content"
+    owner: Policy-owning team
+    module: secure-creation
+  - id: inner-loop
+    name: "Inner loop: the agent's turn"
+    aliases: 
+      - Jig inner loop
+    system: shared:EXT
+    level: container
+    parent: secure-creation
+    kind: service
+    responsibility: "Where the coding agent works in a developer's session, inside a harness, with findings returned to the agent while it is still working and a gate before it may end its turn."
+    role_class: existing
+    trust_zone: shared:existing
+    agent_reachable: true
+    owner: Policy-owning team
+    module: secure-creation
+  - id: coding-agent
+    name: Coding agent session
+    aliases: 
+      - Coding agent
+    system: shared:EXT
+    level: component
+    parent: inner-loop
+    kind: service
+    responsibility: "Writes code in a developer's session. Reads repository code and mirrored dependencies, the context plane, the findings of the per-edit checks and the stop gate, fix briefs, and typed answers from the quarantined reader. It reads no outsider text itself: issue text, web pages and dependency documentation go to the reader. Its changes are proposals that merge only through the protected branch. Its egress goes only to approved model routes and the organization's mirrors."
+    role_class: producer
+    trust_zone: shared:existing
+    agent_reachable: true
+    holds_nonpublic: true
+    owner: Engineering owners (the developer whose session runs it)
+    module: secure-creation
+  - id: harness-full-parity
+    name: Coding harness with full parity (example)
+    aliases: 
+      - Harness example
+      - full parity
+    system: shared:EXT
+    level: component
+    parent: inner-loop
+    kind: service
+    responsibility: "A worked example of a coding harness that runs the agent under a locked managed policy, with blocking hooks, a stop gate, full session telemetry linked to each commit, and a pinned version."
+    role_class: existing
+    trust_zone: shared:existing
+    agent_reachable: true
+    harness: 
+      stop_gate: true
+      telemetry_export: full
+      version_pinning: true
+      blocking_hooks: true
+    owner: Policy-owning team
+    module: secure-creation
+  - id: harness-no-pinning
+    name: Coding harness without version pinning (example)
+    aliases: 
+      - Harness example
+      - no version pinning
+    system: shared:EXT
+    level: component
+    parent: inner-loop
+    kind: service
+    responsibility: "A worked example of a coding harness with locked requirements, hooks and a stop gate, partial session telemetry and no way to pin its own version, so the server-side run of the suite is the version of record for its changes."
+    role_class: existing
+    trust_zone: shared:existing
+    agent_reachable: true
+    harness: 
+      stop_gate: true
+      telemetry_export: partial
+      version_pinning: false
+      blocking_hooks: true
+    owner: Policy-owning team
+    module: secure-creation
+  - id: harness-no-stop-gate
+    name: Coding harness without a stop gate (example)
+    aliases: 
+      - Harness example
+      - no stop gate
+    system: shared:EXT
+    level: component
+    parent: inner-loop
+    kind: service
+    responsibility: "A worked example of a coding harness with blocking hooks, no stop gate and no telemetry export. The same suite runs at commit through the locked pre-commit gate in place of the stop gate, and its changes count as unlabeled in every provenance measure."
+    role_class: existing
+    trust_zone: shared:existing
+    agent_reachable: true
+    harness: 
+      stop_gate: false
+      telemetry_export: none
+      version_pinning: false
+      blocking_hooks: true
+      stop_gate_compensated_by: precommit-gate
+    owner: Policy-owning team
+    module: secure-creation
+  - id: edit-checks
+    name: Per-edit checks
+    system: shared:EXT
+    level: component
+    parent: inner-loop
+    kind: service
+    responsibility: "Type checks, linters, fast secure-pattern rules and the derived checks that fit the per-edit budget, run on each edit with the results returned to the agent's context. A derived check reports pass or fail and its fixed message only."
+    role_class: existing
+    trust_zone: shared:existing
+    agent_reachable: true
+    decision: deterministic
+    owner: Policy-owning team
+    module: secure-creation
+  - id: stop-gate
+    name: Stop gate
+    system: shared:EXT
+    level: component
+    parent: inner-loop
+    kind: service
+    responsibility: "Holds the agent's turn open until the deterministic suite passes on its diff: tests, diff-scoped analysis, secret scanning, the dependency policy against the mirror, authorization-pattern rules and derived checks."
+    role_class: existing
+    trust_zone: shared:existing
+    agent_reachable: true
+    decision: deterministic
+    owner: Policy-owning team
+    module: secure-creation
+    not_harness: "Holds the coding agent's turn open until the deterministic suite passes on its diff, and sends the agent only the suite's result; it runs no agent session of its own, so it has no harness parity to declare."
+  - id: quarantined-reader
+    name: Quarantined reader for outside text
+    aliases: 
+      - Jig quarantined reader
+    system: shared:EXT
+    level: component
+    parent: secure-creation
+    kind: service
+    responsibility: "The only place in the loop where outside text is read by a model: issue and review text, web pages, public issue threads and dependency documentation. A tool-less model session with no repository access, no write path and no shared context with the coding agent. It answers the agent's typed question in the question's schema, and its answer reaches the agent only through the reader's schema gate."
+    role_class: producer
+    trust_zone: shared:existing
+    owner: Policy-owning team
+    module: secure-creation
+  - id: reader-schema-gate
+    name: Reader schema gate
+    system: shared:EXT
+    level: component
+    parent: secure-creation
+    kind: gateway
+    responsibility: "Validates each reader answer against its question's schema with no model call, and passes only typed fields: package and version identifiers, API names and signatures, error codes and links. Prose does not pass; an agent that needs prose from outside asks the developer, who reads it."
+    role_class: existing
+    trust_zone: shared:existing
+    decision: deterministic
+    owner: Policy-owning team
+    module: secure-creation
+  - id: model-routes
+    name: Model routes for coding agents and reviewers
+    system: shared:EXT
+    level: component
+    parent: secure-creation
+    kind: external-system
+    responsibility: "The approved model endpoints the harnesses, the AI reviewer, triage, the hunk-risk advisor and autofix call, each call in its own session. No outside text reaches these sessions, so a response carries no outsider label. The quarantined reader calls a route of its own."
+    role_class: existing
+    trust_zone: shared:third-party
+    owner: null
+    module: secure-creation
+  - id: reader-model-route
+    name: Model route for the quarantined reader
+    system: shared:EXT
+    level: component
+    parent: secure-creation
+    kind: external-system
+    responsibility: "The model route the quarantined reader calls, kept apart from the routes the coding agent and the reviewers call: its own credentials and sessions, no tools, no knowledge base and no context shared with any other session. Its requests carry outside text, so every response it returns keeps the outsider label of the request it answers."
+    role_class: existing
+    trust_zone: shared:third-party
+    owner: null
+    module: secure-creation
+  - id: repository
+    name: Repositories and mirrored dependencies
+    system: shared:EXT
+    level: component
+    parent: secure-creation
+    kind: store
+    responsibility: "The organization's repositories as merged through the protected branch, and the dependencies admitted to its mirrors, as the session's checkout sees them."
+    role_class: existing
+    trust_zone: shared:existing
+    agent_reachable: true
+    partitioned_by: 
+      - repository
+      - branch
+    owner: Engineering owners
+    module: secure-creation
+  - id: change-boundary
+    name: Commit and push boundary
+    system: shared:EXT
+    level: container
+    parent: secure-creation
+    kind: service
+    responsibility: "Where each change is checked again with the same suite, stamped with its provenance and proposed for merge."
+    role_class: existing
+    trust_zone: shared:existing
+    owner: Policy-owning team
+    module: secure-creation
+  - id: precommit-gate
+    name: Locked pre-commit gate
+    system: shared:EXT
+    level: component
+    parent: change-boundary
+    kind: service
+    responsibility: "Runs the same suite at the same versions on each commit, from a hook path set and locked by endpoint management. For a harness without a stop gate, it is where the suite runs in the stop gate's place."
+    role_class: existing
+    trust_zone: shared:existing
+    agent_reachable: true
+    decision: deterministic
+    owner: Policy-owning team
+    module: secure-creation
+  - id: provenance-stamper
+    name: Provenance stamper
+    system: shared:EXT
+    level: component
+    parent: change-boundary
+    kind: service
+    responsibility: "Attaches a signed provenance stamp to each change from the harness's session telemetry: tool and version, model and version, session and skill-bundle hash. A change from a harness that exports no telemetry carries no stamp and counts as unlabeled. The stamp feeds measurement and routing and grants no trust."
+    role_class: existing
+    trust_zone: shared:existing
+    owner: Policy-owning team
+    module: secure-creation
+  - id: protected-branch
+    name: Protected branch and server-side required checks
+    system: shared:EXT
+    level: component
+    parent: change-boundary
+    kind: service
+    responsibility: "The only way a change merges: the same suite runs server-side as required checks that the agent cannot skip or reconfigure, and a person who is neither the agent nor its session's developer approves and merges. High-risk hunks also need the sign-off of a qualified person outside the authoring team. Its settings are a requirement, and a declared premise with a test and a fallback: each required check is tied to the app that reports it, the rule is enforced for repository administrators, and no agent identity holds administrator rights or any way to set a check's status. The backstop for a skipped local check and the fallback for every endpoint assumption."
+    role_class: existing
+    trust_zone: shared:existing
+    decision: deterministic
+    owner: Policy-owning team
+    module: secure-creation
+  - id: pr-plane
+    name: Pull-request plane
+    system: shared:EXT
+    level: container
+    parent: secure-creation
+    kind: service
+    responsibility: "Deep checks on each proposed change and focused human attention: diff-scoped analysis, model triage, review by a second model family, routing of hunks by risk, and autofix that shows only validated patches."
+    role_class: existing
+    trust_zone: shared:existing
+    owner: Policy-owning team
+    module: secure-creation
+  - id: pr-analysis
+    name: Diff-scoped deep analysis
+    system: shared:EXT
+    level: component
+    parent: pr-plane
+    kind: service
+    responsibility: "Runs deep data-flow analysis scoped to the diff of each proposed change, with no model call. Its findings are leads, held to an effective false-positive rate under the bar the organization sets."
+    role_class: existing
+    trust_zone: shared:existing
+    decision: deterministic
+    owner: Policy-owning team
+    module: secure-creation
+  - id: pr-triage
+    name: Model triage of pull-request findings
+    system: shared:EXT
+    level: component
+    parent: pr-plane
+    kind: service
+    responsibility: "Labels each analysis finding for the reviewer's view. A label orders what the reviewer reads first; it never removes a finding from a hunk routed to a person, and it travels to Ratchet as a label on the lead."
+    role_class: producer
+    trust_zone: shared:existing
+    owner: Policy-owning team
+    module: secure-creation
+  - id: ai-reviewer
+    name: AI reviewer from a second model family
+    system: shared:EXT
+    level: component
+    parent: pr-plane
+    kind: service
+    responsibility: "Reviews each diff with a model family other than the author's. Its comments are leads and never the independent review."
+    role_class: producer
+    trust_zone: shared:existing
+    owner: Policy-owning team
+    module: secure-creation
+  - id: hunk-router
+    name: Hunk router
+    system: shared:EXT
+    level: component
+    parent: pr-plane
+    kind: service
+    responsibility: "Routes each hunk by rule, with no model call: a hunk whose paths, owners or rule matches touch authorization, cryptography, data access or money goes to a qualified person with the spec and findings attached, and every other hunk goes to the lighter pass. The hunk-risk advisor may add hunks to the human route; nothing it sends can move a hunk off it."
+    role_class: existing
+    trust_zone: shared:existing
+    decision: deterministic
+    routes_by_rule: true
+    owner: Policy-owning team
+    module: secure-creation
+  - id: hunk-risk-advisor
+    name: Hunk-risk advisor
+    system: shared:EXT
+    level: component
+    parent: pr-plane
+    kind: service
+    responsibility: "A model that reads the hunks the rules left on the lighter pass and names any it judges high-risk, with its reason. Its output can only add a hunk to the human route."
+    role_class: producer
+    trust_zone: shared:existing
+    owner: Policy-owning team
+    module: secure-creation
+  - id: autofix
+    name: Autofix
+    system: shared:EXT
+    level: component
+    parent: pr-plane
+    kind: service
+    responsibility: Proposes patches for analysis findings and abstains when unsure. Shows a patch only when the suite passes on the patched diff; the reviewer decides whether to apply it.
+    role_class: producer
+    trust_zone: shared:existing
+    owner: Policy-owning team
+    module: secure-creation
+  - id: measurement-plane
+    name: Measurement plane and layer log
+    system: shared:EXT
+    level: component
+    parent: secure-creation
+    kind: service
+    responsibility: "Logs where each layer caught what, sends findings to Ratchet as leads before triage with the dropped-check log, and reports outcomes to the people who decide: escaped defects per change by origin on the reproduced tier, reviewer approval drift, catch rate per layer and per rule, each on cohorts whose reproduction window has closed. The layer that should have caught each defect comes from Ratchet's evaluation group, never from this plane. It shows the policy-owning team each derived check's misses against its floor as Ratchet counted them, beside its own log of checks dropped or disabled; it never receives which changes missed or what a replay found. For class tests it receives and reports only rule id, rule version and pass or fail, never per-class counts; those go from the regression catalog directly to the policy-owning team: people, never an agent."
+    role_class: existing
+    trust_zone: shared:existing
+    decision: deterministic
+    owner: Secure-creation measurement owner (outside the reviewer teams)
+    module: secure-creation
+  - id: outside-text
+    name: Text from outside the organization
+    system: shared:EXT
+    level: external
+    kind: external-system
+    responsibility: "Web pages, public issue threads and dependency documentation that a coding session needs to consult. Anyone may have written it."
+    role_class: existing
+    trust_zone: shared:third-party
+    owner: null
+    module: secure-creation
+  - id: people.creation-developer
+    name: Developer whose session runs the coding agent
+    system: shared:PEOPLE
+    level: actor
+    kind: person
+    responsibility: "Gives the coding agent its task and, for high-risk work, writes or signs the spec its acceptance tests derive from. Co-author of every change the session produces, so never the person who merges it."
+    role_class: human
+    trust_zone: null
+    owner: null
+    module: secure-creation
+  - id: people.change-reviewer
+    name: Reviewer who merges agent-written changes
+    system: shared:PEOPLE
+    level: actor
+    kind: person
+    responsibility: "Reviews and merges a change written by an agent and a developer, being neither. Reads the triage-labeled findings, the AI reviewer's comments and the lighter-pass hunks."
+    role_class: human
+    trust_zone: null
+    owner: null
+    module: secure-creation
+  - id: people.high-risk-reviewer
+    name: Qualified reviewer of high-risk hunks
+    system: shared:PEOPLE
+    level: actor
+    kind: person
+    responsibility: "A person outside the authoring team, qualified for the area, who signs off each hunk routed to a person, with the spec and findings attached."
+    role_class: human
+    trust_zone: null
+    owner: null
+    module: secure-creation
+  - id: people.creation-policy-owner
+    name: Policy-owning team
+    system: shared:PEOPLE
+    level: actor
+    kind: person
+    responsibility: "Owns the one policy source and the locked configuration it compiles into every harness. Turns each proven class into a rule, or records why it cannot yet, and has each rule tested against the class's reproduced members. Publishes the skills and instruction files for each paved road. Receives per-class test totals directly from the regression catalog for the policy-owning team: people, never an agent. Keeps those counts out of every agent-reachable part, published rule, guidance, report and model route."
+    role_class: human
+    trust_zone: null
+    owner: null
+    module: secure-creation
+relationships: 
+  - id: p55-r1
+    from: people.creation-developer
+    to: coding-agent
+    label: "Task for the session, with the spec a person wrote or signed for high-risk work"
+    carries: 
+      []
+    kind: control
+    optional: false
+  - id: p55-r2
+    from: harness-full-parity
+    to: coding-agent
+    label: "Runs the session under the locked managed policy, with blocking hooks and a stop gate"
+    carries: 
+      []
+    kind: control
+    optional: false
+  - id: p55-r3
+    from: harness-no-pinning
+    to: coding-agent
+    label: "Runs the session under its locked requirements, with hooks and a stop gate, at a version it cannot pin"
+    carries: 
+      []
+    kind: control
+    optional: false
+  - id: p55-r4
+    from: harness-no-stop-gate
+    to: coding-agent
+    label: Runs the session with blocking hooks and no stop gate
+    carries: 
+      []
+    kind: control
+    optional: false
+  - id: p55-r5
+    from: coding-agent
+    to: model-routes
+    label: "The session's prompts: repository code, guidance, check results and typed answers; never outsider text"
+    carries: 
+      []
+    kind: inference
+    optional: false
+  - id: p55-r6
+    from: model-routes
+    to: coding-agent
+    label: Model output for the session
+    carries: 
+      []
+    kind: inference
+    optional: false
+  - id: p55-r7
+    from: context-plane
+    to: coding-agent
+    label: "Paved-road references, skills, instruction files and the task's security constraints"
+    carries: 
+      []
+    kind: data
+    optional: false
+  - id: p55-r8
+    from: repository
+    to: coding-agent
+    label: "Repository code and mirrored dependencies in the session's checkout"
+    carries: 
+      []
+    kind: data
+    optional: false
+  - id: p55-r9
+    from: coding-agent
+    to: quarantined-reader
+    label: "A typed question about outside text: what to look up and which fields to return"
+    carries: 
+      []
+    kind: control
+    optional: false
+  - id: p55-r75
+    from: quarantined-reader
+    to: reader-model-route
+    label: "The outside text and the typed question, in a tool-less session of the reader's own"
+    carries: 
+      []
+    kind: inference
+    optional: false
+  - id: p55-r76
+    from: reader-model-route
+    to: quarantined-reader
+    label: "Model output for the question, which keeps the outsider label of the text it read"
+    carries: 
+      []
+    kind: inference
+    optional: false
+    content: untrusted
+  - id: p55-r11
+    from: outside-text
+    to: quarantined-reader
+    label: "Web pages, public issue threads and dependency documentation"
+    carries: 
+      []
+    kind: data
+    optional: false
+    content: untrusted
+  - id: p55-r12
+    from: quarantined-reader
+    to: reader-schema-gate
+    label: "The reader's answer in the question's schema"
+    carries: 
+      []
+    kind: data
+    optional: false
+  - id: p55-r13
+    from: reader-schema-gate
+    to: coding-agent
+    label: "Typed answer only: package and version identifiers, API names and signatures, error codes and links; no prose"
+    carries: 
+      []
+    kind: data
+    optional: false
+    content: structured
+    cleared_by: 
+      by: reader-schema-gate
+      check: "Answer validated against the question's schema with no model call; only fields constrained to identifiers, versions, signatures, codes and links pass, and free text is dropped"
+  - id: p55-r14
+    from: coding-agent
+    to: edit-checks
+    label: "Each edit, for checking"
+    carries: 
+      []
+    kind: data
+    optional: false
+  - id: p55-r15
+    from: edit-checks
+    to: coding-agent
+    label: Findings on each edit within the per-edit budget; a derived check reports pass or fail and its fixed message
+    carries: 
+      []
+    kind: feedback
+    optional: false
+  - id: p55-r16
+    from: coding-agent
+    to: stop-gate
+    label: "The turn's diff when the agent declares it is done"
+    carries: 
+      []
+    kind: data
+    optional: false
+  - id: p55-r17
+    from: stop-gate
+    to: coding-agent
+    label: Holds the turn open until the suite passes on the diff
+    carries: 
+      []
+    kind: control
+    optional: false
+  - id: p55-r18
+    from: harness-full-parity
+    to: stop-gate
+    label: Calls the stop gate before the agent may end its turn
+    carries: 
+      []
+    kind: control
+    optional: false
+  - id: p55-r19
+    from: harness-no-pinning
+    to: stop-gate
+    label: Calls the stop gate before the agent may end its turn
+    carries: 
+      []
+    kind: control
+    optional: false
+  - id: p55-r20
+    from: harness-no-stop-gate
+    to: precommit-gate
+    label: "No stop gate: the same suite runs at each commit through the locked pre-commit gate"
+    carries: 
+      []
+    kind: control
+    optional: false
+  - id: p55-r21
+    from: check-suite
+    to: edit-checks
+    label: Per-edit rules and derived checks at pinned versions from the one policy source
+    carries: 
+      []
+    kind: data
+    optional: false
+  - id: p55-r22
+    from: check-suite
+    to: stop-gate
+    label: "The full deterministic suite, derived checks included"
+    carries: 
+      []
+    kind: data
+    optional: false
+  - id: p55-r23
+    from: check-suite
+    to: precommit-gate
+    label: The same suite at the same versions
+    carries: 
+      []
+    kind: data
+    optional: false
+  - id: p55-r24
+    from: check-suite
+    to: protected-branch
+    label: "The same suite, run server-side as required checks"
+    carries: 
+      []
+    kind: data
+    optional: false
+  - id: p55-r25
+    from: check-suite
+    to: harness-full-parity
+    label: Locked managed policy and hook configuration compiled from the policy source
+    carries: 
+      []
+    kind: control
+    optional: false
+  - id: p55-r26
+    from: check-suite
+    to: harness-no-pinning
+    label: Locked requirements and hook configuration compiled from the policy source
+    carries: 
+      []
+    kind: control
+    optional: false
+  - id: p55-r27
+    from: check-suite
+    to: harness-no-stop-gate
+    label: Hook configuration compiled from the policy source
+    carries: 
+      []
+    kind: control
+    optional: false
+  - id: p55-r28
+    from: people.creation-policy-owner
+    to: check-suite
+    label: "Publishes each rule, including each rule turned from a proven class with its class test"
+    carries: 
+      - shared:CreationRule
+    kind: control
+    optional: false
+  - id: p55-r29
+    from: people.creation-policy-owner
+    to: context-plane
+    label: Publishes the skills and instruction files for each paved road
+    carries: 
+      []
+    kind: control
+    optional: false
+  - id: p55-r30
+    from: context-plane
+    to: people.creation-policy-owner
+    label: Proven classes with no rule yet
+    carries: 
+      - shared:ProvenClass
+    kind: data
+    optional: false
+  - id: p55-r33
+    from: coding-agent
+    to: precommit-gate
+    label: Each commit from the session
+    carries: 
+      []
+    kind: data
+    optional: false
+  - id: p55-r34
+    from: coding-agent
+    to: protected-branch
+    label: "Each change, pushed as a proposal; it merges only through the protected branch"
+    carries: 
+      []
+    kind: proposal
+    optional: false
+  - id: p55-r35
+    from: harness-full-parity
+    to: provenance-stamper
+    label: "Session telemetry: tool and version, model and version, session and skill-bundle hash"
+    carries: 
+      []
+    kind: data
+    optional: false
+  - id: p55-r36
+    from: harness-no-pinning
+    to: provenance-stamper
+    label: Partial session telemetry
+    carries: 
+      []
+    kind: data
+    optional: false
+  - id: p55-r37
+    from: provenance-stamper
+    to: protected-branch
+    label: Signed provenance stamp on each change
+    carries: 
+      - shared:ProvenanceStamp
+    kind: data
+    optional: false
+  - id: p55-r38
+    from: people.change-reviewer
+    to: protected-branch
+    label: Approves and merges a change it did not author
+    carries: 
+      []
+    kind: authorization
+    optional: false
+  - id: p55-r39
+    from: people.high-risk-reviewer
+    to: protected-branch
+    label: Signs off each high-risk hunk routed to a person
+    carries: 
+      []
+    kind: authorization
+    optional: false
+  - id: p55-r40
+    from: protected-branch
+    to: repository
+    label: Merged changes
+    carries: 
+      []
+    kind: change
+    optional: false
+  - id: p55-r41
+    from: protected-branch
+    to: pr-analysis
+    label: The diff of each proposed change
+    carries: 
+      []
+    kind: data
+    optional: false
+  - id: p55-r42
+    from: pr-analysis
+    to: pr-triage
+    label: Findings from deep diff-scoped analysis
+    carries: 
+      []
+    kind: data
+    optional: false
+  - id: p55-r43
+    from: pr-triage
+    to: model-routes
+    label: "Findings with their code context, for labeling"
+    carries: 
+      []
+    kind: inference
+    optional: false
+  - id: p55-r44
+    from: model-routes
+    to: pr-triage
+    label: Triage labels
+    carries: 
+      []
+    kind: inference
+    optional: false
+  - id: p55-r45
+    from: pr-triage
+    to: people.change-reviewer
+    label: "Findings with triage labels, which order the view and never remove a finding from a hunk routed to a person"
+    carries: 
+      []
+    kind: data
+    optional: false
+  - id: p55-r46
+    from: protected-branch
+    to: ai-reviewer
+    label: "The diff, for review by a model family other than the author's"
+    carries: 
+      []
+    kind: data
+    optional: false
+  - id: p55-r47
+    from: ai-reviewer
+    to: model-routes
+    label: "The diff and its context, for review"
+    carries: 
+      []
+    kind: inference
+    optional: false
+  - id: p55-r48
+    from: model-routes
+    to: ai-reviewer
+    label: Review output
+    carries: 
+      []
+    kind: inference
+    optional: false
+  - id: p55-r49
+    from: ai-reviewer
+    to: people.change-reviewer
+    label: "Review comments, as leads"
+    carries: 
+      []
+    kind: data
+    optional: false
+  - id: p55-r50
+    from: protected-branch
+    to: hunk-router
+    label: "Each hunk with its paths, owners and the rule matches on it"
+    carries: 
+      []
+    kind: data
+    optional: false
+  - id: p55-r51
+    from: hunk-router
+    to: people.high-risk-reviewer
+    label: "Hunks touching authorization, cryptography, data access or money, with the spec and findings attached"
+    carries: 
+      []
+    kind: data
+    optional: false
+  - id: p55-r52
+    from: hunk-router
+    to: people.change-reviewer
+    label: "Every other hunk, for the lighter pass"
+    carries: 
+      []
+    kind: data
+    optional: false
+  - id: p55-r53
+    from: hunk-router
+    to: hunk-risk-advisor
+    label: The hunks the rules left on the lighter pass
+    carries: 
+      []
+    kind: data
+    optional: false
+  - id: p55-r54
+    from: hunk-risk-advisor
+    to: model-routes
+    label: "Hunks and their context, for a risk reading"
+    carries: 
+      []
+    kind: inference
+    optional: false
+  - id: p55-r55
+    from: model-routes
+    to: hunk-risk-advisor
+    label: Risk reading per hunk
+    carries: 
+      []
+    kind: inference
+    optional: false
+  - id: p55-r56
+    from: hunk-risk-advisor
+    to: hunk-router
+    label: "Hunks to add to the human route, with the reason; it cannot name a hunk to take off"
+    carries: 
+      - HunkRouteAdvice
+    kind: data
+    optional: false
+    add_only: true
+  - id: p55-r57
+    from: pr-analysis
+    to: autofix
+    label: Findings with a candidate fix
+    carries: 
+      []
+    kind: data
+    optional: false
+  - id: p55-r58
+    from: autofix
+    to: model-routes
+    label: "Finding and code context, for a patch"
+    carries: 
+      []
+    kind: inference
+    optional: false
+  - id: p55-r59
+    from: model-routes
+    to: autofix
+    label: Candidate patch
+    carries: 
+      []
+    kind: inference
+    optional: false
+  - id: p55-r60
+    from: autofix
+    to: people.change-reviewer
+    label: "Patches that passed the suite on the patched diff, shown as suggestions; the rest are withheld"
+    carries: 
+      []
+    kind: proposal
+    optional: false
+  - id: p55-r61
+    from: edit-checks
+    to: measurement-plane
+    label: "Findings caught at each edit, by rule and version"
+    carries: 
+      []
+    kind: observation
+    optional: false
+  - id: p55-r62
+    from: stop-gate
+    to: measurement-plane
+    label: Stop-gate results per turn
+    carries: 
+      []
+    kind: observation
+    optional: false
+  - id: p55-r63
+    from: precommit-gate
+    to: measurement-plane
+    label: Pre-commit results per commit
+    carries: 
+      []
+    kind: observation
+    optional: false
+  - id: p55-r64
+    from: pr-analysis
+    to: measurement-plane
+    label: Pull-request findings before triage
+    carries: 
+      []
+    kind: observation
+    optional: false
+  - id: p55-r65
+    from: pr-triage
+    to: measurement-plane
+    label: "Triage labels, kept as labels on the leads"
+    carries: 
+      []
+    kind: observation
+    optional: false
+  - id: p55-r66
+    from: ai-reviewer
+    to: measurement-plane
+    label: "AI review comments, as leads"
+    carries: 
+      []
+    kind: observation
+    optional: false
+  - id: p55-r67
+    from: protected-branch
+    to: measurement-plane
+    label: "Review outcomes per reviewer, merges, required-check results and the route each hunk took"
+    carries: 
+      []
+    kind: observation
+    optional: false
+  - id: p55-r68
+    from: check-suite
+    to: measurement-plane
+    label: "Every derived check dropped or disabled, with who and why, and only pass or fail per class-rule version"
+    carries: 
+      - shared:DroppedCheck
+      - shared:ClassTestCount
+    kind: observation
+    optional: false
+  - id: p55-r71
+    from: measurement-plane
+    to: people.creation-developer
+    label: "Escaped defects per merged change from the developer's sessions, on the reproduced tier with the check-confirmed tier beside it, and the share of the agent's own fixes that held"
+    carries: 
+      - CreationOutcome
+    kind: feedback
+    optional: false
+  - id: p55-r72
+    from: measurement-plane
+    to: people.change-reviewer
+    label: "The reviewer's own approval drift on agent-written changes, and seeded changes caught where seeds run"
+    carries: 
+      - ReviewerDrift
+    kind: feedback
+    optional: false
+  - id: p55-r73
+    from: measurement-plane
+    to: people.high-risk-reviewer
+    label: "The reviewer's own approval drift on high-risk hunks, and seeded changes caught where seeds run"
+    carries: 
+      - ReviewerDrift
+    kind: feedback
+    optional: false
+  - id: p55-r74
+    from: measurement-plane
+    to: people.creation-policy-owner
+    label: "Catch rate per layer and per rule, effective false-positive rate per surface, only pass or fail per class-rule version, and derived-check misses against their floor; no per-class counts"
+    carries: 
+      - LayerCatchRate
+      - shared:DerivedCheckMisses
+      - shared:ClassTestCount
+    kind: feedback
+    optional: false
+contracts: 
+  - name: HunkRouteAdvice
+    description: "A model's advice to put hunks on the human route. It can only add: it names hunks and a reason, and carries no way to lower a route."
+    fields: 
+      - name: change_id
+        type: id
+        required: true
+      - name: hunk_ids
+        type: list
+        of: id
+        required: true
+        description: Hunks to add to the human route
+      - name: reason
+        type: enum
+        values: 
+          - authorization
+          - cryptography
+          - data-access
+          - money
+          - other
+        required: true
+      - name: advisor_version
+        type: string
+        required: true
+    produced_by: 
+      - hunk-risk-advisor
+    consumed_by: 
+      - hunk-router
+    module: secure-creation
+  - name: CreationOutcome
+    measures: "Per author (the agent with the person whose session produced the change): escaped defects per merged change on the reproduced tier, with the check-confirmed tier beside it, and the share of the agent's own fixes that held, each with interval and sample size, on cohorts whose reproduction window has closed"
+    description: "What a developer's sessions produced, as it turned out. Shown only to that developer; managers see pooled rates. A window with too few merged changes reads too few to call."
+    produced_by: 
+      - measurement-plane
+    consumed_by: 
+      - people.creation-developer
+    module: secure-creation
+  - name: ReviewerDrift
+    measures: "Per reviewer of agent-written changes: approval rate and comment rate over the window against that reviewer's own baseline, and seeded known-bad changes caught over those received where seeds run, each with interval and sample size"
+    description: "How a reviewer's decisions on agent-written changes are drifting. Reported by a team other than the reviewers' own; which changes were seeds is never shown to a reviewer. Only the measurement plane writes it; the seeded catches in it come from Ratchet's evaluation as a record of their own."
+    produced_by: 
+      - measurement-plane
+    consumed_by: 
+      - people.change-reviewer
+      - people.high-risk-reviewer
+    module: secure-creation
+  - name: LayerCatchRate
+    measures: "Per layer and per rule: defects caught over defects assigned to that layer and effective false-positive rate per surface, with interval and sample size on closed cohorts; class-test member counts are excluded"
+    description: How well each layer and each rule catches what it is meant to catch. The layer that should have caught each defect is assigned outside the loop. Class tests travel separately as pass or fail per rule version; per-class totals never enter this plane.
+    produced_by: 
+      - measurement-plane
+    consumed_by: 
+      - people.creation-policy-owner
+    module: secure-creation
+views: 
+  - id: creation-loop
+    title: "Jig's planes, harnesses and coding agent are parts of the model, and outside text reaches the agent only through the reader and its schema gate"
+    level: component
+    elements: 
+      - secure-creation
+      - context-plane
+      - check-suite
+      - inner-loop
+      - coding-agent
+      - harness-full-parity
+      - harness-no-pinning
+      - harness-no-stop-gate
+      - edit-checks
+      - stop-gate
+      - quarantined-reader
+      - reader-schema-gate
+      - model-routes
+      - reader-model-route
+      - repository
+      - change-boundary
+      - precommit-gate
+      - provenance-stamper
+      - protected-branch
+      - pr-plane
+      - pr-analysis
+      - pr-triage
+      - ai-reviewer
+      - hunk-router
+      - hunk-risk-advisor
+      - autofix
+      - measurement-plane
+      - outside-text
+      - shared:ext.engineering-workflows
+      - people.creation-developer
+      - people.change-reviewer
+      - people.high-risk-reviewer
+      - people.creation-policy-owner
+      - ratchet:s5.failure-class-registry
+      - ratchet:s6.regression-catalog
+      - ratchet:s6.paved-road-catalog
+      - ratchet:s5.road-assurance-record
+      - ratchet:s5.fix-brief-builder
+      - ratchet:s1.tool-signal-intake
+      - ratchet:s7.tool-yield-evaluator
+      - ratchet:s7.road-adoption-telemetry
+    relationships: 
+      - shared:p30-r1
+      - shared:p30-r2
+      - shared:p30-r3
+      - shared:p30-r4
+      - shared:p30-r5
+      - shared:p30-r9
+      - shared:p40-r5
+      - p55-r1
+      - p55-r2
+      - p55-r3
+      - p55-r4
+      - p55-r5
+      - p55-r6
+      - p55-r7
+      - p55-r8
+      - p55-r9
+      - shared:p55-r10
+      - p55-r11
+      - p55-r12
+      - p55-r13
+      - p55-r14
+      - p55-r15
+      - p55-r16
+      - p55-r17
+      - p55-r18
+      - p55-r19
+      - p55-r20
+      - p55-r21
+      - p55-r22
+      - p55-r23
+      - p55-r24
+      - p55-r25
+      - p55-r26
+      - p55-r27
+      - p55-r28
+      - p55-r29
+      - p55-r30
+      - shared:p55-r31
+      - shared:p55-r32
+      - p55-r33
+      - p55-r34
+      - p55-r35
+      - p55-r36
+      - p55-r37
+      - p55-r38
+      - p55-r39
+      - p55-r40
+      - p55-r41
+      - p55-r42
+      - p55-r43
+      - p55-r44
+      - p55-r45
+      - p55-r46
+      - p55-r47
+      - p55-r48
+      - p55-r49
+      - p55-r50
+      - p55-r51
+      - p55-r52
+      - p55-r53
+      - p55-r54
+      - p55-r55
+      - p55-r56
+      - p55-r57
+      - p55-r58
+      - p55-r59
+      - p55-r60
+      - p55-r61
+      - p55-r62
+      - p55-r63
+      - p55-r64
+      - p55-r65
+      - p55-r66
+      - p55-r67
+      - p55-r68
+      - shared:p55-r69
+      - shared:p55-r70
+      - p55-r71
+      - p55-r72
+      - p55-r73
+      - p55-r74
+      - p55-r75
+      - p55-r76
+  - id: creation-control
+    title: "What the verifier and the intake validator observe lands only in the partitioned evidence store, the seeded catch rate reaches only its listed gate roles, and the parts that steer the coding agent declare whether they are harnesses"
+    level: component
+    elements: 
+      - ratchet:s5.independent-verifier
+      - ratchet:s5.evidence-intake-validator
+      - ratchet:s5.protected-evidence-store
+      - ratchet:s7.sampling-service
+      - ratchet:people.accountable-authorities
+      - ratchet:people.scenario-owner
+      - ratchet:people.independent-security-staff
+      - people.creation-developer
+      - harness-full-parity
+      - harness-no-pinning
+      - harness-no-stop-gate
+      - stop-gate
+      - coding-agent
+    relationships: 
+      - ratchet:r042
+      - ratchet:r071
+      - ratchet:p54-r1
+      - ratchet:p54-r3
+      - ratchet:p54-r4
+      - p55-r1
+      - p55-r2
+      - p55-r3
+      - p55-r4
+      - p55-r17
+  - id: receiving-obligations
+    title: Creation receiving obligations
+    level: component
+    elements: 
+      - context-plane
+      - check-suite
+    relationships: 
+      []
+seams: 
+  []

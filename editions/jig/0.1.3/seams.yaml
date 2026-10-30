@@ -1,0 +1,2453 @@
+# Shared layer 0.1.1. Generated; do not edit.
+namespace: shared
+version: 0.1.1
+schema: 
+  model: 5
+  design_engine: "0.4"
+systems: 
+  - id: EXT
+    name: Existing enterprise systems and authority
+    kind: existing
+    description: "Existing estate, engineering workflows, SOC and approved third-party endpoints that the validation systems reuse rather than replace."
+  - id: PEOPLE
+    name: Accountable people and roles
+    kind: people
+    description: "Engineering, security, IAM, SOC and risk: define scope, approve effects, accept evidence."
+zones: 
+  - id: existing
+    name: Existing enterprise operations
+    description: CI/releases retain change control; SOC preserves independent observations. Model provider egress occurs only through S4 eligible routes.
+  - id: third-party
+    name: Third-party inference boundary
+    description: Conditional access to contracted hosted frontier endpoints.
+parts: 
+  - id: ext.engineering-workflows
+    name: Existing engineering workflows
+    aliases: 
+      - Existing enterprise operations
+    system: EXT
+    level: external
+    kind: external-system
+    responsibility: PR / CI / ticket / release / rollback. These remain the change and deployment path.
+    role_class: existing
+    trust_zone: existing
+    owner: Engineering system owner
+    assumptions: 
+      - id: regression-stage-unread
+        owners: 
+          - side: shared:ext.engineering-workflows
+            role: Engineering system owner
+            identity: null
+          - side: ratchet:s6.enterprise-adapters
+            role: Platform integration owner
+            identity: null
+          - side: shared:p14-r12
+            role: Platform integration owner
+            identity: null
+          - side: shared:p14-r12
+            role: Engineering system owner
+            identity: null
+          - side: ratchet:p24-r2
+            role: Policy/IAM + execution-cell/SRE team
+            identity: null
+          - side: ratchet:p24-r2
+            role: Platform integration owner
+            identity: null
+          - side: ratchet:s6.regression-catalog
+            role: Domain test team + CI/context owners
+            identity: null
+          - side: ratchet:s6.retest-regression-planner
+            role: Domain test team + CI/context owners
+            identity: null
+        statement: "Coding agents cannot read the regression stage's tests, expected outcomes, window bundle or logs, or any result beyond pass or fail: in the pipeline that runs a kept regression, an agent's session, and any job an agent can start or change, is refused when it reads any of them."
+        relied_on_by: 
+          - ratchet:s6.enterprise-adapters
+          - p14-r12
+          - ratchet:p24-r2
+        fallback: "Kept regressions leave the owning pipeline and run only in Ratchet's own replay: the regression catalog takes every kept test out of the pipeline's stage, and the retest planner runs each one in Ratchet's execution cells under the normal authorization envelope on every change that touches its declared dependencies. No test, expected outcome or log then sits where an agent can read it. Until the premise holds again, the pipeline no longer holds a deploy on a kept test, so a reintroduction is found after the deploy."
+        fallback_by: 
+          - ratchet:s6.regression-catalog
+          - ratchet:s6.retest-regression-planner
+        failure_scenarios: 
+          - id: F132-premise
+            title: A coding agent can read the regression stage in the engineering system
+            elements: 
+              - ext.engineering-workflows
+            trigger: "A permission change, a new pipeline runner, or a job an agent can start or change gives an agent's session read access to the regression stage's test definitions, its window bundle, its results beyond pass or fail, or its logs."
+            required_behavior: "The engineering system owner's test of the premise fails and the premise is recorded as not holding."
+            invariant: I2
+            detection: "The engineering system owner's test of the premise, run whenever the pipeline's permissions change and on a schedule: a planted agent session tries to read a canary kept test's definition, its window bundle, its result and its log, and every read but the stage's pass or fail must be refused."
+            runbook: RB-F132
+            test: 
+              kind: game-day
+              steps: "In a test pipeline, grant a test agent session read access to the regression stage's logs; assert the premise test fails and the premise is recorded as not holding."
+        claim: shared:SH-2
+      - id: branch-settings-hold
+        owners: 
+          - side: shared:ext.engineering-workflows
+            role: Engineering system owner
+            identity: null
+          - side: jig:protected-branch
+            role: Policy-owning team
+            identity: null
+          - side: jig:people.change-reviewer
+            role: Reviewer who merges agent-written changes
+            identity: null
+        statement: "The protected branch's settings hold against the agent's own credentials: every required check is tied to the app that reports it, the rule is enforced for repository administrators, and no agent identity holds administrator rights or any way to set a check's status. Some platforms let anyone with write access set a check's status, and let administrators skip required checks, unless these settings are switched on."
+        relied_on_by: 
+          - jig:protected-branch
+        fallback: "Merging moves to a path the agent's credentials cannot reach: a merge service the engineering system owner runs under an identity no agent holds, which merges only after the checks pass server-side and a person who is neither the agent nor its session's developer approves. Until the premise holds again, no change merges from a path an agent credential can reach."
+        fallback_by: 
+          - ext.engineering-workflows
+          - jig:people.change-reviewer
+        failure_scenarios: 
+          - id: F133-premise
+            title: "An agent's credentials can skip a required check or set its status on the protected branch"
+            elements: 
+              - ext.engineering-workflows
+            trigger: "A branch rule is changed so required checks no longer bind administrators, a check stops being tied to the app that reports it, or an agent identity gains administrator rights or write access that lets it post a check's status."
+            required_behavior: "The engineering system owner's test of the premise fails and the premise is recorded as not holding."
+            invariant: I1
+            detection: "The engineering system owner's test of the premise, run whenever the branch settings change and on a schedule: with an agent's credentials, push a planted change that skips the local hook and sets its required check's status; the change must still fail to merge, and any merge is a failed test."
+            runbook: RB-F133
+            test: 
+              kind: game-day
+              steps: "With the agent's own credentials, try to bypass the hook and post passing required-check statuses; assert the protected branch refuses the merge, then switch one setting off and assert the premise test fails and the premise is recorded as not holding."
+        claim: jig:JC-27
+contracts: 
+  - name: RoadEntry
+    owners: 
+      - side: ratchet:s6.paved-road-catalog
+        role: Shared platform / developer-experience team
+        identity: null
+      - side: ratchet:s2.request-dispatcher
+        role: Validation workflow/producer platform team
+        identity: null
+      - side: ratchet:s6.retest-regression-planner
+        role: Domain test team + CI/context owners
+        identity: null
+      - side: ratchet:s6.regression-catalog
+        role: Domain test team + CI/context owners
+        identity: null
+      - side: ratchet:s6.road-conformance-check
+        role: Domain test team + CI/context owners
+        identity: null
+      - side: jig:context-plane
+        role: Policy-owning team
+        identity: null
+      - side: ratchet:s5.road-assurance-record
+        role: Evidence/findings product + independent verifier
+        identity: null
+    description: "One paved-road entry at one version, with how deployed state proves its use and the conformance check that reads it. Each escape hatch is named and logged when used."
+    produced_by: 
+      - ratchet:s6.paved-road-catalog
+    consumed_by: 
+      - ratchet:s2.request-dispatcher
+      - ratchet:s6.retest-regression-planner
+      - ratchet:s6.regression-catalog
+      - ratchet:s6.road-conformance-check
+      - jig:context-plane
+      - ratchet:s5.road-assurance-record
+    fields: 
+      - name: entry_id
+        type: id
+        required: true
+      - name: version
+        type: string
+        required: true
+      - name: type
+        type: enum
+        values: 
+          - portal-template
+          - scorecard
+          - base-image
+          - container-platform-policy
+          - api-or-auth-library
+          - gateway-policy
+          - secure-default
+          - linter
+        required: true
+      - name: enforcement
+        type: enum
+        values: 
+          - enforced
+          - opt-in
+        required: true
+      - name: owning_team
+        type: id
+        required: true
+      - name: classes_claimed
+        type: list
+        of: id
+        required: true
+      - name: dependencies
+        type: list
+        of: object
+        required: false
+        description: Dependencies whose defaults the entry relies on
+        fields: 
+          - name: name
+            type: string
+            required: true
+          - name: version
+            type: string
+            required: true
+      - name: conformance_evidence
+        type: list
+        of: enum
+        values: 
+          - image-digest-lineage
+          - library-version
+          - gateway-route
+          - template-marker
+        required: true
+      - name: conformance_check_id
+        type: id
+        required: true
+      - name: conformance_rule_version
+        type: string
+        required: true
+      - name: escape_hatches
+        type: list
+        of: string
+        required: false
+      - name: road_regression_ids
+        type: list
+        of: id
+        required: false
+      - name: release_record
+        type: reference
+        required: true
+    security: 
+      relevant: true
+      floor: 
+        - MC-23
+        - MC-102
+  - name: DerivedCheck
+    owners: 
+      - side: ratchet:s6.regression-catalog
+        role: Domain test team + CI/context owners
+        identity: null
+      - side: jig:check-suite
+        role: Policy-owning team
+        identity: null
+    description: "The only form in which a kept regression reaches a part where coding agents run; the kept regression itself stays in the loop. Static or in-process only: a runtime replay never yields a derived check. Its pattern is the body the check suite compiles into configuration coding agents can read, so it holds a general pattern for the weakness class the kept test holds, never the kept test's input, its fixtures or the boundary behavior it expects. The fixed message is set when the check is derived and never states the expected boundary behavior or an expected outcome. Carries no expected-outcome hash, no proof condition and no text an outsider wrote."
+    produced_by: 
+      - ratchet:s6.regression-catalog
+    consumed_by: 
+      - jig:check-suite
+    module: secure-creation
+    fields: 
+      - name: check_id
+        type: id
+        required: true
+      - name: version
+        type: integer
+        required: true
+      - name: derived_from_test_id
+        type: id
+        required: true
+      - name: derived_from_test_version
+        type: integer
+        required: true
+      - name: execution_class
+        type: enum
+        values: 
+          - static
+          - in-process
+        required: true
+      - name: pattern
+        type: text
+        required: true
+        description: "A general pattern for the weakness class, set when the check is derived; never the kept test's input, fixtures or expected behavior"
+      - name: expected_runtime_ms
+        type: integer
+        required: true
+      - name: result
+        type: enum
+        values: 
+          - pass
+          - fail
+        required: true
+      - name: message
+        type: string
+        required: true
+        description: Fixed when the check is derived
+    failure_scenarios: 
+      - id: F129
+        title: The coding agent learns to pass a derived check while the weakness stays
+        elements: 
+          - jig:check-suite
+          - jig:coding-agent
+          - ratchet:s6.regression-catalog
+          - jig:measurement-plane
+        trigger: "The agent sees a derived check's pass or fail and its fixed message, and changes the code's shape until the check passes without fixing the weakness the kept test holds."
+        required_behavior: "Passing a derived check never counts as the weakness fixed. The kept test's replay still runs on the deployed change; its failure is a reintroduction in that class and a miss recorded against the derived check. A derived check whose misses pass its floor, which the security risk owner sets, goes to the policy-owning team, who retires it from the check suite; a request back to Ratchet to rework it is not drawn in this edition. Only the count of misses per derived check is sent to the loop; replay detail beyond the pipeline stage's pass or fail never reaches it."
+        invariant: I2
+        detection: "Per derived check, changes that passed it and later failed the kept test's replay (misses), against the check's floor; misses per class on and off the road."
+        runbook: RB-F129
+        test: 
+          kind: pipeline
+          steps: "Open a seeded change that satisfies a derived check's pattern while keeping the runtime weakness; assert the derived check passes, the kept test's replay fails the deployed change, the reintroduction counts in its class, and the miss is recorded against the derived check."
+    security: 
+      relevant: true
+      floor: 
+        - MC-23
+        - MC-102
+  - name: DroppedCheck
+    owners: 
+      - side: jig:check-suite
+        role: Policy-owning team
+        identity: null
+      - side: jig:measurement-plane
+        role: Secure-creation measurement owner (outside the reviewer teams)
+        identity: null
+      - side: ratchet:s1.tool-signal-intake
+        role: Context team + AppSec tool owners
+        identity: null
+    description: "One derived check the secure-creation loop dropped or disabled, logged so it counts against the catch layer instead of disappearing."
+    produced_by: 
+      - jig:check-suite
+      - jig:measurement-plane
+    consumed_by: 
+      - ratchet:s1.tool-signal-intake
+      - jig:measurement-plane
+    module: secure-creation
+    fields: 
+      - name: check_id
+        type: id
+        required: true
+      - name: check_version
+        type: integer
+        required: true
+      - name: reason
+        type: enum
+        values: 
+          - dropped
+          - disabled
+        required: true
+      - name: cause
+        type: text
+        required: true
+      - name: at
+        type: date-time
+        required: true
+      - name: by
+        type: string
+        required: true
+        description: "The person, or the configuration change, that did it"
+    security: 
+      relevant: true
+      floor: 
+        - MC-7
+  - name: ProvenClass
+    owners: 
+      - side: ratchet:s5.failure-class-registry
+        role: Evidence/findings product + security/risk owners
+        identity: null
+      - side: jig:context-plane
+        role: Policy-owning team
+        identity: null
+      - side: jig:people.creation-policy-owner
+        role: Policy-owning team
+        identity: null
+    description: "The projection of a failure class for the secure-creation loop. Only classes with at least one independently reproduced member. It names the class, its definition and fix rule, and the road entries and derived checks that answer it. Its definition names no service, component, path or file of the organization's own. While any member finding is open, the projection shows the class's existence, definition and fix rule, with no member count, services or components spanned, or highest consequence tier. A third-party class names the component without its versions until a fix exists. Per-class member counts are never carried in this projection, including after every member closes; they go only to the policy-owning team: people, never an agent, never to an agent-reachable part or the model route. Spans and highest consequence tier are sent only once every member's finding is closed; a class that gains an open member again sends its next version without them, and the loop keeps only the current version of each class. The model provider is a reader through the coding agent's model route, so the same limits apply to what reaches it. Carries no verdict reference, fixture-set reference, kept-regression id or finding text; a derived check names the kept test it came from by id, and the test itself never crosses. The policy-owning team turns each into a rule. A class's projection version increases when its definition, fix rule, fix availability, road claims, derived-check references, weakness identifiers or disclosed spans or consequence tier change, or when it enters or leaves the all-members-closed state; membership changes while already open do not by themselves increase that version."
+    produced_by: 
+      - ratchet:s5.failure-class-registry
+    consumed_by: 
+      - jig:context-plane
+      - jig:people.creation-policy-owner
+    module: secure-creation
+    fields: 
+      - name: class_id
+        type: id
+        required: true
+      - name: version
+        type: integer
+        required: true
+        description: "A class's projection version increases when its definition, fix rule, fix availability, road claims, derived-check references, weakness identifiers or disclosed spans or consequence tier change, or when it enters or leaves the all-members-closed state; membership changes while already open do not by themselves increase that version."
+      - name: kind
+        type: enum
+        values: 
+          - first-party-pattern
+          - third-party-component
+        required: true
+      - name: definition
+        type: text
+        required: true
+        description: "The invariant the members violate; names no service, component, path or file of the organization's own. A third-party class names the component without its versions until a fix exists."
+      - name: fix_rule
+        type: text
+        required: true
+        description: "The rule that fixes the class's invariant, available while members are open; names no service, component, path or file of the organization's own, and no third-party component versions until a fix exists"
+      - name: services_spanned
+        type: list
+        of: id
+        required: false
+        description: "Sent only once every member's finding is closed"
+      - name: components_spanned
+        type: list
+        of: id
+        required: false
+        description: "Sent only once every member's finding is closed"
+      - name: max_consequence_tier
+        type: id
+        required: false
+        description: "Sent only once every member's finding is closed"
+      - name: road_claims
+        type: list
+        of: object
+        required: true
+        description: Road entries claiming to retire the class
+        fields: 
+          - name: road_entry_id
+            type: id
+            required: true
+          - name: road_entry_version
+            type: string
+            required: true
+          - name: closure_state
+            type: enum
+            values: 
+              - path-broken
+              - constraint-enforced
+            required: true
+      - name: derived_check_ids
+        type: list
+        of: id
+        required: true
+      - name: cwe_ids
+        type: list
+        of: string
+        required: false
+        description: "CWE weakness ids, set or changed only by the disposition reviewer"
+    failure_scenarios: 
+      - id: F134
+        title: An open class exposes member counts or component versions to coding agents
+        elements: 
+          - ratchet:s5.failure-class-registry
+          - jig:context-plane
+          - jig:coding-agent
+          - jig:model-routes
+          - jig:people.creation-policy-owner
+          - jig:check-suite
+          - ratchet:s6.regression-catalog
+          - jig:measurement-plane
+        trigger: "A class projection or class-test report leaks per-class counts into an agent-reachable part or the model route, an open class exposes spans or consequence tier, a third-party class names component versions before a fix exists, or the context plane keeps withdrawn fields."
+        required_behavior: "Class projections carry no per-class counts, even after every member closes. The catalog keeps full class-test results, sends the suite only pass or fail per rule version, and sends per-class totals directly to the policy-owning team: people, never an agent. The suite and measurement plane hold no per-class counts and forward only that binary outcome; the owner never republishes totals into agent-readable rules, guidance, reports or prompts. An open class exposes existence, definition and fix rule, with no spans or consequence tier; third-party component versions stay withheld until a fix exists. On reopening, the next version removes the gated fields and replaces the context copy. Projection versions follow the declared public-change and closure-state conditions."
+        invariant: I2
+        detection: "Per-class counts in class projections, suite storage, measurement storage, agent-readable owner reports or model-route prompts (must be zero); full results in agent-reachable parts (must be zero); component versions before a fix or stale gated fields in current guidance (must be zero)."
+        runbook: RB-F134
+        test: 
+          kind: pipeline
+          steps: "Project first-party and third-party classes with independently reproduced open members and no third-party fix; inspect the sent projection, current context copy, suite, measurement plane, owner guidance and model-route prompts for absent counts, spans and consequence tiers, with the third-party component named without versions. Run class tests with all caught, a miss, some members not runnable and zero runnable members; only all runnable members caught with at least one tested passes. Across these tests inspect the catalog's full results and direct totals to the policy-owning team: people, never an agent; assert accurate counts only on that direct route and only rule id, rule version and pass or fail reach the suite, measurement plane and their reports, with no tested, caught, not-run or member total, finding text or location. Assert the owner keeps totals out of published rules, guidance and model prompts. Add a fix and allow its version in the fix rule. Close every member; spans and tier may cross but counts still cannot. Reopen a member; the next projection removes spans and tier and replaces the context copy. Change the definition, fix rule, fix availability, road claim, derived-check reference, weakness identifier and disclosed span or tier in turn and assert a version increase; add another member while already open without a public change and assert no version increase solely for that membership change. Previously sent guidance cannot be recalled."
+    security: 
+      relevant: true
+      floor: 
+        - MC-23
+        - MC-102
+  - name: RoadAssuranceStatus
+    owners: 
+      - side: ratchet:s5.road-assurance-record
+        role: Evidence/findings product + independent verifier
+        identity: null
+      - side: jig:context-plane
+        role: Policy-owning team
+        identity: null
+    description: "The projection of road assurance for the secure-creation loop. Carries no fixture-set or verdict reference and no road-level regression result. For each entry version its status is current or not current, with no class outcomes and no reason for a status change, including a failed vetting or a withdrawal after a leak. Its vetted scope and known limits use API and configuration identifiers and named pattern classes, never an input shape or sequence. They never hold a test's input, fixture content, expected outcome or a bypass description."
+    produced_by: 
+      - ratchet:s5.road-assurance-record
+    consumed_by: 
+      - jig:context-plane
+    module: secure-creation
+    fields: 
+      - name: entry_id
+        type: id
+        required: true
+      - name: entry_version
+        type: string
+        required: true
+      - name: vetted_scope
+        type: text
+        required: true
+        description: "Covered API and configuration identifiers and named pattern classes; never an input shape or sequence, test input, fixture content, expected outcome or bypass description"
+      - name: known_limits
+        type: text
+        required: false
+        description: "Uncovered API and configuration identifiers and named pattern classes, at the same grain as vetted scope; never an input shape or sequence, test input, fixture content, expected outcome or bypass description"
+      - name: vetted_on
+        type: date
+        required: true
+      - name: status
+        type: enum
+        values: 
+          - current
+          - not-current
+        required: true
+        description: "Whether this entry version has current assurance; all other states project as not-current, with no failure or withdrawal reason"
+    failure_scenarios: 
+      - id: F135
+        title: Road assurance guidance discloses a failure reason or protected test text
+        elements: 
+          - ratchet:s5.road-assurance-record
+          - ratchet:s5.independent-verifier
+          - ratchet:s5.disposition-review
+          - jig:context-plane
+          - jig:coding-agent
+          - jig:model-routes
+        trigger: "A status projection exposes a class outcome or a failure or withdrawal reason, or copies a test input, fixture, expected outcome or bypass description into agent-readable scope or known limits."
+        required_behavior: "The assurance record sends current or not current per entry version without class outcomes or reasons, including failed vetting and withdrawal after a leak. Vetted scope and known limits contain API and configuration identifiers and named pattern classes only, never an input shape or sequence, test input, fixture content, expected outcome or bypass description. The same limits hold for the model provider reached through the coding agent's model route."
+        invariant: I2
+        detection: "Protected canary literals found in sent road status, context guidance or model-route prompts (must be zero); class outcomes or failure or withdrawal reasons in those records (must be zero)."
+        runbook: RB-F135
+        test: 
+          kind: pipeline
+          steps: "Plant distinct canary literals in a protected test input, fixture, expected outcome and bypass description. Project the same entry version when current, unvetted, superseded, failed in vetting and withdrawn after a leak. Assert the status is current only for current assurance and not-current for every other state, with no outcomes field and no reason. Scan the full sent record, all context guidance and the coding-agent prompts sent to the model provider for every literal and assert zero hits. Assert scope and limits use only API and configuration identifiers and named pattern classes and contain no input shape or sequence."
+    security: 
+      relevant: true
+      floor: 
+        - MC-23
+        - MC-102
+  - name: FixBrief
+    owners: 
+      - side: ratchet:s5.fix-brief-builder
+        role: Evidence/findings product (builder); the independent security staff (person-written briefs)
+        identity: null
+      - side: ratchet:people.engineering-owners
+        role: Engineering owners
+        identity: null
+      - side: jig:coding-agent
+        role: Engineering owners (the developer whose session runs it)
+        identity: null
+      - side: ratchet:s6.owner-change-connector
+        role: Domain engineering/release owner
+        identity: null
+      - side: ratchet:s6.hardening-service
+        role: Domain engineering/release owner
+        identity: null
+      - side: ratchet:s7.flow-cost-telemetry
+        role: Program/product + delivery-flow/finance owners
+        identity: null
+    description: "The only form in which a description of a weakness reaches a fixing agent or a fix drafter. Written by a person, or derived by the fix brief builder only from the weakness a signed proof condition names and the model-free reproduction. Signed when it is made, by the builder or for the person who wrote it, so a brief changed on its way to a fixing agent no longer verifies. A derived brief's outsider label set is empty and covers its inputs' labels, checked when the brief is issued; a brief that needs free-text steps, the target's output or any other labeled field is written by a person. Carries no outsider text, no output of a model that read outsider text, no expected outcome, no expected-outcome hash, nothing that says what would show the weakness is not real, and no kept regression."
+    produced_by: 
+      - ratchet:s5.fix-brief-builder
+    consumed_by: 
+      - ratchet:people.engineering-owners
+      - jig:coding-agent
+      - ratchet:s6.owner-change-connector
+      - ratchet:s6.hardening-service
+      - ratchet:s7.flow-cost-telemetry
+      - ratchet:s5.fix-brief-builder
+    fields: 
+      - name: finding_id
+        type: id
+        required: true
+      - name: path_key
+        type: id
+        required: true
+      - name: weakness_class
+        type: id
+        required: true
+      - name: location
+        type: string
+        required: true
+      - name: boundary_failed
+        type: string
+        required: true
+      - name: receipt_ref
+        type: reference
+        required: true
+        description: "The model-free reproduction's stored receipt"
+      - name: step_template_ids
+        type: list
+        of: id
+        required: false
+      - name: status_classes
+        type: list
+        of: string
+        required: false
+        description: Request and response status classes
+      - name: assertion_results
+        type: list
+        of: enum
+        values: 
+          - pass
+          - fail
+        required: false
+      - name: receipt_hashes
+        type: list
+        of: hash
+        required: false
+      - name: made_by
+        type: enum
+        values: 
+          - person
+          - builder
+        required: true
+      - name: author
+        type: id
+        required: false
+        description: Set when a person wrote it
+      - name: builder_version
+        type: string
+        required: false
+      - name: proof_condition_id
+        type: id
+        required: false
+      - name: reproduction_id
+        type: id
+        required: false
+      - name: made_at
+        type: date-time
+        required: true
+      - name: signature
+        type: string
+        required: true
+      - name: key_ref
+        type: reference
+        required: true
+      - name: outsider_labels
+        type: list
+        of: string
+        required: true
+        description: Empty for a derived brief
+    security: 
+      relevant: true
+      floor: 
+        - MC-23
+        - MC-87
+        - MC-102
+  - name: CreationRule
+    owners: 
+      - side: jig:people.creation-policy-owner
+        role: Policy-owning team
+        identity: null
+      - side: jig:check-suite
+        role: Policy-owning team
+        identity: null
+      - side: ratchet:s6.regression-catalog
+        role: Domain test team + CI/context owners
+        identity: null
+      - side: ratchet:s6.retest-regression-planner
+        role: Domain test team + CI/context owners
+        identity: null
+    description: "A rule the policy-owning team turned from a proven class, with its body as the owner published it, sent out for the test that shows it catches the class: a run against the class's reproduced members at their revisions before the fix, whose full result Ratchet's regression catalog keeps. Only the policy-owning team writes it; the test's result comes back as a record of its own, pass or fail per rule version. A rule with no passing class test steers and reports; it never gates."
+    fields: 
+      - name: rule_id
+        type: id
+        required: true
+      - name: rule_version
+        type: string
+        required: true
+      - name: rule_body
+        type: text
+        required: true
+        description: "The rule as the policy-owning team published it, in the check suite's format"
+      - name: proven_class_id
+        type: id
+        required: true
+      - name: proven_class_version
+        type: integer
+        required: true
+      - name: owner_role
+        type: id
+        required: true
+        description: The policy-owning team role
+      - name: layers
+        type: list
+        of: enum
+        values: 
+          - agent-edit
+          - stop-gate
+          - commit
+          - push
+          - pr
+        required: true
+      - name: status
+        type: enum
+        values: 
+          - untested
+          - gating
+          - steering-only
+          - retired
+        required: true
+    produced_by: 
+      - jig:people.creation-policy-owner
+    consumed_by: 
+      - jig:check-suite
+      - ratchet:s6.regression-catalog
+      - ratchet:s6.retest-regression-planner
+    module: secure-creation
+    security: 
+      relevant: true
+      floor: 
+        - MC-23
+        - MC-102
+  - name: CatchLayer
+    owners: 
+      - side: ratchet:s7.tool-yield-evaluator
+        role: Evaluation engineering + independent security owners
+        identity: null
+      - side: jig:measurement-plane
+        role: Secure-creation measurement owner (outside the reviewer teams)
+        identity: null
+    description: "The layer that should have caught one accepted defect, assigned by Ratchet's evaluation group, independent of the secure-creation loop and of the road owner."
+    fields: 
+      - name: finding_id
+        type: id
+        required: true
+      - name: change_id
+        type: id
+        required: false
+      - name: should_have_caught
+        type: enum
+        values: 
+          - agent-edit
+          - stop-gate
+          - commit
+          - push
+          - pr
+          - post-merge
+          - none
+        required: true
+      - name: caught_at
+        type: enum
+        values: 
+          - agent-edit
+          - stop-gate
+          - commit
+          - push
+          - pr
+          - post-merge
+          - external
+          - none
+        required: true
+      - name: assigned_on
+        type: date
+        required: true
+    produced_by: 
+      - ratchet:s7.tool-yield-evaluator
+    consumed_by: 
+      - jig:measurement-plane
+    module: secure-creation
+    security: 
+      relevant: true
+      floor: 
+        - MC-86
+  - name: ClassTestCount
+    owners: 
+      - side: ratchet:s6.regression-catalog
+        role: Domain test team + CI/context owners
+        identity: null
+      - side: jig:check-suite
+        role: Policy-owning team
+        identity: null
+      - side: jig:measurement-plane
+        role: Secure-creation measurement owner (outside the reviewer teams)
+        identity: null
+      - side: jig:people.creation-policy-owner
+        role: Policy-owning team
+        identity: null
+    module: secure-creation
+    description: "The binary projection of a class test for agent-reachable parts: only rule id, rule version and pass or fail. It carries no class id or class version, per-class counts, member identities or locations, test output or timing. A class test passes only when it caught every member it ran against and ran against at least one; any miss or zero tested is fail, and not-run members do not count as tested. The catalog computes this result from its protected full result. A rule gates only after a pass at its current version; otherwise it steers and reports. Per-class counts go only to the policy-owning team: people, never an agent through the separate direct totals projection, never to an agent-reachable part or the model route."
+    produced_by: 
+      - ratchet:s6.regression-catalog
+    consumed_by: 
+      - jig:check-suite
+      - jig:measurement-plane
+      - jig:people.creation-policy-owner
+    fields: 
+      - name: rule_id
+        type: id
+        required: true
+      - name: rule_version
+        type: string
+        required: true
+      - name: result
+        type: enum
+        values: 
+          - pass
+          - fail
+        required: true
+    security: 
+      relevant: true
+      floor: 
+        - MC-23
+        - MC-102
+  - name: CreationLead
+    owners: 
+      - side: jig:measurement-plane
+        role: Secure-creation measurement owner (outside the reviewer teams)
+        identity: null
+      - side: ratchet:s1.tool-signal-intake
+        role: Context team + AppSec tool owners
+        identity: null
+    module: secure-creation
+    description: "A lead from the secure-creation loop's checks and AI reviewers, with the tool, rule and version and the layer that raised it; a rule-summary lead stands for a high-volume rule, with a random sample of its hits. The loop's own triage verdict travels as a label, never as a filter. Only the loop's measurement plane writes it, and the tool signal intake normalizes each into a tool lead, which is Ratchet's own record. Text a tool or an AI reviewer wrote can quote outsiders, so those fields are marked untrusted."
+    produced_by: 
+      - jig:measurement-plane
+    consumed_by: 
+      - ratchet:s1.tool-signal-intake
+    fields: 
+      - name: lead_id
+        type: id
+        required: true
+      - name: form
+        type: enum
+        values: 
+          - hit
+          - rule-summary
+        required: true
+      - name: tool
+        type: string
+        required: true
+      - name: tool_version
+        type: string
+        required: true
+      - name: rule_id
+        type: string
+        required: true
+      - name: rule_version
+        type: string
+        required: true
+      - name: tool_class
+        type: enum
+        values: 
+          - sast
+          - sca
+          - secrets
+          - iac
+          - container
+          - linter
+          - ai-review
+        required: true
+      - name: detection_layer
+        type: enum
+        values: 
+          - agent-edit
+          - stop-gate
+          - commit
+          - push
+          - pr
+        required: true
+      - name: target
+        type: id
+        required: true
+      - name: location
+        type: string
+        required: false
+      - name: severity
+        type: string
+        required: false
+        description: As the tool reported it
+      - name: confidence
+        type: string
+        required: false
+        description: As the tool reported it
+      - name: triage_verdict
+        type: string
+        required: false
+        description: "The loop's own triage label"
+      - name: observed_at
+        type: date-time
+        required: true
+      - name: fingerprint
+        type: hash
+        required: true
+      - name: period
+        type: string
+        required: false
+        description: Rule-summary form
+      - name: hit_count
+        type: integer
+        required: false
+        description: Rule-summary form
+      - name: sample_lead_ids
+        type: list
+        of: id
+        required: false
+        description: Rule-summary form
+      - name: title
+        type: text
+        required: false
+        untrusted: true
+      - name: description
+        type: text
+        required: false
+        untrusted: true
+      - name: tool_message
+        type: text
+        required: false
+        untrusted: true
+      - name: evidence_snippet
+        type: text
+        required: false
+        untrusted: true
+    security: 
+      relevant: true
+      floor: 
+        - MC-7
+        - MC-102
+  - name: ProvenanceStamp
+    owners: 
+      - side: jig:provenance-stamper
+        role: Policy-owning team
+        identity: null
+      - side: shared:ext.engineering-workflows
+        role: Engineering system owner
+        identity: null
+      - side: jig:protected-branch
+        role: Policy-owning team
+        identity: null
+      - side: ratchet:s1.source-adapters
+        role: Context team + build/IAM/platform source owners
+        identity: null
+    module: secure-creation
+    description: "The provenance stamp the secure-creation loop attaches to one change: the person whose session produced it, the tool and the model with their versions, the session and the skill-bundle hash, as the harness's session telemetry declares them. Signed when the change leaves the session, so a stamp changed on its way no longer verifies against the key the organization registered for the stamper. Only the provenance stamper writes it; a change from a harness that exports no telemetry carries no stamp. It feeds measurement and routing and grants no trust."
+    produced_by: 
+      - jig:provenance-stamper
+    consumed_by: 
+      - ext.engineering-workflows
+      - jig:protected-branch
+      - ratchet:s1.source-adapters
+    fields: 
+      - name: change_id
+        type: id
+        required: true
+      - name: revision
+        type: string
+        required: true
+      - name: person
+        type: id
+        required: false
+        description: The human whose session produced the change
+      - name: tool
+        type: string
+        required: false
+      - name: tool_version
+        type: string
+        required: false
+      - name: model
+        type: string
+        required: false
+      - name: model_version
+        type: string
+        required: false
+      - name: session_id
+        type: id
+        required: false
+      - name: skill_bundle_hash
+        type: hash
+        required: false
+      - name: telemetry_export
+        type: enum
+        values: 
+          - full
+          - partial
+        required: true
+        description: "What the harness exports, so a missing field reads as not exported"
+      - name: stamped_at
+        type: date-time
+        required: true
+      - name: signature
+        type: string
+        required: true
+      - name: key_ref
+        type: reference
+        required: true
+    security: 
+      relevant: true
+      floor: 
+        - MC-86
+  - name: ReviewerSeedCatch
+    owners: 
+      - side: ratchet:s7.road-adoption-telemetry
+        role: Evaluation engineering + independent security/product owners
+        identity: null
+      - side: jig:measurement-plane
+        role: Secure-creation measurement owner (outside the reviewer teams)
+        identity: null
+    module: secure-creation
+    audience: restricted
+    description: "One reviewer's seeded known-bad changes caught over those the reviewer received in a window, with its interval, computed by Ratchet's evaluation from the review outcomes and the seed frame. Never names which changes were seeds. Restricted to its one reader, the secure-creation measurement plane, which folds the count into that reviewer's own drift report; no reviewer, manager or other part receives it from Ratchet."
+    produced_by: 
+      - ratchet:s7.road-adoption-telemetry
+    consumed_by: 
+      - jig:measurement-plane
+    fields: 
+      - name: reviewer_id
+        type: id
+        required: true
+      - name: reviewer_role
+        type: enum
+        values: 
+          - change-reviewer
+          - high-risk-reviewer
+        required: true
+      - name: window_start
+        type: date
+        required: true
+      - name: window_end
+        type: date
+        required: true
+      - name: seeds_received
+        type: integer
+        required: true
+      - name: seeds_caught
+        type: integer
+        required: true
+      - name: interval_low
+        type: number
+        required: false
+      - name: interval_high
+        type: number
+        required: false
+    security: 
+      relevant: true
+      floor: 
+        - MC-106
+  - name: SeededChange
+    owners: 
+      - side: ratchet:s7.sampling-service
+        role: Evaluation engineering + independent security owners
+        identity: null
+      - side: shared:ext.engineering-workflows
+        role: Engineering system owner
+        identity: null
+      - side: jig:people.change-reviewer
+        role: Reviewer who merges agent-written changes
+        identity: null
+      - side: jig:people.high-risk-reviewer
+        role: Qualified reviewer of high-risk hunks
+        identity: null
+    module: secure-creation
+    description: "A known-bad agent-written change the sampling service opens on a sandbox branch for the reviewer-drift baseline, never on the protected branch: the branch, the revision and the diff, and nothing else. It carries no fixture binding, no original or patched outcome and no test result, which stay in the sampling service's own frame, so the engineering system and the reviewer never receive what the change was built to show. Which changes were seeded stays in that frame. Drawn as it is, a seeded change does not pick up the triage labels, AI review comments, routing and provenance stamp a real change collects on its way through the protected branch, so a careful reviewer may tell it from a real one and the catch rate may read higher than the truth."
+    produced_by: 
+      - ratchet:s7.sampling-service
+    consumed_by: 
+      - ext.engineering-workflows
+      - jig:people.change-reviewer
+      - jig:people.high-risk-reviewer
+    security: 
+      relevant: true
+      floor: 
+        - MC-7
+  - name: DerivedCheckMisses
+    owners: 
+      - side: ratchet:s6.regression-catalog
+        role: Domain test team + CI/context owners
+        identity: null
+      - side: jig:measurement-plane
+        role: Secure-creation measurement owner (outside the reviewer teams)
+        identity: null
+      - side: jig:people.creation-policy-owner
+        role: Policy-owning team
+        identity: null
+    module: secure-creation
+    measures: "Per derived check: its kept test's replay failures on changes deployed since the check's version was issued, over the window, against the floor set for the check"
+    description: "How often changes get past one derived check while its weakness stays: the replay failures of the check's kept test on changes deployed since the check's version was issued, over a window, against the floor set for the check. Counted by the regression catalog from the replay verdicts it receives, and this count is all of them that reaches the loop: no change id, no replay result and no test content. The pipeline stage still shows a deploy's pass or fail, as it does without the loop. The loop shows the count beside its own log of checks dropped or disabled, and a check over its floor goes to the policy-owning team, who can retire it from the check suite. The security risk owner sets each check's floor in the dial register. A request back to Ratchet to rework a check is not drawn in this edition; retiring is the owner's way out."
+    produced_by: 
+      - ratchet:s6.regression-catalog
+    consumed_by: 
+      - jig:measurement-plane
+      - jig:people.creation-policy-owner
+    fields: 
+      - name: check_id
+        type: id
+        required: true
+      - name: check_version
+        type: integer
+        required: true
+      - name: window_start
+        type: date
+        required: true
+      - name: window_end
+        type: date
+        required: true
+      - name: misses
+        type: integer
+        required: true
+        description: "Replay failures of the check's kept test on changes deployed since the check's version was issued"
+      - name: floor
+        type: integer
+        required: true
+        description: The most misses a window may hold before the check goes to the policy-owning team; set by the security risk owner in the dial register
+      - name: over_floor
+        type: boolean
+        required: true
+    security: 
+      relevant: true
+      floor: 
+        - MC-98
+  - name: ClassTestTotals
+    owners: 
+      - side: ratchet:s6.regression-catalog
+        role: Domain test team + CI/context owners
+        identity: null
+      - side: jig:people.creation-policy-owner
+        role: Policy-owning team
+        identity: null
+    module: secure-creation
+    description: "Per-class counts delivered to the policy-owning team: people, never an agent. Carries rule and class versions, members tested, caught and not run. Only the regression catalog produces this projection, and it delivers it directly to that team as people, never an agent. It never reaches an agent-reachable part, the check suite, the measurement plane or the model route; the owner keeps it out of agent-readable rules, guidance and reports. It carries no finding identity, revision, location or test output."
+    produced_by: 
+      - ratchet:s6.regression-catalog
+    consumed_by: 
+      - jig:people.creation-policy-owner
+    fields: 
+      - name: rule_id
+        type: id
+        required: true
+      - name: rule_version
+        type: string
+        required: true
+      - name: proven_class_id
+        type: id
+        required: true
+      - name: proven_class_version
+        type: integer
+        required: true
+      - name: members_tested
+        type: integer
+        required: true
+      - name: members_caught
+        type: integer
+        required: true
+      - name: members_not_run
+        type: integer
+        required: true
+    audience: restricted
+    security: 
+      relevant: true
+      floor: 
+        - MC-106
+  - name: ChangeRecord
+    description: "Accountable owner, reviewed correction, release or policy revision, deployed state, valid retest; the SLSA build level of the provenance behind the deployed state, and a self-attested label when it is below Build Level 2."
+    produced_by: 
+      - ratchet:s6.owner-change-connector
+      - ratchet:s6.hardening-service
+    consumed_by: 
+      - ratchet:s6.change-closure-records
+      - ratchet:s6.release-state-correlator
+      - ratchet:s6.retest-regression-planner
+      - ratchet:s6.enterprise-adapters
+      - ext.engineering-workflows
+      - ratchet:s5.failure-class-registry
+      - ratchet:s6.paved-road-catalog
+      - ratchet:s7.value-ledger
+      - ratchet:s5.disposition-review
+    owners: 
+      - side: ratchet:s6.owner-change-connector
+        role: Domain engineering/release owner
+        identity: null
+      - side: ratchet:s6.hardening-service
+        role: Domain engineering/release owner
+        identity: null
+      - side: ratchet:s6.change-closure-records
+        role: Security finding-quality owner (accepts technical closure; not the correcting team)
+        identity: null
+      - side: ratchet:s6.release-state-correlator
+        role: Security finding-quality owner (accepts technical closure; not the correcting team)
+        identity: null
+      - side: ratchet:s6.retest-regression-planner
+        role: Domain test team + CI/context owners
+        identity: null
+      - side: ratchet:s6.enterprise-adapters
+        role: Platform integration owner
+        identity: null
+      - side: shared:ext.engineering-workflows
+        role: Engineering system owner
+        identity: null
+      - side: ratchet:s5.failure-class-registry
+        role: Evidence/findings product + security/risk owners
+        identity: null
+      - side: ratchet:s6.paved-road-catalog
+        role: Shared platform / developer-experience team
+        identity: null
+      - side: ratchet:s7.value-ledger
+        role: Program/product + delivery-flow/finance owners
+        identity: null
+      - side: ratchet:s5.disposition-review
+        role: Evidence/findings product + security/risk owners
+        identity: null
+    security: 
+      relevant: false
+      floor: 
+        []
+  - name: GateFailurePosture
+    description: "Gate id, protected finding and path references, posture (fail-closed | fail-open-with-record | fail-open-under-expiring-acceptance), basis (max consequence tier reached, whether any reached asset was unattested and the unattested_default applied, optional impact_score, blocking-cost tier, threat signals), declared dependency scope (artifact, policy and identity references; deploys outside it proceed and are recorded while the gate is unavailable), threshold version and security risk owner, decided-at, expiry (from the posture_expiry_hours dial), tier default to apply if the posture expires or its key is revoked, signature and key reference, override reference (business risk owner acceptance id, security risk owner concurrence id, expiry) or null. Never carries a model exploitability estimate."
+    produced_by: 
+      - ratchet:s3.gate-failure-policy
+    consumed_by: 
+      - ratchet:s3.policy-decision-point
+      - ratchet:s6.enterprise-adapters
+      - ext.engineering-workflows
+    owners: 
+      - side: ratchet:s3.gate-failure-policy
+        role: Policy/IAM team operates; thresholds set by the security risk owner
+        identity: null
+      - side: ratchet:s3.policy-decision-point
+        role: Policy/IAM + execution-cell/SRE team
+        identity: null
+      - side: ratchet:s6.enterprise-adapters
+        role: Platform integration owner
+        identity: null
+      - side: shared:ext.engineering-workflows
+        role: Engineering system owner
+        identity: null
+    security: 
+      relevant: false
+      floor: 
+        []
+  - name: ToolLead
+    description: "A lead from a tool, a reviewer or an outside report. Labeled as a lead: never a fact, never coverage evidence, never a disposition. Leads arrive before the source loop's own triage, so its verdict is a label and never a filter. A rule-summary lead stands for a high-volume rule instead of one lead per hit, with a sample of hits drawn at random, each a hit-form lead. Its outsider-writable fields are released only to the quarantined lead reader and, as outsider text, with a lead the developer-queue filter routes to a team's queue; never to producer context. Only Ratchet's parts write it; the tool signal intake normalizes into it the secure-creation loop's leads, which arrive as the loop's own lead record."
+    produced_by: 
+      - ratchet:s1.tool-signal-intake
+    consumed_by: 
+      - ratchet:s1.context-compiler
+      - ratchet:s5.evidence-intake-validator
+      - ratchet:s7.tool-yield-evaluator
+      - ratchet:s6.developer-queue-filter
+      - ratchet:s2.quarantined-lead-reader
+      - ratchet:s1.tool-lead-store
+      - ext.engineering-workflows
+    untrusted_fields: 
+      - title
+      - description
+      - submitter_text
+      - tool_message
+      - evidence_snippet
+    fields: 
+      - name: lead_id
+        type: id
+        required: true
+      - name: form
+        type: enum
+        values: 
+          - hit
+          - rule-summary
+        required: true
+      - name: tool
+        type: string
+        required: true
+      - name: tool_version
+        type: string
+        required: true
+      - name: rule_id
+        type: string
+        required: true
+      - name: rule_version
+        type: string
+        required: true
+      - name: rule_renamed_from
+        type: string
+        required: false
+      - name: tool_class
+        type: enum
+        values: 
+          - sast
+          - dast
+          - sca
+          - secrets
+          - iac
+          - container
+          - linter
+          - ai-review
+          - bug-bounty
+          - pentest
+        required: true
+      - name: detection_layer
+        type: enum
+        values: 
+          - agent-edit
+          - stop-gate
+          - commit
+          - push
+          - pr
+          - post-merge
+          - external
+        required: true
+      - name: target
+        type: id
+        required: true
+      - name: location
+        type: string
+        required: false
+      - name: severity
+        type: string
+        required: false
+        description: As the tool reported it
+      - name: confidence
+        type: string
+        required: false
+        description: As the tool reported it
+      - name: triage_verdict
+        type: string
+        required: false
+        description: "The source loop's own triage label"
+      - name: observed_at
+        type: date-time
+        required: true
+      - name: fingerprint
+        type: hash
+        required: true
+      - name: obligation_mandated
+        type: boolean
+        required: true
+      - name: status
+        type: enum
+        values: 
+          - open
+          - demonstrated
+          - not-reproduced-in-sample
+          - untested
+        required: true
+      - name: demonstrated_path_ids
+        type: list
+        of: id
+        required: false
+      - name: quarantined_classification
+        type: string
+        required: false
+        description: Schema-bound output of the quarantined lead reader
+      - name: period
+        type: string
+        required: false
+        description: Rule-summary form
+      - name: hit_count
+        type: integer
+        required: false
+        description: Rule-summary form
+      - name: sample_lead_ids
+        type: list
+        of: id
+        required: false
+        description: Rule-summary form
+      - name: title
+        type: text
+        required: false
+        untrusted: true
+      - name: description
+        type: text
+        required: false
+        untrusted: true
+      - name: submitter_text
+        type: text
+        required: false
+        untrusted: true
+      - name: tool_message
+        type: text
+        required: false
+        untrusted: true
+      - name: evidence_snippet
+        type: text
+        required: false
+        untrusted: true
+    owners: 
+      - side: ratchet:s1.tool-signal-intake
+        role: Context team + AppSec tool owners
+        identity: null
+      - side: ratchet:s1.context-compiler
+        role: Context platform + domain/source stewards
+        identity: null
+      - side: ratchet:s5.evidence-intake-validator
+        role: Evidence/findings product + security/risk owners
+        identity: null
+      - side: ratchet:s7.tool-yield-evaluator
+        role: Evaluation engineering + independent security owners
+        identity: null
+      - side: ratchet:s6.developer-queue-filter
+        role: AppSec program + service owners (policy); evaluation (bar evidence)
+        identity: null
+      - side: ratchet:s2.quarantined-lead-reader
+        role: Validation workflow/producer platform team
+        identity: null
+      - side: ratchet:s1.tool-lead-store
+        role: Context team + AppSec tool owners
+        identity: null
+      - side: shared:ext.engineering-workflows
+        role: Engineering system owner
+        identity: null
+    security: 
+      relevant: true
+      floor: 
+        - MC-7
+        - MC-86
+        - MC-102
+  - name: DeliveryTelemetry
+    description: "Per tool gate and service: stage time, queue time, deploys blocked or delayed, triage time per lead, from pipeline and tracker data the profile lists as collected."
+    produced_by: 
+      - ext.engineering-workflows
+    consumed_by: 
+      - ratchet:s7.tool-delivery-impact
+    owners: 
+      - side: shared:ext.engineering-workflows
+        role: Engineering system owner
+        identity: null
+      - side: ratchet:s7.tool-delivery-impact
+        role: Evaluation engineering + delivery-flow owner
+        identity: null
+    security: 
+      relevant: true
+      floor: 
+        - MC-7
+  - name: ChangeProvenance
+    description: "Provenance for one change, recorded as a declared fact, never an observed one. The engineering system records every change, labeled or not, with its review outcomes and, when the change carries a provenance stamp, a reference to it. The source adapters check the stamp's signature against keys the organization registers, set the verification status, and fill the person, tool, model, session and skill-bundle hash only from the verified stamp, so measurement never reads a declared fact the signature did not cover. The author of an agent-generated change is the agent together with the person whose session produced it. A change with no stamp counts as unlabeled, and a stamp that cannot be verified counts as unverified; both stay in every denominator, never dropped or assigned an origin."
+    produced_by: 
+      - ext.engineering-workflows
+    consumed_by: 
+      - ratchet:s1.source-adapters
+      - ratchet:s1.source-facts
+      - ratchet:s7.road-adoption-telemetry
+    module: secure-creation
+    fields: 
+      - name: change_id
+        type: id
+        required: true
+      - name: revision
+        type: string
+        required: true
+      - name: merged_at
+        type: date-time
+        required: false
+        description: Empty for a change closed without merging
+      - name: person
+        type: id
+        required: false
+        description: "The human whose session produced the change, or who wrote it"
+      - name: tool
+        type: string
+        required: false
+      - name: tool_version
+        type: string
+        required: false
+      - name: model
+        type: string
+        required: false
+      - name: model_version
+        type: string
+        required: false
+      - name: session_id
+        type: id
+        required: false
+      - name: skill_bundle_hash
+        type: hash
+        required: false
+      - name: telemetry_export
+        type: enum
+        values: 
+          - full
+          - partial
+          - none
+        required: false
+        description: "What the harness exports, so a missing field reads as not exported"
+      - name: reviews
+        type: list
+        of: object
+        required: false
+        fields: 
+          - name: reviewer_id
+            type: id
+            required: true
+          - name: outcome
+            type: enum
+            values: 
+              - approved
+              - changes-requested
+              - rejected
+            required: true
+      - name: attestation_ref
+        type: reference
+        required: false
+      - name: verification_status
+        type: enum
+        values: 
+          - verified
+          - unverified
+          - absent
+        required: true
+    owners: 
+      - side: shared:ext.engineering-workflows
+        role: Engineering system owner
+        identity: null
+      - side: ratchet:s1.source-adapters
+        role: Context team + build/IAM/platform source owners
+        identity: null
+      - side: ratchet:s1.source-facts
+        role: Context team + build/IAM/platform source owners
+        identity: null
+      - side: ratchet:s7.road-adoption-telemetry
+        role: Evaluation engineering + independent security/product owners
+        identity: null
+    security: 
+      relevant: true
+      floor: 
+        - MC-86
+  - name: TrackerText
+    module: secure-creation
+    audience: restricted
+    description: "Issue and review text from the organization's engineering system: an issue, a comment on one, a change's description or a review comment, with the ids that place it. Anyone the tracker lets write, people outside the organization included, can write the title and the body, so both are marked untrusted. Restricted to its one reader, the quarantined reader: a coding agent never reads it, and receives only the reader's typed answer through the reader's schema gate."
+    produced_by: 
+      - ext.engineering-workflows
+    consumed_by: 
+      - jig:quarantined-reader
+    fields: 
+      - name: item_id
+        type: id
+        required: true
+        description: "The issue, comment, change description or review comment the text belongs to"
+      - name: item_kind
+        type: enum
+        values: 
+          - issue
+          - issue-comment
+          - change-description
+          - review-comment
+        required: true
+      - name: change_id
+        type: id
+        required: false
+        description: The change a change description or review comment belongs to
+      - name: written_at
+        type: date-time
+        required: true
+      - name: title
+        type: text
+        required: false
+        untrusted: true
+      - name: body
+        type: text
+        required: true
+        untrusted: true
+    owners: 
+      - side: shared:ext.engineering-workflows
+        role: Engineering system owner
+        identity: null
+      - side: jig:quarantined-reader
+        role: Policy-owning team
+        identity: null
+    security: 
+      relevant: true
+      floor: 
+        - MC-7
+        - MC-102
+        - MC-106
+crossings: 
+  - id: r002
+    from: ext.engineering-workflows
+    to: ratchet:s2.workflow-worker-app
+    label: Change signals
+    carries: 
+      []
+    kind: data
+    optional: false
+    no_contract: "A trigger only: a change event starts or reschedules a run, and nothing in it is read as a fact or as evidence."
+  - id: r010
+    from: ratchet:s6.hardening-service
+    to: ext.engineering-workflows
+    label: Reviewed change
+    carries: 
+      - ChangeRecord
+    kind: change
+    optional: true
+  - id: p14-r12
+    from: ratchet:s6.enterprise-adapters
+    to: ext.engineering-workflows
+    label: "Regression stage in the owning pipeline (advisory, then rejecting)"
+    carries: 
+      - GateFailurePosture
+    kind: change
+    optional: false
+  - id: p17-r16
+    from: ratchet:s6.developer-queue-filter
+    to: ext.engineering-workflows
+    label: Leads above the bar to developer queues (demonstrated findings flow through the owner change connector)
+    carries: 
+      - ToolLead
+    kind: data
+    optional: false
+  - id: p17-r17
+    from: ext.engineering-workflows
+    to: ratchet:s7.tool-delivery-impact
+    label: "Pipeline stage timings, queue time, blocked deploys and triage time per tool gate"
+    carries: 
+      - DeliveryTelemetry
+    kind: observation
+    optional: false
+  - id: p30-r1
+    from: ratchet:s5.failure-class-registry
+    to: jig:context-plane
+    label: "Proven failure classes (each with an independently reproduced member) and their road answers, as targets for steering and checks; no verdict or fixture-set reference"
+    carries: 
+      - ProvenClass
+    kind: data
+    optional: true
+    module: secure-creation
+    point: secure-creation.proven-classes
+  - id: p30-r2
+    from: ratchet:s6.regression-catalog
+    to: jig:check-suite
+    label: "Derived checks from kept regressions: static and in-process only, pass or fail with a fixed message, no expected-outcome hash and no outsider text"
+    carries: 
+      - DerivedCheck
+    kind: data
+    optional: true
+    module: secure-creation
+    point: secure-creation.derived-checks
+  - id: p30-r3
+    from: ratchet:s6.paved-road-catalog
+    to: jig:context-plane
+    label: "Road entries with their conformance check and rule version, for steering at the edit"
+    carries: 
+      - RoadEntry
+    kind: data
+    optional: true
+    module: secure-creation
+    point: secure-creation.vetted-road-entries
+  - id: p30-r4
+    from: ratchet:s5.road-assurance-record
+    to: jig:context-plane
+    label: "Current road assurance status per entry version, without fixture-set or verdict references; steering goes only to versions whose record is current"
+    carries: 
+      - RoadAssuranceStatus
+    kind: data
+    optional: true
+    module: secure-creation
+    point: secure-creation.vetted-road-entries
+  - id: p30-r5
+    from: jig:provenance-stamper
+    to: ext.engineering-workflows
+    label: "Provenance attestation per change (person, tool, model, session, skill-bundle hash), attached where the change is reviewed and merged"
+    carries: 
+      - ProvenanceStamp
+    kind: data
+    optional: true
+    module: secure-creation
+    point: secure-creation.change-provenance
+  - id: p30-r6
+    from: ext.engineering-workflows
+    to: ratchet:s1.source-adapters
+    label: "Provenance and review outcome per change, unlabeled changes included, with each change's signed stamp for verification"
+    carries: 
+      - ChangeProvenance
+      - ProvenanceStamp
+    kind: data
+    optional: true
+    content: structured
+    module: secure-creation
+    cleared_by: 
+      by: ratchet:s1.source-adapters
+      check: Attestation signature verified against registered keys; typed provenance fields only
+  - id: p30-r9
+    from: jig:measurement-plane
+    to: ratchet:s1.tool-signal-intake
+    label: "Findings from its checks and AI reviewers, as leads with tool, rule, version and the layer that raised them (rule summaries for high-volume rules), and its log of derived checks dropped or disabled"
+    carries: 
+      - CreationLead
+      - DroppedCheck
+    kind: observation
+    optional: true
+    content: untrusted
+    module: secure-creation
+    point: secure-creation.creation-leads
+  - id: p32-r1
+    from: ratchet:s7.sampling-service
+    to: ext.engineering-workflows
+    label: "Seeded known-bad agent-written changes for reviewer-drift baselines, opened on sandbox branches and never on the protected branch; the record holds the change only, with no fixture binding or expected outcome"
+    carries: 
+      - SeededChange
+    kind: control
+    optional: true
+    module: secure-creation
+  - id: p40-r5
+    from: ratchet:s5.fix-brief-builder
+    to: jig:coding-agent
+    label: "Fix brief for a fixing agent: person-written, or derived only from the proof condition's weakness and the model-free reproduction; no outsider text and no expected outcome"
+    carries: 
+      - FixBrief
+    kind: data
+    optional: true
+    module: secure-creation
+    point: secure-creation.fix-briefs
+  - id: p43-r6
+    from: ratchet:ext.soc-incident-response
+    to: ext.engineering-workflows
+    label: "Second stop when the action control service cannot answer: the service owner's own rollback, named in the runbook, withdraws the injected change"
+    carries: 
+      []
+    kind: control
+    optional: false
+    no_contract: "The incident responder invokes the service owner's rollback from the runbook through the existing engineering system. This emergency stop carries no Ratchet record. The injection and restore evidence is recorded separately through the incident response relationships."
+  - id: p55-r10
+    from: ext.engineering-workflows
+    to: jig:quarantined-reader
+    label: "Issue and review text, which can quote outsiders"
+    carries: 
+      - TrackerText
+    kind: data
+    optional: false
+    content: untrusted
+    point: secure-creation.tracker-text
+  - id: p55-r31
+    from: jig:check-suite
+    to: ratchet:s6.regression-catalog
+    label: "Each rule turned from a proven class, to run against the class's reproduced members at their revisions before the fix"
+    carries: 
+      - CreationRule
+    kind: data
+    optional: true
+    point: secure-creation.rule-class-tests
+  - id: p55-r32
+    from: ratchet:s6.regression-catalog
+    to: jig:check-suite
+    label: "Only pass or fail per rule version, with no per-class counts or member details"
+    carries: 
+      - ClassTestCount
+    kind: data
+    optional: true
+    point: secure-creation.rule-class-tests
+  - id: p55-r69
+    from: ratchet:s7.tool-yield-evaluator
+    to: jig:measurement-plane
+    label: "The layer that should have caught each accepted defect, assigned by evaluation"
+    carries: 
+      - CatchLayer
+    kind: data
+    optional: true
+    content: structured
+    cleared_by: 
+      by: ratchet:s7.tool-yield-evaluator
+      check: Layers from a closed list and finding and change ids only; no free text is passed on
+    point: secure-creation.catch-layers
+  - id: p55-r70
+    from: ratchet:s7.road-adoption-telemetry
+    to: jig:measurement-plane
+    label: "Each reviewer's seeded known-bad changes caught over those received, computed by evaluation; which changes were seeds is never sent"
+    carries: 
+      - ReviewerSeedCatch
+    kind: data
+    optional: true
+    point: secure-creation.drift-rates
+  - id: p60-r2
+    from: ext.engineering-workflows
+    to: jig:people.change-reviewer
+    label: "Seeded known-bad agent-written changes from sandbox branches, sent to this reviewer for review"
+    carries: 
+      - SeededChange
+    kind: data
+    optional: true
+    module: secure-creation
+    point: secure-creation.drift-seeds
+  - id: p60-r3
+    from: ext.engineering-workflows
+    to: jig:people.high-risk-reviewer
+    label: "Seeded known-bad changes with high-risk hunks from sandbox branches, sent to this reviewer for sign-off"
+    carries: 
+      - SeededChange
+    kind: data
+    optional: true
+    module: secure-creation
+    point: secure-creation.drift-seeds
+  - id: p60-r1
+    from: ratchet:s6.regression-catalog
+    to: jig:measurement-plane
+    label: "Misses per derived check: its kept test's replay failures on changes deployed since the check's version was issued, counted over the window against the check's floor; no change id, replay result or test content"
+    carries: 
+      - DerivedCheckMisses
+    kind: data
+    optional: true
+    module: secure-creation
+    point: secure-creation.derived-check-misses
+  - id: p65-r1
+    from: ratchet:s6.regression-catalog
+    to: jig:people.creation-policy-owner
+    label: "Per-class test totals delivered directly to the policy-owning team: people, never an agent, kept out of agent-reachable parts and the model route"
+    carries: 
+      - ClassTestTotals
+    kind: feedback
+    optional: true
+    point: secure-creation.class-test-totals
+capabilities: 
+  - id: cap.derived-checks
+    provided_by: 
+      - ratchet
+    required_by: 
+      - jig
+  - id: cap.creation-loop-targets
+    provided_by: 
+      - ratchet
+    required_by: 
+      - jig
+  - id: cap.catch-layer
+    provided_by: 
+      - ratchet
+    required_by: 
+      - jig
+  - id: cap.lagged-cohort-reporting
+    provided_by: 
+      - ratchet
+    required_by: 
+      - jig
+  - id: cap.derived-check-misses-counted
+    provided_by: 
+      - ratchet
+    required_by: 
+      - jig
+  - id: cap.class-test-count-published
+    provided_by: 
+      - ratchet
+    required_by: 
+      - jig
+  - id: cap.typed-handoff-published
+    provided_by: 
+      - ratchet
+    required_by: 
+      - jig
+seams: 
+  - id: secure-creation
+    name: Secure creation (Jig)
+    between: 
+      - ratchet
+      - jig
+    crossings: 
+      - id: p30-r1
+        carries: 
+          - ProvenClass
+        point: secure-creation.proven-classes
+      - id: p30-r2
+        carries: 
+          - DerivedCheck
+        point: secure-creation.derived-checks
+      - id: p30-r3
+        carries: 
+          - RoadEntry
+        point: secure-creation.vetted-road-entries
+      - id: p30-r4
+        carries: 
+          - RoadAssuranceStatus
+        point: secure-creation.vetted-road-entries
+      - id: p30-r5
+        carries: 
+          - ProvenanceStamp
+        point: secure-creation.change-provenance
+      - id: p30-r9
+        carries: 
+          - CreationLead
+          - DroppedCheck
+        point: secure-creation.creation-leads
+      - id: p40-r5
+        carries: 
+          - FixBrief
+        point: secure-creation.fix-briefs
+      - id: p55-r10
+        carries: 
+          - TrackerText
+        point: secure-creation.tracker-text
+      - id: p55-r31
+        carries: 
+          - CreationRule
+        point: secure-creation.rule-class-tests
+      - id: p55-r32
+        carries: 
+          - ClassTestCount
+        point: secure-creation.rule-class-tests
+      - id: p55-r69
+        carries: 
+          - CatchLayer
+        point: secure-creation.catch-layers
+      - id: p55-r70
+        carries: 
+          - ReviewerSeedCatch
+        point: secure-creation.drift-rates
+      - id: p60-r1
+        carries: 
+          - DerivedCheckMisses
+        point: secure-creation.derived-check-misses
+      - id: p60-r2
+        carries: 
+          - SeededChange
+        point: secure-creation.drift-seeds
+      - id: p60-r3
+        carries: 
+          - SeededChange
+        point: secure-creation.drift-seeds
+      - id: p65-r1
+        carries: 
+          - ClassTestTotals
+        point: secure-creation.class-test-totals
+    never_cross: 
+      - ratchet:OracleSpec
+      - ratchet:RegressionSpec
+      - ratchet:FailureClass
+      - ratchet:RoadAssurance
+      - ratchet:ClassTestResult
+      - ratchet:ReplayVerdict
+      - ratchet:KeptTestStatus
+    default_exceptions: 
+      - contracts: 
+          - CatchLayer
+          - ReviewerSeedCatch
+          - DroppedCheck
+        accepted_by: ratchet:people.security-risk-owner
+        until: null
+        why: "The two teams are still settling the measurement feeds between them: the catch layer of each accepted defect, each reviewer's seeded catches, and the loop's log of dropped checks. The adopting organization must set a calendar-date end in its own layer. The null end is awaiting the organization's end date. The bare edition warns and lets the exception cover the feeds it names. In any organization composition it is an error and covers nothing until the organization supplies a calendar-date end; a past date is expired."
+    owner_role: ratchet:people.security-risk-owner
+    checks: 
+      - MC-23
+      - MC-102
+      - MC-87
+      - MC-86
+      - MC-4
+      - MC-5
+      - MC-6
+      - MC-7
+      - MC-8
+      - MC-98
+      - MC-99
+      - MC-100
+      - MC-101
+      - MC-107
+      - MC-108
+      - MC-110
+    exposure: 
+      ratchet: 
+        - part: ratchet:ext.soc-incident-response
+          agent_reachable: false
+          exposed: false
+          model_free: true
+          role_class: existing
+          kind: external-system
+        - part: ratchet:s1.source-adapters
+          agent_reachable: false
+          exposed: true
+          model_free: true
+          role_class: evidence
+          kind: process
+        - part: ratchet:s1.tool-signal-intake
+          agent_reachable: false
+          exposed: true
+          model_free: true
+          role_class: evidence
+          kind: process
+        - part: ratchet:s2.workflow-worker-app
+          agent_reachable: false
+          exposed: true
+          model_free: false
+          role_class: producer
+          kind: service
+        - part: ratchet:s6.developer-queue-filter
+          agent_reachable: false
+          exposed: true
+          model_free: true
+          role_class: control
+          kind: service
+        - part: ratchet:s6.enterprise-adapters
+          agent_reachable: false
+          exposed: false
+          model_free: true
+          role_class: existing
+          kind: gateway
+        - part: ratchet:s6.hardening-service
+          agent_reachable: false
+          exposed: false
+          model_free: false
+          role_class: producer
+          kind: service
+        - part: ratchet:s7.sampling-service
+          agent_reachable: false
+          exposed: true
+          model_free: true
+          role_class: evaluation
+          kind: process
+        - part: ratchet:s7.tool-delivery-impact
+          agent_reachable: false
+          exposed: true
+          model_free: true
+          role_class: evaluation
+          kind: service
+        - part: ratchet:s6.regression-catalog
+          role_class: evidence
+          kind: registry
+          agent_reachable: false
+          exposed: false
+          model_free: true
+        - part: ratchet:s5.failure-class-registry
+          role_class: evidence
+          kind: registry
+          agent_reachable: false
+          exposed: false
+          model_free: true
+        - part: ratchet:s6.paved-road-catalog
+          role_class: existing
+          kind: registry
+          agent_reachable: false
+          exposed: false
+          model_free: true
+        - part: ratchet:s7.road-adoption-telemetry
+          role_class: evaluation
+          kind: service
+          agent_reachable: false
+          exposed: false
+          model_free: true
+        - part: ratchet:s5.road-assurance-record
+          role_class: evidence
+          kind: registry
+          agent_reachable: false
+          exposed: false
+          model_free: true
+        - part: ratchet:s7.tool-yield-evaluator
+          role_class: evaluation
+          kind: service
+          agent_reachable: false
+          exposed: true
+          model_free: true
+        - part: ratchet:s5.fix-brief-builder
+          role_class: evidence
+          kind: service
+          agent_reachable: false
+          exposed: false
+          model_free: true
+      jig: 
+        - part: jig:measurement-plane
+          agent_reachable: false
+          exposed: false
+          model_free: true
+          role_class: existing
+          kind: service
+        - part: jig:people.change-reviewer
+          agent_reachable: false
+          exposed: true
+          model_free: false
+          role_class: human
+          kind: person
+        - part: jig:people.creation-policy-owner
+          agent_reachable: false
+          exposed: false
+          model_free: false
+          role_class: human
+          kind: person
+        - part: jig:people.high-risk-reviewer
+          agent_reachable: false
+          exposed: true
+          model_free: false
+          role_class: human
+          kind: person
+        - part: jig:provenance-stamper
+          agent_reachable: false
+          exposed: false
+          model_free: true
+          role_class: existing
+          kind: service
+        - part: jig:quarantined-reader
+          agent_reachable: false
+          exposed: true
+          model_free: false
+          role_class: producer
+          kind: service
+        - part: jig:secure-creation
+          agent_reachable: true
+          role_class: existing
+          kind: external-system
+          exposed: false
+          model_free: true
+        - part: jig:context-plane
+          agent_reachable: true
+          role_class: existing
+          kind: registry
+          exposed: false
+          model_free: true
+        - part: jig:check-suite
+          agent_reachable: true
+          role_class: existing
+          kind: registry
+          exposed: false
+          model_free: true
+        - part: jig:inner-loop
+          agent_reachable: true
+          role_class: existing
+          kind: service
+          exposed: false
+          model_free: true
+        - part: jig:coding-agent
+          agent_reachable: true
+          role_class: producer
+          kind: service
+          exposed: false
+          model_free: false
+        - part: jig:harness-full-parity
+          agent_reachable: true
+          role_class: existing
+          kind: service
+          exposed: false
+          model_free: true
+        - part: jig:harness-no-pinning
+          agent_reachable: true
+          role_class: existing
+          kind: service
+          exposed: false
+          model_free: true
+        - part: jig:harness-no-stop-gate
+          agent_reachable: true
+          role_class: existing
+          kind: service
+          exposed: false
+          model_free: true
+        - part: jig:edit-checks
+          agent_reachable: true
+          role_class: existing
+          kind: service
+          exposed: false
+          model_free: true
+        - part: jig:stop-gate
+          agent_reachable: true
+          role_class: existing
+          kind: service
+          exposed: false
+          model_free: true
+        - part: jig:repository
+          agent_reachable: true
+          role_class: existing
+          kind: store
+          exposed: false
+          model_free: true
+        - part: jig:precommit-gate
+          agent_reachable: true
+          role_class: existing
+          kind: service
+          exposed: false
+          model_free: true
+      shared: 
+        - part: shared:ext.engineering-workflows
+          agent_reachable: false
+          exposed: true
+          model_free: true
+          role_class: existing
+          kind: external-system
+claims: 
+  - id: SH-1
+    owners: 
+      - side: jig:context-plane
+        role: Policy-owning team
+        identity: null
+      - side: jig:check-suite
+        role: Policy-owning team
+        identity: null
+      - side: jig:people.creation-policy-owner
+        role: Policy-owning team
+        identity: null
+      - side: jig:measurement-plane
+        role: Secure-creation measurement owner (outside the reviewer teams)
+        identity: null
+      - side: jig:p55-r28
+        role: Policy-owning team
+        identity: null
+      - side: jig:p55-r29
+        role: Policy-owning team
+        identity: null
+      - side: jig:p55-r30
+        role: Policy-owning team
+        identity: null
+    statement: "A creation-time loop sees less context than a validation loop that reproduces its findings, so its findings are broad, fast and noisier; Ratchet's proven classes and the checks derived from its kept tests sharpen Jig's aim as Ratchet's record grows."
+    type: engineering-practice
+    premise_group: Interface with Ratchet
+    load: "Jig's place beside Ratchet: proven classes (interface point I1) as the targets the context plane steers toward and the policy-owning team turns into rules, derived checks (I2) in the shared suite, vetted road entries (I3), Jig's findings flowing to Ratchet as leads before triage (I5), and Jig alone starting with a creation-premise and harness inventory while its stage exits wait on the declared Ratchet capabilities."
+    rests_on: 
+      parts: 
+        - jig:context-plane
+        - jig:check-suite
+        - jig:people.creation-policy-owner
+        - jig:measurement-plane
+      relationships: 
+        - jig:p55-r28
+        - jig:p55-r29
+        - jig:p55-r30
+    evidence: 
+      - source: Peer reviewed study
+        url: https://doi.org/10.1145/3650212.3680313
+        kind: peer-reviewed
+      - source: Peer reviewed study
+        url: https://doi.org/10.1145/3661167.3661262
+        kind: peer-reviewed
+    strength: moderate (creation-time findings are noisier) / weak (proven classes sharpen the aim)
+    strength_reason: "Peer-reviewed studies show analyzers at the point of change emitting mostly irrelevant warnings and missing many real flaws, and one shows rules written from missed vulnerabilities more than doubling an analyzer's detection. No study measures a creation loop fed by another loop's reproduced classes; Ratchet's CL-02 grades the validation side's noise and the need for reproduction."
+    extrapolation: "From one analyzer tuned on a curated set of known vulnerabilities to a policy-owning team turning an organization's reproduced classes into rules."
+    falsifier: "Rules turned from proven classes catch their class's reproduced members no better than the organization's earlier rules (the class test U-434 runs), or Jig's precision does not rise as Ratchet's record grows."
+    measured_by: 
+      - ratchet:U-434
+      - jig:U-436
+      - "The policy-owning team reads ClassTestTotals directly as people, never an agent; the suite and measurement plane receive only a binary rule result."
+    verdict: honest bet
+    untested: true
+    if_it_flips: "Jig runs on its own best-guess classes, as it does without Ratchet, and the interface carries leads and provenance more than targets."
+    kind: engineering-practice
+    grade: moderate (creation-time findings are noisier) / weak (proven classes sharpen the aim)
+    source: Published studies linked in the evidence record
+    fallback: "Jig runs on its own best-guess classes, as it does without Ratchet, and the interface carries leads and provenance more than targets."
+  - id: SH-2
+    owners: 
+      - side: shared:ext.engineering-workflows
+        role: Engineering system owner
+        identity: null
+      - side: ratchet:s6.regression-catalog
+        role: Domain test team + CI/context owners
+        identity: null
+    statement: "The protected regression stage keeps test inputs, logs and artifacts outside the coding agent's credentials."
+    type: engineering-practice
+    premise_group: Engineering system
+    load: Kept regression secrecy and detection of derived-check gaming.
+    rests_on: 
+      parts: 
+        - shared:ext.engineering-workflows
+        - ratchet:s6.regression-catalog
+      relationships: 
+        []
+    evidence: 
+      []
+    strength: weak
+    grade: weak
+    strength_reason: "An organizational permission assumption exercised by a game-day test, with no measured operating evidence."
+    verdict: honest bet
+    untested: true
+    falsifier: "The coding agent reads a planted regression input, log or artifact with its ordinary credentials."
+    measured_by: 
+      - F132-premise
+    extrapolation: "Permission isolation depends on the adopter's platform and audit configuration."
+    if_it_flips: Keep regressions outside the pipeline and detect reintroductions through replay.
+    fallback: Keep regressions outside the pipeline and detect reintroductions through replay.
+names: 
+  ratchet:s6.regression-catalog: Reviewed regression catalog
+  ratchet:s5.failure-class-registry: Failure-class registry
+  ratchet:s6.paved-road-catalog: Paved-road catalog
+  ratchet:s7.road-adoption-telemetry: Road adoption and escape-hatch telemetry
+  ratchet:s5.road-assurance-record: Road assurance record
+  ratchet:s7.tool-yield-evaluator: Tool yield and miss-rate evaluator
+  jig:secure-creation: "Jig (secure creation at the developer's edit)"
+  ratchet:s5.fix-brief-builder: Fix brief builder
+  jig:context-plane: "Context plane: paved-road guidance and skills"
+  jig:check-suite: Shared check suite and policy source
+  jig:inner-loop: "Inner loop: the agent's turn"
+  jig:coding-agent: Coding agent session
+  jig:harness-full-parity: Coding harness with full parity (example)
+  jig:harness-no-pinning: Coding harness without version pinning (example)
+  jig:harness-no-stop-gate: Coding harness without a stop gate (example)
+  jig:edit-checks: Per-edit checks
+  jig:stop-gate: Stop gate
+  jig:repository: Repositories and mirrored dependencies
+  jig:precommit-gate: Locked pre-commit gate
+layers: 
+  realization: 
+    version: 1
+    planes: 
+      integration: "Adapters to the organization's tracker, CI/CD, IAM, change management, SIEM, and external systems."
+    elements: 
+      ext.engineering-workflows: 
+        plane: integration
+        class: "The organization's tracker, SCM, CI/CD and change management"
+        examples: 
+          []
+        swap_point: false
+        existing_tool_default: true
+  quality: 
+    elements: 
+      {}
+    contracts: 
+      RoadEntry: 
+        - versioned artifact
+        - entry id plus version; released through the platform pipeline
+      DerivedCheck: 
+        - versioned record
+        - "keyed by check id and version with the kept regression's test id and version it came from; a new regression version yields a new check version, never an edit in place"
+      DroppedCheck: 
+        - append-only record
+        - "keyed by check id, version and time; a re-enabled check appends a new record"
+      ProvenClass: 
+        - versioned record
+        - class id plus projection version; public semantic or closure-state changes increase it; membership changes while already open alone do not
+      RoadAssuranceStatus: 
+        - versioned record
+        - "entry id plus version, projected from the road assurance record; superseded or withdrawn, never overwritten"
+      FixBrief: 
+        - versioned record
+        - "keyed by finding id; a new reproduction or proof-condition version yields a new brief version, never an edit in place; how it was made is part of the record"
+      CreationRule: 
+        - versioned artifact
+        - "rule id plus version, written only by the policy-owning team; a class test's result is a record of its own and never edits the rule"
+      CatchLayer: 
+        - versioned record
+        - keyed by finding id; a reassignment appends a version with who assigned it and never overwrites the layer in force when a measure was reported
+      ClassTestCount: 
+        - latest-wins record
+        - rule id plus rule version; only the current pass or fail is projected from the protected class-test result
+      CreationLead: 
+        - at-least-once
+        - "keyed by tool, rule id (with rename mapping) and fingerprint; the tool signal intake normalizes each into a tool lead and deduplicates within the tool"
+      ProvenanceStamp: 
+        - immutable artifact by content hash
+        - signed once per change and revision; a restamp is a new artifact and never replaces the stamp a review saw
+      ReviewerSeedCatch: 
+        - latest-wins record
+        - "keyed by reviewer and window; recomputed by rule from review outcomes and the seed frame, so a resend replaces the window's value; a window with no record reads as silent, never as zero"
+      SeededChange: 
+        - immutable artifact by content hash
+        - keyed by sandbox branch and revision; a reseed is a new branch and never replaces a change a reviewer has seen
+      DerivedCheckMisses: 
+        - latest-wins record
+        - "keyed by check id, check version and window; recomputed by rule from replay results, so a resend replaces the window's value; a window with no record reads as silent, never as zero"
+      ClassTestTotals: 
+        - versioned record
+        - "rule and class versions; delivered directly to the policy-owning team: people, never an agent, with no agent-readable copy"
+      ChangeRecord: 
+        - at-least-once
+        - keyed by finding id plus change id
+      GateFailurePosture: 
+        - signed artifact with expiry
+        - verified offline by the pipeline stage; an expired or untrusted posture falls back to the tier default it carries
+      ToolLead: 
+        - at-least-once
+        - "keyed by tool, rule id (with rename mapping) and fingerprint; status updates append"
+      DeliveryTelemetry: 
+        - at-least-once
+        - "keyed by tool gate, service and period"
+      ChangeProvenance: 
+        - at-least-once
+        - "keyed by change id and revision; a later attestation verification appends, never overwrites; an unlabeled change is recorded as unlabeled and an unverifiable stamp as unverified"
+      TrackerText: 
+        - at-least-once
+        - "keyed by item id and the time the text was written; an edited issue or comment appends a new record, and only the quarantined reader receives it"
+    tiers: 
+      T0: 
+        name: Control safety
+        intent: "Authorization, grants, credentials, audit and live prerequisite checks. Wrong answers are worse than no answer."
+        failure_mode: fail-closed
+        defaults: 
+          availability: "99.9% monthly (unavailability blocks actions, never permits them)"
+          rpo: 0 from acknowledgment (synchronous replication)
+          rto: 1 hour
+          consistency: linearizable for grant issue and consume; strongly consistent reads
+          durability: audit records replicated across 3 failure domains before acknowledgment
+          retention: 7 years for audit and grants (profile overrides per jurisdiction)
+      T1: 
+        name: Evidence integrity
+        intent: "Intake, verification, disposition, ledger, evidence and closure. Losing or altering evidence is the failure that matters."
+        failure_mode: queue-and-retry
+        defaults: 
+          availability: 99.5% monthly
+          rpo: 0 from acknowledgment for ledger and evidence stores (the outbox holds work until the ack)
+          rto: 4 hours
+          consistency: strong for ledger and closure writes; immutable once written
+          durability: object lock or WORM; 3 failure domains
+          retention: 7 years for accepted evidence and dispositions; rejected and unresolved kept as long as accepted
+      T2: 
+        name: Orchestration
+        intent: "Requests, workflow, dispatch, producers, context build and model access. Delays are acceptable; duplicate or phantom effects are not."
+        failure_mode: queue-and-retry
+        defaults: 
+          availability: 99.5% monthly
+          rpo: 5 minutes (workflow history is event-sourced)
+          rto: 4 hours
+          consistency: strong per workflow; at-least-once delivery with idempotency keys between services
+          durability: replicated across 2 failure domains
+          retention: 13 months for run records and model usage
+      T3: 
+        name: Best effort and analytics
+        intent: "Evaluation, telemetry, sampling and dashboards. Gaps reduce what can be claimed; they never change what can be done."
+        failure_mode: continue-without
+        defaults: 
+          availability: 99% monthly
+          rpo: 24 hours
+          rto: 2 business days
+          consistency: eventual
+          durability: "single region, daily backup"
+          retention: 25 months (two annual cycles for comparison)
+    failure_modes: 
+      fail-closed: The request is denied or the action does not start. No effect occurs. Callers see an explicit denial.
+      queue-and-retry: Work waits durably and resumes on recovery. Nothing is lost; elapsed time grows.
+      mark-unknown: "Missing or stale data is labeled unknown, never current. Consumers that need it refuse to proceed."
+      degrade-to-manual: The step falls back to the recorded manual procedure for its fidelity rung.
+      continue-without: "The loop continues; the gap is recorded (telemetry, sampling). Never used for a control."
+      posture-from-policy: "Behavior when unavailable is the pre-decided, signed posture from s3.gate-failure-policy."
+  failures: 
+    version: 1
+    scenarios: 
+      []
+  overlay-aws: 
+    elements: 
+      ext.engineering-workflows: 
+        services: 
+          - "the organization's tracker"
+          - SCM
+          - CI/CD and change management
+        fit: shared:existing
+        account: shared:existing
+        portability: open
+        note: Systems Manager Change Manager closed to new customers 2025-11-07.
+    account_classes: 
+      control: "Control-zone parts: authorization, grants, credentials, keys, audit, policy release, model-boundary gates, registers that decide. Own OU; only the control-plane operator role administers it."
+      evidence: "Evidence-plane control-zone parts: intake, verification, ledger, proof conditions, evidence stores. Own account in the control OU, separate from control so one compromised role cannot both grant and record."
+      execution: "One account per execution cell class (source build, staging, production profile). No route to the reasoning account except the dispatch contract."
+      reasoning: "Context, orchestration, test-drafting agents and model access. Agent identities live here and nowhere else."
+      evaluation: "Cohorts, matched evaluation, telemetry and value reporting."
+      existing: "The organization's own systems and accounts; Ratchet connects to them through adapters."
+      identity: "The organization's identity source, federated into IAM Identity Center."
+    zone_accounts: 
+      control: 
+        - control
+        - evidence
+      execution: 
+        - execution
+      reasoning: 
+        - reasoning
+      evaluation: 
+        - evaluation
+      existing: 
+        - existing
+      third-party: 
+        - existing
+  modules: 
+    never_cross: 
+      - contract: ratchet:OracleSpec
+        what: proof conditions
+      - contract: ratchet:RegressionSpec
+        what: kept regressions; only a derived check crosses in their place
+      - contract: ratchet:FailureClass
+        what: failure classes in full; only the projection ProvenClass crosses
+      - contract: ratchet:RoadAssurance
+        what: road assurance in full; only the projection RoadAssuranceStatus crosses
+      - contract: ratchet:ClassTestResult
+        what: "the full class-test result; only pass or fail per rule version reaches agent-reachable parts and a separate totals projection goes directly to the policy-owning team: people, never an agent"
+      - contract: ratchet:ReplayVerdict
+        what: replay results; only the count of misses per derived check crosses
+      - contract: ratchet:KeptTestStatus
+        what: "kept-test status: lanes, runs, verdicts and re-proof results"
+  threat-closures: 
+    closures: 
+      - contract: DerivedCheck
+        field: "Its pattern is the body the check suite compiles into configuration coding agents can read, so it holds a general pattern for the weakness class the kept test holds, never the kept test's input, its fixtures or the boundary behavior it expects."
+        letter: I
+        why: "The agent-readable body holds only a general weakness-class pattern. The catalog excludes the kept test's input, fixtures and expected behavior; the fixed message excludes expected outcomes, and no proof condition or expected-outcome hash crosses."
+      - contract: ProvenClass
+        field: "Its definition names no service, component, path or file of the organization's own. While any member finding is open, the projection shows the class's existence, definition and fix rule, with no member count, services or components spanned, or highest consequence tier. A third-party class names the component without its versions until a fix exists. Per-class member counts are never carried in this projection, including after every member closes; they go only to the policy-owning team: people, never an agent, never to an agent-reachable part or the model route. Spans and highest consequence tier are sent only once every member's finding is closed; a class that gains an open member again sends its next version without them, and the loop keeps only the current version of each class. The model provider is a reader through the coding agent's model route, so the same limits apply to what reaches it."
+        letter: I
+        why: "Class projections carry no per-class counts at any closure state. The catalog sends only pass or fail per rule version to the check suite and measurement plane, and sends counts directly to the policy-owning team: people, never an agent; no counts reach agent-reachable parts or the model route. Open-class projections withhold spans and consequence tier, and third-party component versions stay withheld until a fix exists. The context plane keeps only the current projection version, whose bump conditions are explicit. These are delivery bounds on the projections; separately authorized fixing briefs and version history can still support inference. A derived check may name its source test by id, but its content stays protected. The definition's bound is a producer duty; its send-time check remains a known issue."
+        reviewed: 
+          by: design owner
+          date: 2026-10-27
+      - contract: RoadAssuranceStatus
+        field: "For each entry version its status is current or not current, with no class outcomes and no reason for a status change, including a failed vetting or a withdrawal after a leak. Its vetted scope and known limits use API and configuration identifiers and named pattern classes, never an input shape or sequence. They never hold a test's input, fixture content, expected outcome or a bypass description."
+        letter: I
+        why: "This record directly discloses only current or not-current per entry version, with no class outcomes or failure or withdrawal reason. Scope and known limits directly disclose API and configuration identifiers and named pattern classes, never input shapes or sequences, test inputs, fixture content, expected outcomes or bypass descriptions. Fixture and verdict references and road-level regression results stay out of this record. The canary scans the sent record, context guidance and model prompts for protected literals. The rule covers direct disclosure by this projection; it does not close inference from status timing joined with class-version changes, road entries or dropped road claims."
+  practices: 
+    rows: 
+      []
+  crosswalk: 
+    rows: 
+      []
+views: 
+  - id: shared-obligations
+    title: Shared obligations
+    level: component
+    elements: 
+      - ext.engineering-workflows
+      - ratchet:s6.regression-catalog
+      - jig:check-suite
+    relationships: 
+      []
