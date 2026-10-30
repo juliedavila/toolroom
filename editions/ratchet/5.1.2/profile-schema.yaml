@@ -1,0 +1,1958 @@
+# Ratchet edition 5.1.2. Generated; do not edit.
+type: object
+required: 
+  - profile
+  - existing_tools
+  - jurisdictions
+  - delivery
+  - ownership
+  - separation
+  - models
+  - scale
+  - risk_appetite
+  - attestation
+  - unattested_default
+  - crown_jewel_register
+  - blocking_cost_register
+  - gate_failure_policy
+  - ledger_write_path
+  - road
+  - tools
+  - modules
+  - dials
+  - fix_capacity
+  - ai_resilience
+  - infrastructure_dependencies
+  - data_partitioning
+  - phase_1_boundary
+properties: 
+  profile: 
+    type: object
+    required: 
+      - name
+      - description
+    properties: 
+      name: 
+        type: string
+      description: 
+        type: string
+  existing_tools: 
+    description: "Tool already in use at each seam (loop step STEP-1 to STEP-11), or null when the seam starts as a stand-in or is built."
+    type: object
+    required: 
+      - STEP-1
+      - STEP-2
+      - STEP-3
+      - STEP-4
+      - STEP-5
+      - STEP-6
+      - STEP-7
+      - STEP-8
+      - STEP-9
+      - STEP-10
+      - STEP-11
+    properties: 
+      STEP-1: 
+        type: string
+        nullable: true
+      STEP-2: 
+        type: string
+        nullable: true
+      STEP-3: 
+        type: string
+        nullable: true
+      STEP-4: 
+        type: string
+        nullable: true
+      STEP-5: 
+        type: string
+        nullable: true
+      STEP-6: 
+        type: string
+        nullable: true
+      STEP-7: 
+        type: string
+        nullable: true
+      STEP-8: 
+        type: string
+        nullable: true
+      STEP-9: 
+        type: string
+        nullable: true
+      STEP-10: 
+        type: string
+        nullable: true
+      STEP-11: 
+        type: string
+        nullable: true
+  jurisdictions: 
+    description: Overlay only. The core model names no jurisdiction.
+    type: array
+    items: 
+      type: object
+      required: 
+        - id
+        - incident_clocks
+      properties: 
+        id: 
+          type: string
+        incident_clocks: 
+          type: array
+          items: 
+            type: object
+            required: 
+              - event
+              - hours
+              - authority
+            properties: 
+              event: 
+                type: string
+              hours: 
+                type: number
+                minimum: 0
+              authority: 
+                type: string
+  delivery: 
+    type: object
+    required: 
+      - deploy_cadence
+      - starting_cadence_rung
+      - standard_change_preapproval
+    properties: 
+      security_test_time_target_minutes: 
+        type: number
+        minimum: 1
+        description: "Security checks aim for test time strictly below this many minutes at every delivery stage. The shipped default is 10 minutes when this optional field is absent. The organization may set another target here. Measures report stage test time and the share of runs below the effective target. This objective does not change a gate's timeout or failure posture."
+      metric_tolerance: 
+        type: string
+        nullable: true
+        description: "The tolerance for the five delivery metrics of the services under test, set by each service owner before phase 2 begins, with who set it. Phase 2's exit test and the stop conditions read it."
+      deploy_cadence: 
+        type: string
+        enum: 
+          - continuous
+          - daily
+          - weekly
+          - release-train
+          - quarterly
+      starting_cadence_rung: 
+        type: string
+        enum: 
+          - periodic
+          - scheduled
+          - continuous
+      standard_change_preapproval: 
+        type: boolean
+  ownership: 
+    description: The three ownership choices worked as scenarios in the reference ownership scenarios.
+    type: object
+    required: 
+      - q1_checking_team
+      - q2_runtime_producer
+      - q3_promotion_authority
+    properties: 
+      q1_checking_team: 
+        type: string
+        enum: 
+          - one-team
+          - sibling
+          - second-line
+          - split
+      q2_runtime_producer: 
+        type: string
+        enum: 
+          - platform
+          - red-team
+          - vendor
+          - product
+      q3_promotion_authority: 
+        type: string
+        enum: 
+          - ai-governance
+          - security-leadership
+          - joint-board
+          - evaluation-team
+  separation: 
+    description: Team names for the roles the four rules keep apart.
+    type: object
+    required: 
+      - producer_team
+      - approver_team
+      - fixture_oracle_owner_team
+      - verifier_team
+      - fix_author_team
+      - closure_acceptor_team
+      - business_risk_owner_role
+      - security_risk_owner_role
+      - control_plane_operator_role
+      - platform_operator_role
+    properties: 
+      producer_team: 
+        type: string
+      approver_team: 
+        type: string
+      fixture_oracle_owner_team: 
+        type: string
+      verifier_team: 
+        type: string
+      fix_author_team: 
+        type: string
+      closure_acceptor_team: 
+        type: string
+      evaluation_team: 
+        type: string
+        nullable: true
+        description: "The team that runs evaluation: matched evaluations, tool yield, road metrics, catch-layer assignment and drift reports. Phase 3 is the first phase in which the verifier and the evaluator run as systems, so it cannot start until this team is named, and it must differ from the verifier team, the paved-road owner, the tool owner and the portfolio decision owner."
+      purple_team: 
+        type: string
+        nullable: true
+        description: "Optional: the purple team, which joins attack and defense. Its AI turns validated findings into proposed detections and kept regression tests, runs the scheduled re-proof of kept tests and supplies seed material for the approval and review gates. It may be the team that runs the agents. It must differ from the verifier team, the team that owns proof conditions, the security risk owner and, when named, the detection owner team, so it never accepts the kept tests, re-proof results, retirements or detections its own AI proposes."
+      detection_owner_team: 
+        type: string
+        nullable: true
+        description: "Optional: the defensive team that reviews, accepts, owns and deploys the detections the purple team's AI proposes. When named, it must differ from the purple team."
+      team_definition: 
+        type: string
+        nullable: true
+        description: "Organization choice, no core default: what counts as one team when the separation rules compare team names, for example a reporting line up to a named management level, a cost center, or a delivery pod. Name it so two entries count as the same team exactly when they share the incentives, manager pressure, access and blind spots the separation is meant to split. Recorded, not enforced; the checker compares the names the profile gives."
+      internal_audit_role: 
+        type: string
+        enum: 
+          - verifier
+          - closure-acceptor
+          - observer
+          - not-involved
+        nullable: true
+        description: "Organization choice, no core default: where internal audit sits. verifier or closure-acceptor gives it an operating role in the loop; observer means it reads the record and relies on it for its own assurance without taking part; not-involved leaves it out. An operating role draws a warning that asks the profile to record how audit keeps its independence."
+      program_decision_owner_role: 
+        type: string
+        nullable: true
+        description: "The executive who approves phases 1 and 2 and names the phase 1 roles. Accepts a phase_1_only exception before the risk owners are named, sets the default fix cap, and may not confirm escapes; while it is unanswered the checks that compare against it stay silent. Must not be the producer team or the verifier team."
+      business_risk_owner_role: 
+        type: string
+        description: Line-of-business P&L owner who accepts residual business risk and ship-through decisions. Must not be the producer (discoverer and proposer) or verifier.
+      security_risk_owner_role: 
+        type: string
+        description: Security or second-line risk organization that sets posture thresholds and concurs on ship-through. Must not be the producer (proposer).
+      control_plane_operator_role: 
+        type: string
+        description: "Role in the assurance unit that operates and administers the control plane: authorization service, policy engine, grant store, leases, model-boundary gates, audit, evidence stores and keys, only through the privileged access broker under dual control. Must not be the platform operator, the producer or the verifier."
+      team_ids: 
+        type: object
+        nullable: true
+        description: "Optional: a stable id for each team, keyed by the team name as the role fields write it. An id never changes: a renamed team keeps its id under its new name, so a separation and a patch that cite the id stay valid, and a rename is never a reason to accept a patch again. A merger or a split is a change of fact and gets new ids. Two names may not share an id."
+      platform_operator_role: 
+        type: string
+        description: "Role that operates the shared orchestration services (run record, workflow, dispatch, model gateway routing and serving) and the execution cells. Must not be the control-plane operator."
+  ledger_write_path: 
+    type: string
+    enum: 
+      - intake-only
+      - direct
+  road: 
+    description: "The paved road the organization already has, as the existing-tool rung for the road plane (null means the asset starts as a stand-in or is built), and the roles around it."
+    type: object
+    required: 
+      - owner_team
+      - metrics_owner_team
+      - assets
+      - conformance_basis
+      - conformance_granularity
+      - vet_each_version
+      - covered_sample_share
+      - escape_hatch_reinstates_regressions
+      - authorship_labeling
+      - enforced_preferred
+      - opt_in_coverage_requires_call_site_check
+    properties: 
+      owner_team: 
+        type: string
+        description: Shared platform or developer-experience team that owns the catalog. Must not be the verifier of retirement claims.
+      metrics_owner_team: 
+        type: string
+        description: "Team that computes road metrics. Must not be the road owner, so the road team never grades its own road."
+      assets: 
+        type: object
+        required: 
+          - developer_portal
+          - base_images
+          - container_platform_policy
+          - api_auth_libraries
+          - gateway
+          - secure_defaults_linters
+        properties: 
+          developer_portal: 
+            type: string
+            nullable: true
+          base_images: 
+            type: string
+            nullable: true
+          container_platform_policy: 
+            type: string
+            nullable: true
+          api_auth_libraries: 
+            type: string
+            nullable: true
+          gateway: 
+            type: string
+            nullable: true
+          secure_defaults_linters: 
+            type: string
+            nullable: true
+      conformance_basis: 
+        type: string
+        enum: 
+          - deployed-state
+          - declared
+        description: deployed-state is required by the rules; declared is accepted by the schema only so the checker can name the error (F30).
+      conformance_granularity: 
+        type: string
+        enum: 
+          - call-site
+          - service
+        description: "call-site is required by the rules: a service is on-road only at the call sites a deterministic static or build-time check proves use a vetted entry. service is accepted by the schema only so the checker can name the error (F36)."
+      vet_each_version: 
+        type: boolean
+        description: "Must be true: only entry versions with a current road assurance record confer covered-by-road status (F37)."
+      covered_sample_share: 
+        type: number
+        minimum: 0
+        description: "Share (0 to 1) of covered-by-road call sites sampled and tested anyway each cycle, so analysis tailoring is never blind. 0 is accepted by the schema only so the checker can name the error (F36)."
+      escape_hatch_reinstates_regressions: 
+        type: boolean
+      authorship_labeling: 
+        type: string
+        enum: 
+          - labeled
+          - unlabeled
+        description: "Whether changes can be labeled human-written or agent-generated, for the on-road versus off-road split."
+      enforced_preferred: 
+        type: boolean
+        description: "Prefer enforced road entries (compile-time check, framework default, platform policy) over opt-in libraries when choosing what goes on the road. false is accepted with a warning."
+      opt_in_coverage_requires_call_site_check: 
+        type: boolean
+        description: "Must be true: an opt-in entry confers covered-by-road status only at call sites the deterministic conformance check proves. false is accepted by the schema only so the checker can name the error."
+  tools: 
+    description: "The AppSec tools and review practices the organization already runs, each an input of labeled leads. mandated marks a tool an obligation requires; its deprecation means keep for the obligation and remove from developer queues, so a mandated tool must name its obligation."
+    type: object
+    required: 
+      - existing
+      - tool_owner_team
+      - yield_owner_team
+      - decision_owner_role
+      - confidence_bar_default
+      - sample_minimum_per_class
+      - leads_count_as_coverage
+      - yield_requires_sampling
+      - delivery_metrics_collected
+    properties: 
+      existing: 
+        type: object
+        required: 
+          - sast
+          - dast
+          - sca
+          - secrets
+          - iac
+          - container
+          - linter
+          - bug_bounty
+          - pentest
+          - threat_modeling
+          - security_review
+        properties: 
+          sast: 
+            type: array
+            items: 
+              type: object
+              required: 
+                - name
+                - mandated
+              properties: 
+                name: 
+                  type: string
+                mandated: 
+                  type: boolean
+                obligation: 
+                  type: string
+                  nullable: true
+          dast: 
+            type: array
+            items: 
+              type: object
+              required: 
+                - name
+                - mandated
+              properties: 
+                name: 
+                  type: string
+                mandated: 
+                  type: boolean
+                obligation: 
+                  type: string
+                  nullable: true
+          sca: 
+            type: array
+            items: 
+              type: object
+              required: 
+                - name
+                - mandated
+              properties: 
+                name: 
+                  type: string
+                mandated: 
+                  type: boolean
+                obligation: 
+                  type: string
+                  nullable: true
+          secrets: 
+            type: array
+            items: 
+              type: object
+              required: 
+                - name
+                - mandated
+              properties: 
+                name: 
+                  type: string
+                mandated: 
+                  type: boolean
+                obligation: 
+                  type: string
+                  nullable: true
+          iac: 
+            type: array
+            items: 
+              type: object
+              required: 
+                - name
+                - mandated
+              properties: 
+                name: 
+                  type: string
+                mandated: 
+                  type: boolean
+                obligation: 
+                  type: string
+                  nullable: true
+          container: 
+            type: array
+            items: 
+              type: object
+              required: 
+                - name
+                - mandated
+              properties: 
+                name: 
+                  type: string
+                mandated: 
+                  type: boolean
+                obligation: 
+                  type: string
+                  nullable: true
+          linter: 
+            type: array
+            items: 
+              type: object
+              required: 
+                - name
+                - mandated
+              properties: 
+                name: 
+                  type: string
+                mandated: 
+                  type: boolean
+                obligation: 
+                  type: string
+                  nullable: true
+          bug_bounty: 
+            type: array
+            items: 
+              type: object
+              required: 
+                - name
+                - mandated
+              properties: 
+                name: 
+                  type: string
+                mandated: 
+                  type: boolean
+                obligation: 
+                  type: string
+                  nullable: true
+          pentest: 
+            type: array
+            items: 
+              type: object
+              required: 
+                - name
+                - mandated
+              properties: 
+                name: 
+                  type: string
+                mandated: 
+                  type: boolean
+                obligation: 
+                  type: string
+                  nullable: true
+          threat_modeling: 
+            type: array
+            items: 
+              type: object
+              required: 
+                - name
+                - mandated
+              properties: 
+                name: 
+                  type: string
+                mandated: 
+                  type: boolean
+                obligation: 
+                  type: string
+                  nullable: true
+          security_review: 
+            type: array
+            items: 
+              type: object
+              required: 
+                - name
+                - mandated
+              properties: 
+                name: 
+                  type: string
+                mandated: 
+                  type: boolean
+                obligation: 
+                  type: string
+                  nullable: true
+      tool_owner_team: 
+        type: string
+        description: Team that runs the tools and keeps exports flowing. Must not compute yield.
+      yield_owner_team: 
+        type: string
+        description: Team that runs the sampled lead tests and owns yield and miss-rate numbers (evaluation by default). Must not be the tool owner.
+      decision_owner_role: 
+        type: string
+        description: "Accountable decider for integrate, migrate or deprecate. Core default: the security risk owner. Must not be the producer team or the tool owner."
+      confidence_bar_default: 
+        type: number
+        minimum: 0
+        description: "Default share (0 to 1) a tool's measured yield must reach before its leads go to developer queues without demonstration. Replaced per tool by measured yield once a sample clears the minimum."
+      sample_minimum_per_class: 
+        type: number
+        minimum: 1
+        description: Pre-registered minimum sampled leads per tool class before any yield conclusion is drawn.
+      leads_count_as_coverage: 
+        type: boolean
+        description: Must be false. Accepted by the schema only so the checker can name the error (F33).
+      yield_requires_sampling: 
+        type: boolean
+        description: Must be true. Accepted by the schema only so the checker can name the error (F34).
+      delivery_metrics_collected: 
+        type: array
+        items: 
+          type: string
+          enum: 
+            - pipeline_stage_timings
+            - queue_time
+            - blocked_deploys
+            - triage_time
+            - change_lead_time
+            - deployment_frequency
+            - failed_deployment_recovery_time
+            - change_fail_rate
+            - deployment_rework_rate
+        description: "Delivery metrics the organization already collects, with DORA's current five names (change lead time, deployment frequency, failed deployment recovery time, change fail rate, deployment rework rate; Forsgren). Per-tool delivery impact and the phase 2 delivery guardrail use only these; anything missing is reported as not measured (side-quest metric)."
+  modules: 
+    description: "Pluggable modules on top of the core platform (the loop, its four rules and the record). Each module is declared in the design's module declarations: its category, interface points, switch-on test, rule inheritance, separations and the existing practice it wires in. A module is enabled only when its entry evidence exists, and the profile checker refuses one enabled early (F44); the core loop runs regardless. Entry criteria are defaults (inference) a profile may tighten. secure-creation is optional; leave it out when the organization does not run a secure-creation loop."
+    type: object
+    required: 
+      - consequence-gates
+      - paved-road
+      - tool-portfolio
+      - production-effects
+    properties: 
+      secure-creation: 
+        type: object
+        required: 
+          - enabled
+          - evidence
+        properties: 
+          enabled: 
+            type: boolean
+          owner_team: 
+            type: string
+            nullable: true
+            description: "The team that runs the secure-creation loop: its rules, checks and configuration."
+          merged_by: 
+            type: string
+            nullable: true
+            enum: 
+              - independent-reviewer
+              - change-author
+              - coding-agent
+            description: "Who merges a change on the protected branch. Must be independent-reviewer: the author of a change is the coding agent together with the person whose session produced it, and whoever merges is neither."
+          catch_layer_assigner_team: 
+            type: string
+            nullable: true
+            description: "The team that assigns the layer that should have caught each accepted defect, usually the evaluation team. Must not be the secure-creation owner or the paved-road owner."
+          reviewer_team: 
+            type: string
+            nullable: true
+            description: "The team whose people review agent-written changes, as the separation rules compare team names."
+          drift_reporter_team: 
+            type: string
+            nullable: true
+            description: "The team that reports reviewers' approval drift on agent-written changes. Must not be the reviewer team."
+          evidence: 
+            type: object
+            required: 
+              - provenance_stamped_share
+              - provenance_share_required
+              - derived_checks_running
+            properties: 
+              provenance_stamped_share: 
+                type: number
+                nullable: true
+                minimum: 0
+                description: "Share (0 to 1) of merged changes in scope that carry a provenance stamp, measured over the organization's chosen window."
+              provenance_share_required: 
+                type: number
+                nullable: true
+                minimum: 0
+                description: "Share (0 to 1) the organization sets as its entry bar. No default: an unanswered bar leaves the module unmet."
+              derived_checks_running: 
+                type: number
+                nullable: true
+                minimum: 0
+                description: "Derived checks running while code is written (at the edit, the Stop gate or commit). Entry: at least 1."
+      consequence-gates: 
+        type: object
+        required: 
+          - enabled
+          - evidence
+        properties: 
+          enabled: 
+            type: boolean
+          evidence: 
+            type: object
+            required: 
+              - findings_with_reached_assets
+            properties: 
+              findings_with_reached_assets: 
+                type: number
+                nullable: true
+                minimum: 0
+                description: "Accepted findings whose disposition records the assets the reproduced path reaches. Entry: at least 10, and the crown-jewel register at least 80 percent attested (computed from crown_jewel_register)."
+      paved-road: 
+        type: object
+        required: 
+          - enabled
+          - evidence
+        properties: 
+          enabled: 
+            type: boolean
+          evidence: 
+            type: object
+            required: 
+              - classes_with_two_reproduced
+            properties: 
+              classes_with_two_reproduced: 
+                type: number
+                nullable: true
+                minimum: 0
+                description: "Failure classes with two or more independently reproduced findings each. Entry: at least 3."
+      tool-portfolio: 
+        type: object
+        required: 
+          - enabled
+          - evidence
+        properties: 
+          enabled: 
+            type: boolean
+          evidence: 
+            type: object
+            required: 
+              - closed_cases_with_lead_provenance
+              - lead_text_quarantined
+            properties: 
+              closed_cases_with_lead_provenance: 
+                type: number
+                nullable: true
+                minimum: 0
+                description: "Closed cases whose disposition records which hand-seeded leads pointed at them (or none). Entry: at least 20."
+              lead_text_quarantined: 
+                type: boolean
+                description: "Entry: must be true. Submitter- and tool-written lead text reaches only the quarantined, tool-less reader."
+      production-effects: 
+        type: object
+        required: 
+          - enabled
+          - evidence
+        properties: 
+          enabled: 
+            type: boolean
+          evidence: 
+            type: object
+            required: 
+              - phase_3_continue_decision
+              - approved_production_profile
+            properties: 
+              phase_3_continue_decision: 
+                type: boolean
+                description: "Entry: phase 3's matched evaluation recorded a continue decision."
+              approved_production_profile: 
+                type: boolean
+                description: "Entry: an approved production profile names the reversible effect classes, health pauses and cleanup."
+  dials: 
+    description: "The organization's dial register. Every core dial listed in the design model dials must appear. A dial past its core bound (a floor when safe is up, a ceiling when safe is down) needs below_bound_acceptance, a risk acceptance id signed by the security risk owner. A profile bound may only be tighter than the core. road.covered_sample_share, tools.sample_minimum_per_class and tools.confidence_bar_default must equal their dial (one register)."
+    type: array
+    items: 
+      type: object
+      required: 
+        - id
+        - current
+        - turned_by_role
+        - last_turn_evidence
+      properties: 
+        id: 
+          type: string
+        current: 
+          type: number
+        bound: 
+          type: number
+          nullable: true
+          description: Optional bound tighter than the core; never looser.
+        turned_by_role: 
+          type: string
+          description: The role that set the current value. For the early-stop minimum (early_stop_min_closed_cases) this is whichever role the organization names to own it; no fixed role is checked against it.
+        last_turn_evidence: 
+          type: string
+        below_bound_acceptance: 
+          type: string
+          nullable: true
+  agent_limits: 
+    description: "Optional. The design limits on what each agent may touch. The design caps what an agent may touch, and the record widens its scope only inside that cap. Inside a limit, and below the consequence line, a reviewed action may run on its grant alone once the trust gate of clean runs holds, always through the authorization service the agent cannot reach; outside a limit, or at or above the line, a person approves each exact action. Acceptance gates never change: independent reproduction and closure with two human sign-offs stay with people. Leave the section out, or the consequence line unanswered, and approval works exactly as before limits existed: kept regression tests replay on their reviewed batch approvals and standing permissions, and every other action is approved by a person. Each standing permission, batch approval, earned-autonomy grant or dial listed under grants must sit inside the limit for its producer or judgment type and below the consequence line, or the profile is refused unless it records an exception."
+    type: object
+    nullable: true
+    required: 
+      - consequence_line
+      - consequence_line_set_by_role
+      - limits
+    properties: 
+      consequence_line: 
+        type: string
+        enum: 
+          - standard
+          - critical
+          - crown-jewel
+        description: "The lowest consequence tier at which a person approves every action, whatever any limit says. crown-jewel keeps people on every action that reaches a crown jewel; standard keeps people on every action, kept-test replays included."
+      consequence_line_set_by_role: 
+        type: string
+        description: "The role that set the consequence line: the business risk owner (separation.business_risk_owner_role). Moving the line is a recorded change by this role, never a result of the record alone."
+      limits: 
+        type: array
+        description: "One limit per producer route or judgment type; two limits for the same one are refused. Once the consequence line is set, a producer route or judgment type with no limit runs every action past a person."
+        items: 
+          type: object
+          required: 
+            - applies_to
+            - subject
+            - max_tier
+            - environments
+            - action_classes
+            - set_by_role
+          properties: 
+            applies_to: 
+              type: string
+              enum: 
+                - producer
+                - judgment-type
+              description: "producer: an agent route that proposes actions; judgment-type: one kind of judgment that earned autonomy may cover."
+            subject: 
+              type: string
+              description: The agent route id (as in models.eligible_routes) or the judgment type the limit covers.
+            max_tier: 
+              type: string
+              enum: 
+                - standard
+                - critical
+                - crown-jewel
+              description: The highest consequence tier the agent may touch on a grant alone.
+            environments: 
+              type: array
+              items: 
+                type: string
+              description: "The environments it may touch on a grant alone, for example an isolated test cell or staging."
+            action_classes: 
+              type: array
+              items: 
+                type: string
+                enum: 
+                  - read-only
+                  - reversible
+                  - state-changing
+              description: The action classes it may take on a grant alone.
+            set_by_role: 
+              type: string
+              description: "The role that set the limit: the security risk owner (separation.security_risk_owner_role), never the team that runs the agents. Widening a limit is a recorded change by this role, never a result of the record alone. When a limit narrows, every grant under it is checked again and lapses if it is wider."
+      grants: 
+        type: array
+        nullable: true
+        description: "Every standing permission, batch approval, earned-autonomy grant and dial that lets an agent act, or a judgment stand, without a person approving each instance, with what it reaches. Each must sit inside the limit for its subject and below the consequence line. A batch approval is a person approving a named set of actions at once (the tests, the targets and the window they run in); it counts as a grant, and is listed here, when the actions it names run without a person approving each one. A batch whose actions each still wait for a person's approval grants nothing and is left out."
+        items: 
+          type: object
+          required: 
+            - id
+            - kind
+            - applies_to
+            - subject
+            - max_tier
+            - environments
+            - action_classes
+          properties: 
+            id: 
+              type: string
+              description: "The grant or standing permission id, or for a dial its id in the dial register."
+            kind: 
+              type: string
+              enum: 
+                - standing-permission
+                - batch-approval
+                - autonomy-grant
+                - dial
+              description: "standing-permission: one reviewed test, target, identity and environment, with an expiry; batch-approval: a named set of actions approved at once; autonomy-grant: a judgment type that earned autonomy; dial: a dial setting that lets actions run unapproved. Every kind is checked against its limit and the consequence line the same way."
+            applies_to: 
+              type: string
+              enum: 
+                - producer
+                - judgment-type
+            subject: 
+              type: string
+              description: "The agent route id or judgment type, matched against the limits."
+            max_tier: 
+              type: string
+              enum: 
+                - standard
+                - critical
+                - crown-jewel
+              description: The highest consequence tier it lets the agent touch.
+            environments: 
+              type: array
+              items: 
+                type: string
+            action_classes: 
+              type: array
+              items: 
+                type: string
+                enum: 
+                  - read-only
+                  - reversible
+                  - state-changing
+      accuracy_window: 
+        type: object
+        nullable: true
+        description: "Optional. The window over which phase 2 reads each agent route's trailing accuracy, the first of the two predictors every agent action record carries: a count of the route's most recent actions, or a number of days, as the organization chooses. Record it before phase 2 starts, so the window cannot be chosen after the results are in. Every record states the window it was read over."
+        required: 
+          - unit
+          - size
+        properties: 
+          unit: 
+            type: string
+            enum: 
+              - actions
+              - days
+            description: "actions: the route's most recent actions; days: the actions of the most recent days."
+          size: 
+            type: number
+            minimum: 1
+            description: "How many actions, or how many days."
+  thresholds: 
+    description: "Optional. The numeric thresholds that stop the work or grant a step of trust, which the sponsor sets from the phase 1 map before phase 2 starts, each recorded with who set it and when. Phase 1 closes too few cases to set them, so the list is usually empty until then. A number the dial register already holds, such as the early-stop minimum, stays in the dial register only and is not repeated here: one register means one value. No phase waits for this list."
+    type: array
+    nullable: true
+    items: 
+      type: object
+      required: 
+        - value
+        - unit
+        - set_by_role
+        - set_on
+        - decides
+        - gates_phase
+      properties: 
+        value: 
+          type: number
+        unit: 
+          type: string
+          description: "What the value counts, for example closed cases, percent of sampled actions or days."
+        set_by_role: 
+          type: string
+          description: "The role that set it. Ratchet expects the sponsor (the program decision owner) to set these; the profile records whoever did. A threshold set by the team that runs the agents warns, because that team would set the bar it is judged against."
+        set_on: 
+          type: string
+          description: "The date it was set, YYYY-MM-DD."
+        decides: 
+          type: string
+          description: "What it decides, in a sentence: what happens on each side of the value."
+        gates_phase: 
+          type: number
+          enum: 
+            - 1
+            - 2
+            - 3
+            - 4
+            - 5
+          description: "The phase it gates: the threshold decides whether that phase starts or goes on."
+  fix_capacity: 
+    description: "Parameters of the fix-capacity saturation signal. While the signal is on for a team, new producers that would mainly target it are deferred and paved-road and class-reduction work is recommended instead."
+    type: object
+    required: 
+      - remediation_window_days
+      - saturation_window_weeks
+    properties: 
+      remediation_window_days: 
+        type: number
+        minimum: 1
+        description: "Accepted findings open longer than this count toward saturation. With windows set by tier, this is the window for any tier that has none of its own."
+      saturation_window_weeks: 
+        type: number
+        minimum: 1
+        description: "Weeks the median accepted-finding age must rise, with open findings at the team WIP cap, before the signal turns on."
+      remediation_window_days_by_tier: 
+        type: object
+        nullable: true
+        description: "Optional. A remediation window for each consequence tier, for an organization whose vulnerability standard sets windows by class. A finding's window is the one for the highest tier its demonstrated path reaches; a tier with no window here uses remediation_window_days. The window drives the saturation signal and the report to the program decision owner of a finding still waiting for its fix path. Ratchet ships no value for any tier."
+        properties: 
+          crown-jewel: 
+            type: number
+            minimum: 1
+            nullable: true
+            description: Days for a finding whose path reaches a crown jewel.
+          critical: 
+            type: number
+            minimum: 1
+            nullable: true
+            description: Days for a finding whose path reaches a critical asset and no crown jewel.
+          standard: 
+            type: number
+            minimum: 1
+            nullable: true
+            description: Days for a finding whose path reaches only standard assets.
+      team_caps: 
+        type: array
+        nullable: true
+        description: "Optional. The fix cap each owning team set with security: how many open validated findings the team accepts at once. This is the team WIP cap the saturation signal reads. A validated finding that would take the team above its cap is logged with its reason and reviewed at the refusal review interval; it is never dropped. A finding whose path reaches an asset at or above the consequence line (agent_limits), one matched by a sourced exploitation signal and one with an external disclosure deadline enter the queue regardless and are logged as over the cap."
+        items: 
+          type: object
+          required: 
+            - team
+            - cap
+            - agreed_with_role
+          properties: 
+            team: 
+              type: string
+              description: "The owning team, named as the separation section's team definition counts teams."
+            cap: 
+              type: number
+              minimum: 1
+              description: Open validated findings the team accepts at once.
+            agreed_with_role: 
+              type: string
+              description: The security role that agreed the cap with the team; never the team itself.
+      default_cap: 
+        type: object
+        nullable: true
+        description: "Optional in the schema, required for phase 3 readiness. The cap for any owning team that set none, set by the program decision owner (the sponsor). While it is unset, a team with no cap of its own is uncapped, nothing above its capacity is refused or logged, and the profile is not ready for phase 3."
+        required: 
+          - cap
+          - set_by_role
+        properties: 
+          cap: 
+            type: number
+            minimum: 1
+          set_by_role: 
+            type: string
+            description: Must be the program decision owner role in the separation section.
+      exploited_window_days: 
+        type: number
+        minimum: 1
+        nullable: true
+        description: "Optional. Days within which a validated finding matched by a sourced exploitation signal (a known exploited catalog listing or observed exploitation) is to be fixed and verified in the running system, counted from the later of validation and the signal's date. Such a finding passes the owning team's fix cap. The edition sets no number; while it is unset, an exploited finding still passes the cap, no window is assumed and the gap is reported. The signal never lowers a posture and never counts as evidence."
+      refusal_review_interval_days: 
+        type: number
+        minimum: 1
+        nullable: true
+        description: "Optional. How often each owning team reviews its refusals with the security role that agreed its cap, who co-signs each review; the review may run asynchronously in the tracker. Unset means monthly. A refused finding held at two consecutive reviews goes to the security risk owner."
+  ai_resilience: 
+    description: "Model provider dependency and the degradation ladder (frontier, self-hosted, no-agent, manual). The control plane uses no model at any rung (lint rule)."
+    type: object
+    required: 
+      - providers
+      - primary_provider_share
+      - self_hosting_capacity
+      - fallback_route_id
+      - producer_rungs
+    properties: 
+      providers: 
+        type: array
+        items: 
+          type: string
+        description: "Model providers in use, hosted and self-hosted serving stacks alike."
+      primary_provider_share: 
+        type: number
+        minimum: 0
+        description: Share (0 to 1) of model requests that go to the largest provider; a concentration measure.
+      self_hosting_capacity: 
+        type: string
+        enum: 
+          - none
+          - drill-only
+          - partial
+          - full
+        description: "none: no self-hosted rung; drill-only: enough to run failover drills; partial: some producers; full: every producer whose lowest rung is self-hosted."
+      fallback_route_id: 
+        type: string
+        nullable: true
+        description: Eligible route used when the frontier route is lost; must be one of models.eligible_routes and is kept qualified by failover drills.
+      producer_rungs: 
+        type: array
+        items: 
+          type: object
+          required: 
+            - producer
+            - lowest_rung
+          properties: 
+            producer: 
+              type: string
+            lowest_rung: 
+              type: string
+              enum: 
+                - frontier
+                - self-hosted
+                - no-agent
+                - manual
+  infrastructure_dependencies: 
+    description: "Third-party infrastructure the loop relies on, with the failure posture each must show when down (F50)."
+    type: array
+    items: 
+      type: object
+      required: 
+        - name
+        - kind
+        - failure_posture
+      properties: 
+        name: 
+          type: string
+        kind: 
+          type: string
+          enum: 
+            - idp
+            - ci
+            - tracker
+            - siem
+            - change-management
+            - other
+        failure_posture: 
+          type: string
+          enum: 
+            - fail-closed
+            - queue-and-retry
+            - mark-unknown
+            - degrade-to-manual
+            - continue-without
+  models: 
+    type: object
+    required: 
+      - eligible_routes
+      - data_residency
+    properties: 
+      eligible_routes: 
+        type: array
+        items: 
+          type: object
+          required: 
+            - id
+            - kind
+            - data_classes_allowed
+          properties: 
+            id: 
+              type: string
+            kind: 
+              type: string
+              enum: 
+                - self-hosted
+                - hosted
+            data_classes_allowed: 
+              type: array
+              items: 
+                type: string
+            output: 
+              type: string
+              enum: 
+                - text
+                - typed
+              description: "Absent means text. A typed route answers fixed questions with a probability and may serve only the decision types listed, each only once its calibration qualifies: the upper confidence bound at or under the dial ceiling, on at least the labels that ceiling needs."
+            decision_types: 
+              type: array
+              items: 
+                type: string
+                enum: 
+                  - lead-triage
+                  - queue-confidence
+                  - scenario-order
+                  - tier-draft
+                  - gate-health
+                  - output-flag
+              description: Required when output is typed. Exploitability is never a decision type.
+      data_residency: 
+        type: array
+        items: 
+          type: string
+  scale: 
+    type: object
+    required: 
+      - services
+      - teams
+      - engineers
+    properties: 
+      services: 
+        type: number
+        minimum: 1
+      teams: 
+        type: number
+        minimum: 1
+      engineers: 
+        type: number
+        minimum: 1
+  risk_appetite: 
+    type: string
+    enum: 
+      - low
+      - moderate
+      - high
+  attestation: 
+    description: "Low-toil attestation. The testing team drafts each tier from material the organization already holds; the line-of-business owner confirms or corrects. Re-attestation follows material change, not the calendar."
+    type: object
+    required: 
+      - drafter_team
+      - asset_owner_role
+      - draft_sources
+      - retrigger
+      - calendar_max_months
+      - owner_minutes_target
+    properties: 
+      drafter_team: 
+        type: string
+        description: The testing team that prepares drafts. Must not be the asset owner.
+      asset_owner_role: 
+        type: string
+        description: Accountable line-of-business leader (general manager or P&L owner) who confirms or corrects.
+      draft_sources: 
+        type: array
+        items: 
+          type: string
+          enum: 
+            - business-impact-analysis
+            - continuity-tier
+            - data-classification
+            - service-catalog
+            - other
+      retrigger: 
+        type: string
+        enum: 
+          - material-change
+      calendar_max_months: 
+        type: number
+        nullable: true
+        minimum: 1
+        description: Optional calendar ceiling; null means material change only.
+      owner_minutes_target: 
+        type: number
+        minimum: 1
+        description: Median owner minutes per attestation the program commits to stay under.
+  unattested_default: 
+    description: "REQUIRED organization choice: the tier an unattested asset counts as when computing gate posture. The core model has no opinion. truly unattested assets should be rare, because someone usually knows roughly how critical an asset is."
+    type: string
+    enum: 
+      - crown-jewel
+      - critical
+      - standard
+  crown_jewel_register: 
+    type: array
+    items: 
+      type: object
+      required: 
+        - asset
+        - line_of_business
+        - tier
+        - drafted_by
+        - drafted_from
+        - confirmed_by
+        - confirmed_on
+      properties: 
+        asset: 
+          type: string
+        line_of_business: 
+          type: string
+        tier: 
+          type: string
+          enum: 
+            - crown-jewel
+            - critical
+            - standard
+        impact_score: 
+          type: number
+          nullable: true
+          description: Optional; null by default. Required for every entry only when gate_failure_policy.key is impact_score.
+        drafted_by: 
+          type: string
+        drafted_from: 
+          type: array
+          items: 
+            type: string
+        confirmed_by: 
+          type: string
+          nullable: true
+          description: "null means drafted but unconfirmed: the asset is unattested."
+        confirmed_on: 
+          type: string
+          nullable: true
+  blocking_cost_register: 
+    description: "Cost of blocking a deploy, per service."
+    type: array
+    items: 
+      type: object
+      required: 
+        - service
+        - blocking_cost_tier
+      properties: 
+        service: 
+          type: string
+        blocking_cost_tier: 
+          type: string
+          enum: 
+            - life-safety
+            - mission-critical
+            - standard
+  tier_overrides: 
+    description: "Partial overrides of the design model defaults, per tier."
+    type: object
+    nullable: true
+  gate_failure_policy: 
+    type: object
+    required: 
+      - key
+      - by_tier
+      - scope_when_unavailable
+      - override
+    properties: 
+      key: 
+        type: string
+        enum: 
+          - tier
+          - impact_score
+      by_tier: 
+        type: object
+        required: 
+          - crown-jewel
+          - critical
+          - standard
+        properties: 
+          crown-jewel: 
+            type: string
+            enum: 
+              - fail-closed
+              - fail-open-with-record
+              - fail-open-under-expiring-acceptance
+          critical: 
+            type: string
+            enum: 
+              - fail-closed
+              - fail-open-with-record
+              - fail-open-under-expiring-acceptance
+          standard: 
+            type: string
+            enum: 
+              - fail-closed
+              - fail-open-with-record
+              - fail-open-under-expiring-acceptance
+      scope_when_unavailable: 
+        type: string
+        enum: 
+          - declared-dependencies
+          - all-deploys
+        description: "declared-dependencies (default): only deploys touching a regression's declared artifact, policy or identity dependencies are subject to the posture; others proceed and are recorded."
+      score_threshold: 
+        type: number
+        nullable: true
+        description: "Used only when key is impact_score: paths reaching an asset at or above it fail closed."
+      added_latency_objective_minutes: 
+        type: number
+        nullable: true
+        minimum: 0
+        description: "Optional. The p95 deploy latency the regression stage may add, owed to service teams; unanswered means the default, 10 minutes. The organization sets it, and the regression time budget in the dial register (regression_time_budget_minutes, default 10). An objective below the budget is refused unless latency_handling records how the stage keeps to it."
+      latency_handling: 
+        type: string
+        nullable: true
+        enum: 
+          - dependency-scoped
+          - post-deploy
+        description: "Optional. How the stage keeps an added-latency objective set below the regression time budget: dependency-scoped (only replays whose declared dependencies the deploy touches run in the stage) or post-deploy (replays past the objective run after the deploy and are owed before the next one)."
+      blocking_cost_adjustments: 
+        type: array
+        nullable: true
+        items: 
+          type: object
+          required: 
+            - blocking_cost_tier
+            - path_tier
+            - posture
+          properties: 
+            blocking_cost_tier: 
+              type: string
+              enum: 
+                - life-safety
+                - mission-critical
+                - standard
+            path_tier: 
+              type: string
+              enum: 
+                - crown-jewel
+                - critical
+                - standard
+            posture: 
+              type: string
+              enum: 
+                - fail-closed
+                - fail-open-with-record
+                - fail-open-under-expiring-acceptance
+      override: 
+        type: object
+        required: 
+          - acceptor_role
+          - concurrence_role
+          - max_expiry_hours
+          - replay_on_recovery
+        properties: 
+          acceptor_role: 
+            type: string
+            description: "Default: the business risk owner."
+          concurrence_role: 
+            type: string
+            nullable: true
+            description: "Default: the security risk owner. null removes concurrence, which the checker flags."
+          max_expiry_hours: 
+            type: number
+            minimum: 1
+          replay_on_recovery: 
+            type: boolean
+  build_or_buy: 
+    description: "Optional (build or buy is decided per part, case by case). Map from a part id in the design model or a plane name in the design model to { choice: build | buy | reuse | undecided, product, organization_controls, administered_by, note }; a part entry overrides its plane: once the part's own choice is answered, only the part's entry applies to that part, and none of its fields come from the plane's entry. Whatever is bought, the organization keeps control of the parts that enforce the four rules, so choice buy on such a part needs organization_controls: true (the profile checker refuses it otherwise). administered_by names the role that deploys and administers the part; for a fail-closed control in the control zone it must be the control-plane operator role. Absent means reuse where existing_tools names a tool and undecided elsewhere."
+    type: object
+    nullable: true
+  exceptions: 
+    description: "Optional. Ratchet's safety rules are should-nevers. A profile that breaks one is refused unless it records an exception for that rule's code (the should-never rules (reference R1) lists every code with its trade-off card). The business risk owner accepts, the security risk owner concurs, the exception expires within exception_policy.max_days (180), names at least one compensating control, and records at least two roles that reviewed the card. Codes starting model. declare architecture exceptions the profile cannot express otherwise. Consistency checks cannot take an exception."
+    type: array
+    nullable: true
+    items: 
+      type: object
+      required: 
+        - rule
+        - reason
+        - accepted_by_role
+        - concurrence_role
+        - accepted_on
+        - expires_on
+        - compensating_controls
+        - reviewed_with
+        - on_expiry
+      properties: 
+        rule: 
+          type: string
+          description: "A should-never code from tradeoffs.yaml, for example sep.fix-closure."
+        scope: 
+          type: string
+          nullable: true
+          description: "Optional narrowing, for example one service or one asset; recorded, not enforced."
+        reason: 
+          type: string
+        phase_1_only: 
+          type: boolean
+          nullable: true
+          description: "true for an exception taken before the risk owners are named. Accepted by separation.program_decision_owner_role with separation.verifier_team (the independent reviewer) concurring, for a code in exception_policy.phase_1_only.codes only, ending at phase 1 exit or risk_owner_review_on, whichever is first, and refused once both risk owners are named; the general 180-day ceiling still applies."
+        risk_owner_review_on: 
+          type: string
+          nullable: true
+          description: "Required for phase_1_only: the risk owner's ISO review date after accepted_on. expires_on cannot be later; the exception is invalid on or after this date."
+        phase_1_exit_on: 
+          type: string
+          nullable: true
+          description: Record the actual phase 1 exit date as soon as phase 1 exits. expires_on cannot be later; a phase_1_only exception is invalid on or after this date. A planned exit never authorizes work after the actual exit.
+        accepted_by_role: 
+          type: string
+          description: Must be separation.business_risk_owner_role (separation.program_decision_owner_role for a phase_1_only exception).
+        concurrence_role: 
+          type: string
+          description: Must be separation.security_risk_owner_role (separation.verifier_team for a phase_1_only exception).
+        accepted_on: 
+          type: string
+          description: ISO date.
+        expires_on: 
+          type: string
+          description: "ISO date, after accepted_on and within 180 days of it."
+        compensating_controls: 
+          type: array
+          items: 
+            type: string
+        reviewed_with: 
+          type: array
+          items: 
+            type: string
+          description: "Roles that discussed the trade-off card, at least two."
+        on_expiry: 
+          type: string
+          enum: 
+            - revert
+            - review
+  phase_1_boundary: 
+    description: "Phase 1 runs before the request-data gate exists, so it stays outside the model-injection rule (model.trifecta) only while its boundary holds: with a practice target, the agent route lacks untrusted text and holds no real data; with a real finding, the agent drafts only and its one exit is the approved model route. The independent reviewer confirms each condition before phase 1 starts and again whenever the environment changes. While status is active, any condition answered false is refused under model.trifecta unless the named risk owners accept an exception (a phase_1_only exception cannot cover it). Set status to retired once phase 2's request-data gate is load-bearing on every agent route."
+    type: object
+    required: 
+      - status
+      - confirmed_by_role
+      - target_written_by_team
+      - outsider_text_excluded
+      - agent_egress_model_route_only
+      - context_synthetic
+    properties: 
+      status: 
+        type: string
+        enum: 
+          - active
+          - retired
+      source: 
+        type: string
+        enum: 
+          - practice-target
+          - discovery-finding
+          - recent-finding
+        description: "Optional; absent means practice-target. Where phase 1's one weakness comes from, an organization choice: a practice target the team writes, a finding from the organization's existing discovery practice (for example people running agents against repositories or infrastructure), or a recent finding. The conditions that keep phase 1 outside the model-injection rule depend on it: a practice target needs all four synthetic conditions; a real finding needs the agent to draft only and to exit only through the approved model route."
+      runner_limit: 
+        type: string
+        nullable: true
+        enum: 
+          - scoped-role
+          - action-bound
+          - other
+        description: "Optional; what limits the runner in phase 1, before the action broker and exact grants exist. scoped-role: a role scoped to the test environment, not bound to the exact approved action, which leaves a gap phase 2 closes when the runner presents an exact grant instead; action-bound: each run is bound to the exact approved action; other: describe it in the phase 1 plan."
+      agent_drafts_only: 
+        type: boolean
+        nullable: true
+        description: "Answered only when source is a real finding, and then it must be true before phase 1 starts: the phase 1 agent produces text only, it holds no tools, every action is run by a person after approval of the exact action, and its drafts reach people only. Real data in its context follows the organization's rules for the approved model route. With a practice target it plays no part, so null or absent is a complete answer."
+      confirmed_by_role: 
+        type: string
+        description: The independent reviewer; must equal separation.verifier_team while status is active.
+      target_written_by_team: 
+        type: boolean
+        description: "The synthetic protected resource and the seeded path were written by the phase 1 team, and nobody outside it can write to them."
+      outsider_text_excluded: 
+        type: boolean
+        description: "No text written by outsiders reaches the agent: no bug bounty reports, scanner messages, issue text or quoted strings, no third-party code comments or READMEs from dependencies, no logs from a shared environment, no data copied from production."
+      agent_egress_model_route_only: 
+        type: boolean
+        description: "The agent's only network exit is the approved model route."
+      context_synthetic: 
+        type: boolean
+        description: "Everything in the agent's context is synthetic or test-only, credentials included; nothing comes from real systems."
+  current_practice: 
+    description: "Optional; the first thing an adopting agent maps, with the people who run today's process. Most organizations already run part of the loop. Often skilled red teamers or security engineers point agents at repositories or infrastructure and let them run, and what follows a finding ranges from a well-worn process to nothing. Recording how each step works today sets where each step starts (by hand, an existing tool, or built), so Ratchet iterates from the organization's real position. It records today's practice; it is never a finding against the people who run it."
+    type: object
+    nullable: true
+    properties: 
+      discovery: 
+        type: object
+        nullable: true
+        properties: 
+          who: 
+            type: string
+            description: "Who runs discovery today, for example the red team or security engineers."
+          targets: 
+            type: array
+            items: 
+              type: string
+            description: "What discovery is pointed at: repositories, infrastructure, applications."
+          agents_and_models: 
+            type: array
+            items: 
+              type: string
+            description: "The agents, products and model providers in use."
+          latitude: 
+            type: string
+            enum: 
+              - free-running
+              - scoped
+              - action-approved
+            description: "How freely agents act today: free-running (given a target and left to work), scoped (bounded targets or tools), or action-approved (a person approves each action)."
+          end_to_end_check: 
+            type: string
+            description: "Who checks today whether a finding is reachable end to end, and roughly how many days it takes."
+          findings_go_to: 
+            type: string
+            description: "Where a confirmed finding goes today: a tracker, a chat channel, a report, or nowhere."
+      steps: 
+        type: array
+        description: "How each step of the loop works today, one entry per step."
+        items: 
+          type: object
+          required: 
+            - step
+            - state
+          properties: 
+            step: 
+              type: string
+              enum: 
+                - STEP-1
+                - STEP-2
+                - STEP-3
+                - STEP-4
+                - STEP-5
+                - STEP-6
+                - STEP-7
+                - STEP-8
+                - STEP-9
+                - STEP-10
+                - STEP-11
+                - STEP-12
+            state: 
+              type: string
+              enum: 
+                - established
+                - partial
+                - ad-hoc
+                - absent
+              description: "established: a well-worn process with an owner; partial: exists for some findings or teams; ad-hoc: depends on who picks it up; absent: does not happen."
+            owner: 
+              type: string
+              nullable: true
+            evidence: 
+              type: string
+              nullable: true
+              description: "What shows it, such as a tracker query, a runbook or a person's account."
+            confirmed_by: 
+              type: string
+              nullable: true
+              description: "The role that confirmed this account of the step, usually one of the people who run it. Absent or null means nobody has confirmed it yet. Record the date in note."
+            note: 
+              type: string
+              nullable: true
+      modules: 
+        type: array
+        nullable: true
+        description: "The pluggable modules the organization already runs in some form, often disconnected from each other, one entry per module. Wiring a module that already exists is mostly interface work, and the interface comes first: record for each interface point how far the wiring has come. Optional; leave it out until the modules are mapped."
+        items: 
+          type: object
+          required: 
+            - module
+            - state
+          properties: 
+            module: 
+              type: string
+              enum: 
+                - tool-portfolio
+                - consequence-gates
+                - production-effects
+                - paved-road
+                - secure-creation
+            state: 
+              type: string
+              enum: 
+                - established
+                - partial
+                - ad-hoc
+                - absent
+              description: "The same states as a step: established, partial, ad-hoc or absent."
+            owner: 
+              type: string
+              nullable: true
+            connects: 
+              type: string
+              nullable: true
+              description: "How the existing practice connects to the rest of the loop today, for example an export someone reads, a ticket queue, or nothing."
+            points: 
+              type: array
+              nullable: true
+              description: "Current wiring per interface point the module declares. The declaration states each point's target; anything below conformant is reported."
+              items: 
+                type: object
+                required: 
+                  - point
+                  - wiring
+                properties: 
+                  point: 
+                    type: string
+                    description: An interface point id the module declares.
+                  wiring: 
+                    type: string
+                    enum: 
+                      - none
+                      - connected
+                      - conformant
+                      - aligned
+                    description: "none: nothing crosses; connected: data crosses through whatever connection the existing system allows; conformant: what crosses matches the module's contract (fields, provenance, trust labels); aligned: the practice keeps the four rules and the module's separations, or carries a recorded exception."
+                  since: 
+                    type: string
+                    nullable: true
+                    description: "ISO date the point reached its current rung. A point below aligned for longer than the module_alignment_max_days dial (by default the exception ceiling, 180 days) is refused unless an exception covers it."
+                  note: 
+                    type: string
+                    nullable: true
+      history: 
+        type: object
+        nullable: true
+        description: "Past findings and incidents, gathered during phase 1 by the people who keep this map, so the escape rate has a measured starting point before phase 2: phase 1 handles one weakness, which cannot set a rate. The evaluation report reads its starting point and its before-figures from here and labels them as drawn from past records, because past escapes were never confirmed the way the escapes section requires. Optional; leave it out until it is gathered."
+        required: 
+          - period_start
+          - period_end
+          - sources
+        properties: 
+          period_start: 
+            type: string
+            description: "ISO date: the start of the period the records cover."
+          period_end: 
+            type: string
+            description: "ISO date: the end of that period."
+          sources: 
+            type: array
+            items: 
+              type: string
+            description: "Every source read, named so it can be read again: a tracker query, incident records, bug bounty and external report history, pentest reports."
+          deployments: 
+            type: number
+            nullable: true
+            minimum: 0
+            description: "Deployments in the period, from deployment records: the starting point's denominator. null when deployment records do not reach back that far, which the report then says."
+          classes: 
+            type: array
+            nullable: true
+            description: One entry per weakness class the records show.
+            items: 
+              type: object
+              required: 
+                - weakness_class
+                - findings
+              properties: 
+                weakness_class: 
+                  type: string
+                findings: 
+                  type: number
+                  minimum: 0
+                  description: Past findings of this class in the period.
+                reached_production: 
+                  type: number
+                  nullable: true
+                  minimum: 0
+                  description: "How many of them reached production, as the past records show. null when the records cannot tell."
+                note: 
+                  type: string
+                  nullable: true
+          confirmed_by: 
+            type: string
+            nullable: true
+            description: The role that confirmed the figures against their sources. Absent or null means nobody has confirmed them yet.
+          note: 
+            type: string
+            nullable: true
+          frozen: 
+            type: object
+            nullable: true
+            description: "Optional until phase 2 starts: the freeze of this baseline at phase 2 entry. The figures are copied into the record with the date and the confirmer, and this entry holds the hash of what was frozen. From then on a change to the figures is a dated amendment, and every comparison with the baseline names the version it read: version 1 is the freeze, and each amendment adds one."
+            required: 
+              - frozen_on
+              - confirmed_by_role
+              - sha256
+            properties: 
+              frozen_on: 
+                type: string
+                description: "ISO date the baseline froze, at phase 2 entry."
+              confirmed_by_role: 
+                type: string
+                description: The role that confirmed the frozen figures.
+              sha256: 
+                type: string
+                description: "SHA-256, 64 lowercase hex digits, of the history as frozen: canonical JSON of this history mapping without frozen and amendments."
+          amendments: 
+            type: array
+            nullable: true
+            description: "Dated corrections to the frozen baseline, oldest first; each one is a new version. The latest one's hash must match the history as it stands."
+            items: 
+              type: object
+              required: 
+                - "on"
+                - by_role
+                - reason
+                - sha256
+              properties: 
+                "on": 
+                  type: string
+                  description: ISO date of the correction.
+                by_role: 
+                  type: string
+                  description: The role that made and confirmed it.
+                reason: 
+                  type: string
+                sha256: 
+                  type: string
+                  description: "The hash of the history after this correction, computed as for the freeze."
+  cloud_overlay: 
+    description: "Optional; leave unset when the organization uses no overlay. The overlay the organization draws candidates from: the shipped worked example (aws), or the organization's own overlay once it is recorded as its baseline. One overlay covers every part, so a hybrid or on-premises estate starts from the example and adds its own account classes. Candidates never change the core model; per-part choices still go in build_or_buy. When models.data_residency is set, the overlay checks list the parts that can move data across regions as configuration duties."
+    type: object
+    nullable: true
+    required: 
+      - provider
+    properties: 
+      provider: 
+        type: string
+        description: "The overlay's name, as in its file name overlay-<name>.yaml: aws for the shipped example, or the organization's own overlay name (lowercase letters, digits and hyphens)."
+      regions: 
+        type: array
+        items: 
+          type: string
+        description: "Regions the organization allows, primary first."
+  data_partitioning: 
+    description: "How evidence, ledger, audit and context stores are partitioned. Each partition has its own key from key management; reads across partitions go only through the review console, attributed."
+    type: object
+    required: 
+      - keys
+      - cross_partition_reads
+    properties: 
+      keys: 
+        type: array
+        items: 
+          type: string
+          enum: 
+            - jurisdiction
+            - line_of_business
+            - legal_entity
+        description: Partition keys. Must include jurisdiction when the profile lists more than one jurisdiction.
+      cross_partition_reads: 
+        type: string
+        enum: 
+          - review-console-only
+          - open
+        description: "review-console-only is required: cross-partition reads go through the review console with reviewer, partitions and reason recorded."
+  escapes: 
+    description: "Optional in the schema, so a profile written without it stays valid; phase 2 readiness needs it, because from phase 2 on each escape is reported with its cost. An escape is a weakness that reached production where an attacker can reach it through the running system. This section makes that definition operational for the organization: which sources detect escapes and which role in each, how many days after a deployment an escape found there still counts toward that deployment's escape rate, and which role confirms each escape independently. The confirmer must differ from every detecting role, from the producer team and from the program decision owner (consistency checks). An escape left unconfirmed counts nowhere, so one older than the alert age is raised to the security risk owner. Each escape record also names the role that traced it to a deployment and the method used; an escape that no deployment shipped (configuration drift, a newly disclosed weakness in a dependency that did not change, a change made outside the pipeline) is reported in a bucket of its own, apart from the escape rate. Each escape's cost is kept in its record, from facts the program already holds: blast radius as the consequence tiers of the assets its path reached and the services affected, time to recover from detection to a fix verified in the running system, and whether the fix removed the weakness class (closure constraint enforced) or one instance (path broken)."
+    type: object
+    nullable: true
+    required: 
+      - detection_window_days
+      - detection_sources
+      - confirmer_role
+    properties: 
+      detection_window_days: 
+        type: number
+        minimum: 1
+        description: "Days after a deployment within which an escape attributed to it counts toward that deployment's escape rate. An escape detected later is still recorded, as a late escape, and the report shows the escape rate twice, without late escapes and with them included. Most escapes found through bug bounty or external reports are expected to arrive after the window, so they will mostly appear in the second figure. A period's escape rate is final once the window has passed for its last deployment."
+      detection_sources: 
+        type: array
+        description: "Where escapes are detected, one entry per source, each with the role that detects there. List every source the organization will count; an escape from an unlisted source is recorded and reported apart until the source is added."
+        items: 
+          type: object
+          required: 
+            - source
+            - detecting_role
+          properties: 
+            source: 
+              type: string
+              enum: 
+                - incident-response
+                - bug-bounty
+                - external-report
+                - production-testing
+                - monitoring
+                - discovery-practice
+                - other
+              description: "incident-response: the defensive side's incident determinations; bug-bounty and external-report: reports from outside the organization; production-testing: authorized testing against the running production system; monitoring: detections from production telemetry; discovery-practice: the organization's existing discovery work pointed at production; other: describe it in note."
+            detecting_role: 
+              type: string
+              description: The role that detects and reports escapes from this source.
+            note: 
+              type: string
+              nullable: true
+      confirmer_role: 
+        type: string
+        description: "The role that confirms each escape independently, by reproducing the weakness through the running system before it counts. It must differ from every detecting_role, from separation.producer_team and from separation.program_decision_owner_role, whose results the escape rate judges. Until it confirms, an escape is listed as unconfirmed and counts in no measure."
+      unconfirmed_alert_days: 
+        type: number
+        nullable: true
+        minimum: 1
+        description: "Optional. Days an escape may stay unconfirmed before the security risk owner is alerted; the record stays listed as overdue until it is confirmed or rejected with a reason. When unset, the alert age is detection_window_days."
+  injection: 
+    description: "Optional. The notice policy for attack-injection experiments past deployment. Each experiment reintroduces a verified fix's weakness at the detection layer expected to catch its class: the workstation (secure-creation checks), a pull request (CI checks before merge), the pipeline (the kept regression test), a deployed test environment (monitoring and scheduled discovery) or production (runtime detection and incident response). The three pre-deploy layers need no notice: the injected change is never merged or deployed, and those experiments may repeat as routine re-proof. A deployed test environment or production is reached only under the notice mode declared here and only in the environments listed. Leave the section out, or leave a placeholder in it, and no injection runs past the pipeline; the pre-deploy layers still run. The authorization service refuses any injection past the pipeline outside this policy, with no person involved. Every injection grant carries its restore, approved with it, and expires at the service owner's time limit for the experiment; at expiry, or on the trusted agent's stop, the authorization service runs the restore with no new approval. Production injection also needs the production-effects module enabled, and runs only when its approved production profile names attack injection explicitly among its reversible effect classes."
+    type: object
+    nullable: true
+    required: 
+      - notice_mode
+      - allowed_environments
+    properties: 
+      notice_mode: 
+        type: string
+        enum: 
+          - announced
+          - trusted-agent
+          - unannounced
+        description: "trusted-agent is the recommended mode: one role on the detection side is told in advance and can stop the exercise at any point, so the people who watch the running system are still tested and a real incident is never mistaken for the exercise. announced: the detecting roles are told before the start, which tests detection tooling more than the people using it. unannounced: nobody on the detection side is told."
+      trusted_agent_role: 
+        type: string
+        nullable: true
+        description: "In the trusted-agent mode, the role told in advance. It must be on the detection side, one of the roles that detect escapes (escapes.detection_sources) or the detection owner team (separation.detection_owner_team), and must not be the team that runs the agents (separation.producer_team). In that mode null means no trusted agent, which contradicts the mode, so it is refused. Unused in the other modes."
+      trusted_agent_can_stop: 
+        type: boolean
+        nullable: true
+        description: "In the trusted-agent mode, must be true: the trusted agent can stop the exercise at any point. The stop goes straight to the authorization service, which revokes the injection grant at once and runs its restore: the injected change is withdrawn, the environment restored, and the fix verified again. In that mode false or null is refused. Unused in the other modes."
+      allowed_environments: 
+        type: array
+        items: 
+          type: string
+          enum: 
+            - deployed-test
+            - production
+        description: "The environments past deployment an injection may reach. deployed-test: a deployed test environment, under its normal authorization. production: only while the production-effects module is enabled and with production_max_exposure_minutes set (consistency checks). An empty list keeps every injection at the pre-deploy layers."
+      stop_restore_max_minutes: 
+        type: number
+        nullable: true
+        minimum: 1
+        description: "The organization's ceiling, in minutes, from a stop or a grant's expiry to the injected change withdrawn and the environment restored. Required once allowed_environments lists any environment; the edition sets no number. Each stop and expiry is recorded against it."
+      production_max_exposure_minutes: 
+        type: number
+        nullable: true
+        minimum: 1
+        description: "The longest time, in minutes, a production injection may stay live. Required when allowed_environments lists production; the edition sets no number. A production injection grant expires at the earlier of this window and the service owner's time limit, and the injected change is reverted automatically at expiry."
+  disclosure: 
+    description: "Optional. Who owns reports of weaknesses the loop finds in software the organization does not own, and the coordination policy that role follows. Agents that find real weaknesses will find some in third-party components; the role named here reports them to the component's maintainers, and each report is recorded with its date, the external deadline agreed and its outcome. A finding that carries an external deadline, from an outside reporter or from an outbound report, passes the owning team's fix cap and alerts the security risk owner ahead of the deadline. Leave the section out and external deadlines still pass the cap; outbound reports then have no named owner, which the phase 4 report shows."
+    type: object
+    nullable: true
+    required: 
+      - outbound_owner_role
+      - policy
+    properties: 
+      outbound_owner_role: 
+        type: string
+        description: "The role that owns outbound reports to third-party maintainers, often the organization's product security incident response team or its vulnerability disclosure owner."
+      policy: 
+        type: string
+        description: "The coordinated disclosure policy the role follows, by name or link, for example the organization's published vulnerability disclosure policy."
+      deadline_alert_days: 
+        type: number
+        minimum: 1
+        nullable: true
+        description: "Optional. Days before an external deadline that the security risk owner is alerted about a finding still open. The edition sets no number; while it is unset, the alert fires when the deadline is recorded."
+  gate_seeding: 
+    description: "Optional. How each human gate the four rules name is measured with seeded known-bad items: the approver (rule 1), the proof-condition holder (rule 2) and the decider who judges the outcome (rules 3 and 4). A known-bad item is one the gate should stop: a proposal the approver should refuse, a result the proof-condition holder should find does not meet the proof condition, a finding or closure the decider should not accept. Seeds look like real items and come from the categories of the organization's threat model for its own oversight, refreshed on a stated date so the people at the gate cannot learn to spot them. Per-person catch rates go to the seeding owner, who sits outside the gate's reporting line, and to each person for their own rate, never to a manager or a performance review. The system computes a breach of the floor and starts the named action. Once declared, every one of the three gates needs one entry. The check verifies this setup; whether people stay attentive shows only in the catch rates once the loop runs."
+    type: array
+    nullable: true
+    items: 
+      type: object
+      required: 
+        - gate
+        - seed_rate
+        - seed_categories
+        - categories_from
+        - categories_refresh_by
+        - catch_rate_floor
+        - breach_action
+        - seeding_owner_role
+        - per_person_results_to
+        - breach_computed_by
+      properties: 
+        gate: 
+          type: string
+          enum: 
+            - approver
+            - proof-holder
+            - decider
+          description: "approver: separation.approver_team approves exact actions; proof-holder: separation.fixture_oracle_owner_team holds the proof conditions; decider: separation.verifier_team reproduces each result and decides the outcome."
+        seed_rate: 
+          type: number
+          minimum: 0
+          description: "The share of the gate's items that are seeded known-bad items, between 0 and 1. For the approver gate it is the seeded_proposal_rate dial's current value, and must equal it."
+        seed_categories: 
+          type: number
+          minimum: 1
+          description: "How many categories of the oversight threat model the seeds are drawn from, for example volume flooding, a proposal sliced into small pieces, or framing tuned to what gets approved."
+        categories_from: 
+          type: string
+          description: "The threat model for the organization's own oversight that the categories come from, by name or link."
+        categories_refreshed_on: 
+          type: string
+          nullable: true
+          description: "Optional. The date the seed categories and seed items were last refreshed, YYYY-MM-DD."
+        categories_refresh_by: 
+          type: string
+          description: "The date by which the seed categories and items are refreshed next, YYYY-MM-DD. A date before the evaluation date means the seeds have lapsed."
+        catch_rate_floor: 
+          type: number
+          minimum: 0
+          description: "The lowest share of seeded known-bad items the gate must catch, between 0 and 1. A catch rate below it is a breach."
+        breach_action: 
+          type: string
+          description: "What a breach starts, in a sentence, for example recalibration for that person, then a second reviewer on their high-consequence items until they recover, with rotation last. A breach never starts discipline."
+        seeding_owner_role: 
+          type: string
+          description: "The role that runs the seeding and receives per-person catch rates. It sits outside the gate's reporting line, so it must differ from the team that holds the gate."
+        per_person_results_to: 
+          type: array
+          items: 
+            type: string
+            enum: 
+              - seeding-owner
+              - the-person
+              - manager
+              - performance-review
+          description: "Who sees per-person catch rates. seeding-owner and the-person (each person sees only their own rate) are the design's choice; manager or performance-review is refused. Managers and the sponsor see pooled rates only."
+        breach_computed_by: 
+          type: string
+          enum: 
+            - system
+            - person
+          description: "Who decides that a catch rate has breached the floor. The design requires system: the sampling and seeding service computes the breach from the recorded outcomes and starts the breach action, so nobody judges their own or a colleague's attention."
+  regimes: 
+    description: "Optional. The thresholds the status report's regime check uses to place each weakness class in a regime: backlog, balanced or near zero, as the reference's regimes section describes them. The edition sets none of these numbers. Derive each from the organization's own past findings, recomputed over earlier windows, and record who set them; until all five are set, the report shows counts and ratios with no regime and warns."
+    type: object
+    nullable: true
+    required: 
+      - window_days
+      - min_events
+      - balanced_min_ratio
+      - near_zero_max_arrivals
+      - near_zero_max_open
+      - set_by_role
+      - set_on
+    properties: 
+      window_days: 
+        type: number
+        minimum: 1
+        description: "Whole days the check counts over, ending on the report's date; the trend compares with the same number of days before. Recipe: start from the reporting rhythm (a quarter is about 91 days) and lengthen it until most classes the organization tracks reach min_events in one window. A window much longer than a fix usually takes hides a turn in the trend."
+      min_events: 
+        type: number
+        minimum: 1
+        description: "The fewest arrivals and verified fixes together, in one window, from which a ratio is read; a class below it reports too few to call. Recipe: recompute past windows class by class, and pick the smallest count at which one finding more or fewer would not have moved a class across balanced_min_ratio. Fewer events make a ratio swing harder."
+      balanced_min_ratio: 
+        type: number
+        description: "Verified fixes per arrival at or above which a class is balanced; below it, backlog. 1 means fixes match arrivals in the window. A number above 0. Recipe: recompute the ratio over past windows for the classes whose open queue held level, and set it at the lowest of those ratios, so a class whose queue was not growing reads balanced."
+      near_zero_max_arrivals: 
+        type: number
+        minimum: 0
+        description: "Arrivals in one window at or below which, together with near_zero_max_open, a class is near zero. A whole number. Recipe: take the classes the security risk owner already treats as rare, such as those retired onto the paved road, recompute their arrivals per window over the past year, and set it at the highest count they showed. Revisit it after a sweep or a model release, when new classes can appear."
+      near_zero_max_open: 
+        type: number
+        minimum: 0
+        description: "Findings open on the report's date at or below which, together with near_zero_max_arrivals, a class is near zero. A whole number. Recipe: the highest open count those same rare classes showed on past report dates."
+      set_by_role: 
+        type: string
+        description: The role that set the thresholds. The reference expects the security risk owner to confirm them; the report names whoever did.
+      set_on: 
+        type: string
+        description: "The date they were set, YYYY-MM-DD."

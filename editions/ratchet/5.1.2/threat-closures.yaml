@@ -1,0 +1,67 @@
+# Ratchet edition 5.1.2. Generated; do not edit.
+closures: 
+  - contract: RestoreGrant
+    field: verified there offline against cached key references and consumed once
+    letter: T
+    why: The restore grant is signed and verified offline in the cell that holds it.
+    reviewed: 
+      by: independent design reviewer
+      date: "2026-10-23"
+  - contract: ReleaseAttestation
+    field: "An artifact with no attestation, a signature that does not verify against a current key reference whose purpose is release, provenance below Build Level 3, or a digest that differs from the attested one is never started or served. The local enforcement point checks this before anything starts in a cell, and the route registry before it pins a weights digest; the model gateway then serves only weights whose loaded digest matches that pin. Each release attestation carries a monotonically increasing release sequence number covered by the release signature. Release signatures and rollback authorizations verify only against a current key reference whose purpose is release. For release admission a cell is a stable logical execution destination, independent of its disposable image or enforcement process. The local enforcement point keeps that cell's highest verified release sequence, last consumed rollback number and sticky refusal ranges in durable storage outside the disposable cell; all survive restart, rebuild and restore. A new or rebuilt cell takes its first mark and rollback state from the release pipeline through authenticated provisioning, never from the first arriving release or an empty local store; unavailable or stale initialization refuses all starts. A rollback authorization is part of the release attestation and is signed by key management for the pipeline with purpose release; it names the cell, its highest verified sequence, the running sequence being rolled away from, the older target sequence and digest, a per-cell rollback number and the highest release sequence issued before this rollback. The enforcement point requires the target to be older than the running release and the rollback number to exceed the last consumed number, and atomically persists its consumption and the new refusal range before starting the target. A rollback never lowers the high-water mark and permanently refuses every previously issued release from its rolled-away-from sequence through its signed issued-through sequence, even with another rollback authorization. These refusal ranges accumulate; reusing that code at or above a rolled-away-from sequence requires the pipeline to issue a fresh release with a new sequence beyond the applicable refusal ranges and the high-water mark. Outside these ranges an older release still requires a matching unused rollback authorization; a missing, invalid, reused or non-increasing authorization is refused before any start."
+    letter: T
+    why: "The enforcement point verifies release-purpose signatures, provenance and digest before starting software or images. Its durable per-cell high-water mark, consumed rollback number and accumulated refusal ranges survive restart and rebuild; initialization comes from the pipeline. A rollback number must increase and is persisted before the target starts, preventing reuse at an unchanged mark. Sticky ranges refuse the rolled-away release and previously issued higher sequences on that cell; returning there requires a fresh release sequence. Withdrawal is per cell in this edition: a rolled-away release is refused on the stable logical cell that rolled back; another cell can still admit it. Fleet withdrawal needs a separate protocol in the next minor edition. The registry verifies release-purpose signatures and weights attestations before pinning, and the gateway checks the loaded digest against that pin. Key-reference delivery integrity is judged on the separate key-reference crossings, whose tampering cells remain open; post-admission revocation remains a known issue."
+  - contract: AdminSession
+    field: "records each session to protected audit, with its requester, its second approver and any break-glass approval, before the session opens"
+    letter: R
+    why: "Each session, with who asked for it and who approved it, is on a record the operator cannot alter before the session opens."
+    reviewed: 
+      by: independent design reviewer
+      date: "2026-10-23"
+  - contract: KeyReference
+    field: Private key material never leaves key management
+    letter: I
+    why: Only public key material and metadata travel; private keys stay in key management.
+    reviewed: 
+      by: independent design reviewer
+      date: "2026-10-22"
+  - contract: TypedDecision
+    field: "it may rank, route or flag, never authorize"
+    letter: E
+    why: "A model judgment is advisory by construction, and the model checks refuse a typed decision sent to any part that decides."
+    reviewed: 
+      by: design owner
+      date: "2026-10-23"
+  - contract: ModelResponse
+    field: Never authority
+    letter: E
+    why: "Model output reaches producers only through the response-proposal gate and never carries authority. This rule ships without a review mark: an adopting organization signs it off once it has limited what the gate can reach with the credentials it runs under, in its own environment, and has a failure scenario that sends the gate a hostile response."
+  - contract: AdminSessionRequest
+    field: "Before acting on this input, the broker durably appends its request reference, authenticated sender identity, received time, target and scope, payload hash and acceptance or refusal with its reason to protected audit under custody neither the requester nor the approver can alter. A refusal is recorded even when no session is issued. If the append fails, the broker refuses the input and opens no session."
+    letter: R
+    why: "The broker records the authenticated author and the received input with its decision before acting, including refusals without an issued session. The author cannot alter protected audit. Audit failure opens no session."
+    reviewed: 
+      by: design owner
+      date: "2026-10-28"
+  - contract: AdminSessionApproval
+    field: "Before acting on this input, the broker durably appends its request reference, authenticated sender identity, received time, target and scope, payload hash and acceptance or refusal with its reason to protected audit under custody neither the requester nor the approver can alter. A refusal is recorded even when no session is issued. If the append fails, the broker refuses the input and opens no session."
+    letter: R
+    why: "The broker records the authenticated author and the received input with its decision before acting, including refusals without an issued session. The author cannot alter protected audit. Audit failure opens no session."
+    reviewed: 
+      by: design owner
+      date: "2026-10-28"
+  - contract: shared:DerivedCheck
+    field: "Its pattern is the body the check suite compiles into configuration coding agents can read, so it holds a general pattern for the weakness class the kept test holds, never the kept test's input, its fixtures or the boundary behavior it expects."
+    letter: I
+    why: "The agent-readable body holds only a general weakness-class pattern. The catalog excludes the kept test's input, fixtures and expected behavior; the fixed message excludes expected outcomes, and no proof condition or expected-outcome hash crosses."
+  - contract: shared:ProvenClass
+    field: "Its definition names no service, component, path or file of the organization's own. While any member finding is open, the projection shows the class's existence, definition and fix rule, with no member count, services or components spanned, or highest consequence tier. A third-party class names the component without its versions until a fix exists. Per-class member counts are never carried in this projection, including after every member closes; they go only to the policy-owning team: people, never an agent, never to an agent-reachable part or the model route. Spans and highest consequence tier are sent only once every member's finding is closed; a class that gains an open member again sends its next version without them, and the loop keeps only the current version of each class. The model provider is a reader through the coding agent's model route, so the same limits apply to what reaches it."
+    letter: I
+    why: "Class projections carry no per-class counts at any closure state. The catalog sends only pass or fail per rule version to the check suite and measurement plane, and sends counts directly to the policy-owning team: people, never an agent; no counts reach agent-reachable parts or the model route. Open-class projections withhold spans and consequence tier, and third-party component versions stay withheld until a fix exists. The context plane keeps only the current projection version, whose bump conditions are explicit. These are delivery bounds on the projections; separately authorized fixing briefs and version history can still support inference. A derived check may name its source test by id, but its content stays protected. The definition's bound is a producer duty; its send-time check remains a known issue."
+    reviewed: 
+      by: design owner
+      date: "2026-10-27"
+  - contract: shared:RoadAssuranceStatus
+    field: "For each entry version its status is current or not current, with no class outcomes and no reason for a status change, including a failed vetting or a withdrawal after a leak. Its vetted scope and known limits use API and configuration identifiers and named pattern classes, never an input shape or sequence. They never hold a test's input, fixture content, expected outcome or a bypass description."
+    letter: I
+    why: "This record directly discloses only current or not-current per entry version, with no class outcomes or failure or withdrawal reason. Scope and known limits directly disclose API and configuration identifiers and named pattern classes, never input shapes or sequences, test inputs, fixture content, expected outcomes or bypass descriptions. Fixture and verdict references and road-level regression results stay out of this record. The canary scans the sent record, context guidance and model prompts for protected literals. The rule covers direct disclosure by this projection; it does not close inference from status timing joined with class-version changes, road entries or dropped road claims."

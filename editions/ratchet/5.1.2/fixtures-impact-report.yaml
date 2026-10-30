@@ -1,0 +1,2796 @@
+# Acceptance fixtures for the impact report (specification: spec-impact-report.md).
+# Every fixture runs on the shipped data files (model.yaml, rules.yaml, quality.yaml, failures.yaml, realization.yaml,
+# units.yaml), since the report must read real data, unless it brings its own under "data" (file name to content), which
+# replace the shipped files; that is how a fixed input gives an exact model hash. Each fixture adds the organization's
+# patches under "patches/" and, where it says so, a profile.yaml. "layer" stands for the organization's compiled design
+# layer: for each of realization, quality and failures, the entries the organization added, merged into that shipped
+# file's elements (failures: appended to its scenarios) and passed as the layer directory.
+# "options.patch" names the patch under report; its base model is model.yaml with every earlier patch applied that is
+# neither rejected nor withdrawn.
+# A fixture runs once, twice with "runs: 2", or as a list of "steps": "run" (with its own expect block) or "replace"
+# (an edit to a materialized file, made between runs; the text replaced occurs exactly once).
+# expect.errors and expect.warnings list every message the run must produce (a code, or a code and location).
+# expect.report is a partial match on the impact_report object: maps by the keys given, lists item by item.
+# expect.report_contains needs each listed item, in a list at any depth, to match some item; an empty list there must
+# be empty. expect.codes maps a should-never code to its basis.
+# expect.markdown_equals is the generated Markdown sections, before the YAML block; expect.yaml_equals the block's text;
+# expect.message_lines the printed message lines, in order;
+# expect.json_keys the JSON report's top-level keys, in order.
+# Every expected result is reproduced by our reference implementation; exact values (hashes, whole Markdown) were taken
+# from its output.
+
+fixtures:
+  - name: "fixture-ir-noop.yaml"
+    description: "A modify that sets an element's responsibility to its current text changes nothing; every section says None and the run warns (IR-2, IR-11)."
+    options: { patch: "O01" }
+    files:
+      patches/O01-same-wording.md: |
+        # O01: Restate the approval service responsibility
+
+        ## Why
+        The organization confirms the wording it reviewed.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_element
+            id: s3.approval-service
+            set: { responsibility: "Authorized person / role / workflow; reason, expiry, exact action binding. Issues three kinds of approval to match the cadence ladder: per run (periodic), per batch naming tests, targets and window (scheduled), and standing permission for one reviewed test, target, identity and environment with an expiry (continuous). With no design limits declared these serve kept regression replays, as before; once limits and the consequence line are set, batch approvals and standing permissions may also serve other reviewed agent actions inside their producer's limit. Standing permissions are revoked when the planner steps a test down. On each new limit version, re-checks every outstanding batch approval and standing permission against it and revokes any that is wider. Reads limits from its signed, versioned copy; while that copy's lease has lapsed it issues no new batch approval or standing permission and sends each request to a person action by action (F104). Seeded known-bad proposals from the sampling service arrive at the dial-register rate (default 1 in 50 approvals), indistinguishable at the console; their outcomes give approval, edit and reject rates a denominator. Never issues a standing permission or batch approval wider than the design limit of the producer it serves, or reaching an asset at or above the consequence line; such a request goes to a person action by action. Counts the approval requests sent to each approver and holds them to the dial register's rate per approver per hour and to the approver's work-in-progress limit; requests past either wait in order, so no approver receives a flood, and a count past its trailing baseline alerts the control-plane operator and the seeding owner as a possible attack on the gate. While the rate is unset, the work-in-progress limit alone bounds the requests and the gap is reported." }
+        ```
+
+        ## Risk and threat-model delta
+
+        ## Feasibility note
+        Nothing to build.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        proposed
+    expect:
+      outcome: "ok"
+      exit: 0
+      errors: []
+      warnings: ["IR-W-empty"]
+      sections_none: ["Summary", "Elements, relationships and contracts", "Trust-zone crossings", "Plane joins", "Enforcing parts", "Separations of duty", "Failure scenarios", "Quality", "Should-never codes that may need an exception", "Work units"]
+      report:
+        elements: { added: [], removed: [], changed: [] }
+        relationships: { added: [], removed: [], changed: [] }
+        should_never_codes: []
+    source: "reference implementation"
+
+  - name: "fixture-ir-add-element.yaml"
+    description: "An added producer with no tier and no unit, fed by the workflow worker app (IR-1, IR-7, IR-9)."
+    options: { patch: "O01" }
+    files:
+      patches/O01-lead-ranker.md: |
+        # O01: Add a lead ranker
+
+        ## Why
+        The organization ranks leads before triage.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: add_element
+            element: { id: org.lead-ranker, name: Lead ranker, system: S2, level: component, kind: service, responsibility: "Ranks leads for triage.", role_class: producer, trust_zone: reasoning, owner: Validation workflow/producer platform team }
+          - op: add_relationship
+            relationship: { id: o01-r1, from: s2.workflow-worker-app, to: org.lead-ranker, label: "Leads to rank", carries: [], kind: data, optional: false }
+        ```
+
+        ## Risk and threat-model delta
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        proposed
+    expect:
+      outcome: "ok"
+      exit: 0
+      errors: []
+      warnings:
+        - { code: "IR-W-tier-missing", location: "org.lead-ranker" }
+        - { code: "IR-W-unbuilt", location: "org.lead-ranker" }
+      report:
+        elements:
+          added: [{ id: "org.lead-ranker", system: "S2", trust_zone: "reasoning", role_class: "producer" }]
+          removed: []
+          changed: []
+        relationships:
+          added: [{ id: "o01-r1", from: "s2.workflow-worker-app", to: "org.lead-ranker", kind: "data", carries: [] }]
+        crossings: { created: [], removed: [] }
+        units: { unbuilt_added_elements: ["org.lead-ranker"] }
+      report_contains:
+        quality: [{ id: "org.lead-ranker", tier: null, tier_missing: true }]
+      codes: { model.trifecta: "direct" }
+      patch_contains: ["## Risk and threat-model delta\n\n### Summary", "impact_report:", "attacker_gain: \"FILL\""]
+    source: "reference implementation"
+
+  - name: "fixture-ir-remove-element.yaml"
+    description: "Removing the response and proposal gate and every relationship naming it (IR-1, IR-4, IR-6, IR-9)."
+    options: { patch: "O01" }
+    files:
+      patches/O01-remove-response-gate.md: &remove_gate |
+        # O01: Remove the response and proposal gate
+
+        ## Why
+        The organization routes model output through its own gate.
+
+        ## Ops
+        ```yaml
+        ops:
+          - { op: remove_relationship, id: r036 }
+          - { op: remove_relationship, id: r038 }
+          - { op: remove_relationship, id: r063 }
+          - { op: remove_relationship, id: r085 }
+          - { op: remove_relationship, id: r086 }
+          - { op: remove_relationship, id: p18-r3 }
+          - { op: remove_relationship, id: p23-r8 }
+          - { op: remove_relationship, id: p27-r2 }
+          - { op: remove_relationship, id: p29-r3 }
+          - { op: remove_element, id: s4.response-proposal-gate }
+        ```
+
+        ## Risk and threat-model delta
+
+        ## Feasibility note
+        The organization's gate exists already.
+
+        ## Exceptions needed
+        To be decided from this report.
+
+        ## Status
+        proposed
+    expect:
+      outcome: "ok"
+      exit: 0
+      errors: []
+      warnings: &remove_gate_warnings
+        - { code: "IR-W-mark-lost", location: "s4.response-proposal-gate" }
+        - { code: "IR-W-scenario-orphan", location: "F68" }
+        - { code: "IR-W-unit-orphan", location: "U-05" }
+        - { code: "IR-W-unit-orphan", location: "U-27" }
+        - { code: "IR-W-unit-orphan", location: "U-172" }
+      report:
+        units:
+          building_removed: ["U-05", "U-27", "U-172"]
+          # A unit building the removed gate gets no row for it here; rows are for touched parts the after model keeps.
+          building_touched:
+            - { unit: "U-05", part: "s2.producer-adapters" }
+            - { unit: "U-05", part: "s2.workflow-worker-app" }
+            - { unit: "U-05", part: "s4.inference-endpoints" }
+            - { unit: "U-06", part: "s4.route-usage-receipts" }
+            - { unit: "U-26", part: "s2.workflow-worker-app" }
+            - { unit: "U-27", part: "s4.route-usage-receipts" }
+            - { unit: "U-55", part: "s2.producer-adapters" }
+            - { unit: "U-55", part: "s4.inference-endpoints" }
+            - { unit: "U-74", part: "s2.producer-adapters" }
+            - { unit: "U-91", part: "s4.inference-endpoints" }
+            - { unit: "U-92", part: "s4.route-usage-receipts" }
+            - { unit: "U-139", part: "s2.quarantined-lead-reader" }
+            - { unit: "U-174", part: "s3.privileged-access-broker" }
+            - { unit: "U-187", part: "s2.typed-decision-worker" }
+            - { unit: "U-195", part: "s2.proof-condition-drafter" }
+            - { unit: "U-343", part: "s3.privileged-access-broker" }
+            - { unit: "U-446", part: "s2.typed-decision-worker" }
+            - { unit: "U-457", part: "s3.privileged-access-broker" }
+        elements:
+          added: []
+          removed: [{ id: "s4.response-proposal-gate", system: "S4", trust_zone: "control", role_class: "control" }]
+          changed: []
+      report_contains:
+        relationships:
+          removed: [{ id: "r036" }, { id: "r038" }, { id: "r063" }, { id: "r085" }, { id: "r086" }, { id: "p18-r3" }, { id: "p23-r8" }, { id: "p27-r2" }, { id: "p29-r3" }]
+        crossings:
+          removed: [{ relationship: "r036", from_zone: "reasoning", to_zone: "control", into_protected_zone: true }]
+        enforcing_parts:
+          - { id: "s4.response-proposal-gate", how_touched: "removed", marks_after: [], lost: ["control", "control-zone", "enforces-rule", "model-boundary", "t0"] }
+        failure_scenarios: [{ names_removed_element: true }]
+        # A removed part leaves its account class, so Placement lists it going to none (Behavior 18).
+        placement:
+          parts: [{ id: "s4.response-proposal-gate", from: "control", to: null, enforces_rule: true }]
+      codes: { model.boundary: "direct", bought.without-org-controls: "direct", admin.control-plane-operator: "direct" }
+    source: "reference implementation"
+
+  - name: "fixture-ir-modify-owner.yaml"
+    description: "Handing the approval service to the producer platform team puts the rule 1 separations in scope (IR-2, IR-5)."
+    options: { patch: "O01" }
+    files:
+      profile.yaml: |
+        profile: { name: Example, description: A toy organization. }
+        separation: { producer_team: Producer platform team, approver_team: Control team }
+      patches/O01-approval-owner.md: |
+        # O01: The producer platform team runs approvals
+
+        ## Why
+        One team is all the organization has for now.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_element
+            id: s3.approval-service
+            set: { owner: Validation workflow/producer platform team }
+        ```
+
+        ## Risk and threat-model delta
+
+        ## Feasibility note
+        No build work.
+
+        ## Exceptions needed
+        To be decided from this report.
+
+        ## Status
+        proposed
+    expect:
+      outcome: "ok"
+      exit: 0
+      errors: []
+      warnings: []
+      report:
+        elements:
+          changed: [{ id: "s3.approval-service", fields: [{ field: "owner", before: "Policy/IAM + execution-cell/SRE team", after: "Validation workflow/producer platform team" }] }]
+      report_contains:
+        separations:
+          - { id: "proposer-approver", rule: "rule 1", sides: { a: ["separation.producer_team"], b: ["separation.approver_team"] }, teams: { a: ["Producer platform team"], b: ["Control team"] } }
+          - { id: "control-plane-operator-producer-verifier" }
+        # A direct code still names the card that holds it in rules.yaml (Behavior 11).
+        should_never_codes:
+          - { code: "sep.producer-approver", card: "proposal-not-permission", basis: "direct" }
+          - { code: "admin.cpo-is-producer", card: "proposal-not-permission", basis: "direct" }
+      codes: { sep.producer-approver: "direct", admin.cpo-is-producer: "direct" }
+      markdown_contains: ["separation.producer_team and separation.approver_team (now Producer platform team and Control team)"]
+    source: "reference implementation"
+
+  - name: "fixture-ir-zone-move.yaml"
+    description: "Moving the policy decision point to the reasoning zone changes crossings and marks (IR-3, IR-4, IR-7)."
+    options: { patch: "O01" }
+    files:
+      patches/O01-pdp-zone.md: |
+        # O01: Run the policy decision point beside the workers
+
+        ## Why
+        The organization hosts policy evaluation in the workflow cluster.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_element
+            id: s3.policy-decision-point
+            set: { trust_zone: reasoning }
+        ```
+
+        ## Risk and threat-model delta
+
+        ## Feasibility note
+        One team moves it within one phase.
+
+        ## Exceptions needed
+        To be decided from this report.
+
+        ## Status
+        proposed
+    expect:
+      outcome: "ok"
+      exit: 0
+      errors: []
+      warnings: [{ code: "IR-W-mark-lost", location: "s3.policy-decision-point" }]
+      report_contains:
+        crossings:
+          created: [{ relationship: "r029", from_zone: "control", to_zone: "reasoning", kind: "authorization" }, { relationship: "r030", from_zone: "reasoning", to_zone: "execution", into_protected_zone: true }]
+          removed: [{ relationship: "r030", from_zone: "control", to_zone: "execution" }]
+        enforcing_parts: [{ id: "s3.policy-decision-point", how_touched: "changed", lost: ["control-zone"], gained: [] }]
+        quality: [{ id: "s3.policy-decision-point", tier: "T0", critical_paths: ["approve-and-run"] }]
+      codes: { model.t0-placement: "direct" }
+    source: "reference implementation"
+
+  - name: "fixture-ir-new-crossing.yaml"
+    description: "A data relationship from a reasoning-zone producer into the protected evidence store (IR-3)."
+    options: { patch: "O01" }
+    files:
+      patches/O01-producer-to-store.md: |
+        # O01: Producers write artifacts to the evidence store
+
+        ## Why
+        The organization wants artifacts stored once.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: add_relationship
+            relationship: { id: o01-r1, from: s2.approved-producers, to: s5.protected-evidence-store, label: "Artifacts", carries: [], kind: data, optional: false }
+        ```
+
+        ## Risk and threat-model delta
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        To be decided from this report.
+
+        ## Status
+        proposed
+    expect:
+      outcome: "ok"
+      exit: 0
+      errors: []
+      warnings: []
+      report:
+        crossings:
+          created: [{ relationship: "o01-r1", from_zone: "reasoning", to_zone: "control", kind: "data", into_protected_zone: true }]
+          removed: []
+      report_contains:
+        enforcing_parts: [{ id: "s5.protected-evidence-store", how_touched: "via-relationship" }]
+      codes: { bought.without-org-controls: "direct" }
+    source: "reference implementation"
+
+  - name: "fixture-ir-evaluation-crossing.yaml"
+    description: "A data relationship from a reasoning-zone producer into an evaluation-zone part crosses into a protected zone, and one back out of the evaluation zone does not (IR-3). The evaluation zone is protected like the control and execution zones. Expected results written from the specification."
+    options: { patch: "O01" }
+    files:
+      patches/O01-producer-cost-samples.md: |
+        # O01: Producers report run cost samples to evaluation
+
+        ## Why
+        The organization wants run cost measured where it is spent.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: add_relationship
+            relationship: { id: o01-r1, from: s2.approved-producers, to: s7.flow-cost-telemetry, label: "Run cost samples", carries: [], kind: data, optional: false }
+          - op: add_relationship
+            relationship: { id: o01-r2, from: s7.flow-cost-telemetry, to: s2.approved-producers, label: "Cost ceiling per producer", carries: [], kind: data, optional: false }
+        ```
+
+        ## Risk and threat-model delta
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        To be decided from this report.
+
+        ## Status
+        proposed
+    expect:
+      outcome: "ok"
+      exit: 0
+      errors: []
+      warnings: []
+      report:
+        crossings:
+          created:
+            - { relationship: "o01-r1", from_zone: "reasoning", to_zone: "evaluation", kind: "data", into_protected_zone: true }
+            - { relationship: "o01-r2", from_zone: "evaluation", to_zone: "reasoning", kind: "data", into_protected_zone: false }
+          removed: []
+      markdown_contains:
+        - "- Created: `o01-r1` reasoning to evaluation (data), into a protected zone\n"
+        - "- Created: `o01-r2` evaluation to reasoning (data)\n"
+    source: "specification"
+
+  - name: "fixture-ir-advisory.yaml"
+    description: "A relationship carrying TypedDecision into the part that decides closure (IR-5, IR-8)."
+    options: { patch: "O01" }
+    files:
+      patches/O01-decision-to-closure.md: |
+        # O01: Typed decisions inform closure
+
+        ## Why
+        The organization wants model triage visible at closure.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: add_relationship
+            relationship: { id: o01-r1, from: s2.typed-decision-worker, to: s6.change-closure-records, label: "Triage hints", carries: [TypedDecision], kind: data, optional: false }
+        ```
+
+        ## Risk and threat-model delta
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        To be decided from this report.
+
+        ## Status
+        proposed
+    expect:
+      outcome: "ok"
+      exit: 0
+      errors: []
+      warnings: []
+      report_contains:
+        separations: [{ id: "closure-acceptor-fix-author" }]
+      codes: { model.advisory: "direct", sep.fix-closure: "direct" }
+    source: "reference implementation"
+
+  - name: "fixture-ir-ai-free.yaml"
+    description: "An inference relationship from a control-zone part to the inference endpoints (IR-8)."
+    options: { patch: "O01" }
+    files:
+      patches/O01-pdp-inference.md: |
+        # O01: The policy decision point asks a model
+
+        ## Why
+        The organization wants a model opinion on ambiguous requests.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: add_relationship
+            relationship: { id: o01-r1, from: s3.policy-decision-point, to: s4.inference-endpoints, label: "Ambiguity check", carries: [], kind: inference, optional: true }
+        ```
+
+        ## Risk and threat-model delta
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        To be decided from this report.
+
+        ## Status
+        proposed
+    expect:
+      outcome: "ok"
+      exit: 0
+      errors: []
+      warnings: []
+      codes: { model.ai-free-control-plane: "direct" }
+    source: "reference implementation"
+
+  - name: "fixture-ir-quarantine.yaml"
+    description: "Untrusted content into the context compiler (IR-8)."
+    options: { patch: "O01" }
+    files:
+      patches/O01-tickets-to-compiler.md: |
+        # O01: Ticket text feeds the context compiler
+
+        ## Why
+        The organization's scope notes live in ticket text.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: add_relationship
+            relationship: { id: o01-r1, from: shared:ext.engineering-workflows, to: s1.context-compiler, label: "Ticket text", carries: [], kind: data, content: untrusted, optional: false }
+        ```
+
+        ## Risk and threat-model delta
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        To be decided from this report.
+
+        ## Status
+        proposed
+    expect:
+      outcome: "ok"
+      exit: 0
+      errors: []
+      warnings: []
+      report_contains:
+        enforcing_parts: [{ id: "s1.context-compiler", marks_after: ["context-builder", "control"] }]
+      codes: { model.quarantine: "direct", model.trifecta: "direct" }
+    source: "reference implementation"
+
+  - name: "fixture-ir-oracle.yaml"
+    description: "The proof condition flows from the fixture and oracle registry to a producer (IR-5, IR-8)."
+    options: { patch: "O01" }
+    files:
+      patches/O01-oracle-to-producer.md: |
+        # O01: Producers read the proof condition
+
+        ## Why
+        The organization wants faster test drafting.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: add_relationship
+            relationship: { id: o01-r1, from: s5.fixture-oracle-registry, to: s2.approved-producers, label: "Proof conditions", carries: [OracleSpec], kind: data, optional: false }
+        ```
+
+        ## Risk and threat-model delta
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        To be decided from this report.
+
+        ## Status
+        proposed
+    expect:
+      outcome: "ok"
+      exit: 0
+      errors: []
+      warnings: []
+      report_contains:
+        separations: [{ id: "proof-condition-owner-proposer", rule: "rule 2" }]
+        crossings:
+          created: [{ relationship: "o01-r1", from_zone: "control", to_zone: "reasoning", into_protected_zone: false }]
+      codes: { sep.oracle-producer: "direct" }
+    source: "reference implementation"
+
+  - name: "fixture-ir-card-basis.yaml"
+    description: "Relabeling a relationship of a part named by a scenario on a card brings that card's codes in with basis card (IR-8)."
+    options: { patch: "O01" }
+    files:
+      patches/O01-relabel-assurance.md: |
+        # O01: Rename the assurance report edge
+
+        ## Why
+        The organization's board calls it the assurance pack.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_relationship
+            id: r069
+            set: { label: "Assurance pack" }
+        ```
+
+        ## Risk and threat-model delta
+
+        ## Feasibility note
+        No build work.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        proposed
+    expect:
+      outcome: "ok"
+      exit: 0
+      errors: []
+      warnings: []
+      report:
+        relationships:
+          changed: [{ id: "r069", fields: [{ field: "label", before: "Assurance, exceptions and limits", after: "Assurance pack" }] }]
+      report_contains:
+        failure_scenarios: [{ id: "F44", touched_elements: ["s7.qualification-assurance-record"] }]
+        should_never_codes: [{ code: "modules.before-evidence", card: "sequencing", basis: "card", triggers: ["scenario F44 on card sequencing"] }]
+      codes: { modules.before-evidence: "card" }
+    source: "reference implementation"
+
+  # Added in 4.2.0 (package IR42): a code selected both directly and by its card.
+  - name: "fixture-ir-direct-and-card.yaml"
+    description: "Renaming the request and data gate selects model.boundary and admin.control-plane-operator directly and through scenarios on their cards; both stay basis direct with their direct triggers only (IR-8)."
+    options: { patch: "O01" }
+    files:
+      patches/O01-rename-request-gate.md: |
+        # O01: Rename the request gate
+
+        ## Why
+        The organization calls it the request eligibility gate.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_element
+            id: s4.request-data-gate
+            set: { name: "Request eligibility gate" }
+        ```
+
+        ## Risk and threat-model delta
+
+        ## Feasibility note
+        No build work.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        proposed
+    expect:
+      outcome: "ok"
+      exit: 0
+      errors: []
+      warnings: []
+      report:
+        elements:
+          changed: [{ id: "s4.request-data-gate", fields: [{ field: "name", before: "Request and data gate", after: "Request eligibility gate" }] }]
+      report_contains:
+        failure_scenarios: [{ id: "F21" }, { id: "F68" }]
+        # Scenarios F21 and F39 on card model-boundary and F68 on card control-administration also select the three
+        # direct codes; a code found both ways keeps basis direct and only its direct triggers (Behavior 11).
+        should_never_codes:
+          - { code: "admin.control-plane-operator", card: "control-administration", basis: "direct" }
+          - { code: "model.boundary", card: "model-boundary", basis: "direct" }
+          - { code: "model.trifecta", card: "model-boundary", basis: "direct" }
+          - { code: "model.phase1-boundary-unconfirmed", card: "model-boundary", basis: "card", triggers: ["scenario F21 on card model-boundary", "scenario F39 on card model-boundary"] }
+      codes: { admin.control-plane-operator: "direct", model.boundary: "direct", model.trifecta: "direct", model.phase1-boundary-unconfirmed: "card" }
+      # report_contains matches the triggers list loosely, so each direct code's whole line, line break included, pins
+      # its triggers to the direct ones alone.
+      markdown_contains:
+        - "- `admin.control-plane-operator` (basis direct; trade-off card control-administration): s4.request-data-gate is a model-boundary part\n"
+        - "- `model.boundary` (basis direct; trade-off card model-boundary): s4.request-data-gate is a model-boundary part\n"
+        - "- `model.trifecta` (basis direct; trade-off card model-boundary): s4.request-data-gate is load-bearing\n"
+    source: "written from the specification"
+
+  - name: "fixture-ir-contract.yaml"
+    description: "Dropping a consumer of ExecutionGrant is a set change; producers and consumers are touched through the contract (IR-1)."
+    options: { patch: "O01" }
+    files:
+      patches/O01-grant-consumers.md: |
+        # O01: No source build cell
+
+        ## Why
+        The organization builds in its existing CI.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_contract
+            name: ExecutionGrant
+            set: { consumed_by: [s3.local-enforcement-point, s3.grant-approval-store, s3.bounded-runner, s3.staging-cell, s3.production-cell] }
+        ```
+
+        ## Risk and threat-model delta
+
+        ## Feasibility note
+        No build work.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        proposed
+    expect:
+      outcome: "ok"
+      exit: 0
+      errors: []
+      warnings: []
+      report:
+        contracts:
+          added: []
+          removed: []
+          changed: [{ name: "ExecutionGrant", fields: [{ field: "consumed_by", added: [], removed: ["s3.source-build-cell"] }] }]
+      report_contains:
+        enforcing_parts: [{ id: "s3.source-build-cell", how_touched: "via-contract" }, { id: "s3.policy-decision-point", how_touched: "via-contract" }]
+    source: "reference implementation"
+
+  - name: "fixture-ir-finding-kind.yaml"
+    description: "A patch that adds a finding kind and changes a shipped one's kept gate: both listed under finding_kinds, the added one with its closure check, the changed one field by field, in the block and in the Markdown; no IR-W-empty (IR-21)."
+    requires_ops: [add_finding_kind, modify_finding_kind]
+    options: { patch: "O01" }
+    files:
+      patches/O01-dependency-kind.md: |
+        # O01: Dependency weaknesses close on a deployed upgrade
+
+        ## Why
+        The organization closes dependency weaknesses when the fixed version is deployed.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: add_finding_kind
+            kind:
+              id: org-dependency-weakness
+              name: Dependency weakness
+              closure_check: { check_type: upgrade verified in the deployed artifact, judged_by: s6.release-state-correlator, expected_outcome: the deployed artifact carries the fixed version }
+              kept_gate: a dependency policy check that blocks the vulnerable version
+              recovery_measure: { name: time to upgrade, definition: from detection to the fixed version deployed }
+              never_closes: [a merged upgrade not yet deployed]
+          - op: modify_finding_kind
+            id: exposed-secret
+            set: { kept_gate: "the scan rule that blocks the secret's return, in the regression catalog and in pre-commit hooks" }
+            expects: { kept_gate: "ffdf943277c6" }
+        ```
+
+        ## Risk and threat-model delta
+
+        ## Feasibility note
+        No build work.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        proposed
+    expect:
+      outcome: "ok"
+      exit: 0
+      errors: []
+      warnings: []
+      report:
+        finding_kinds:
+          added: [{ id: "org-dependency-weakness", check_type: "upgrade verified in the deployed artifact", judged_by: "s6.release-state-correlator" }]
+          removed: []
+          changed: [{ id: "exposed-secret", fields: [{ field: "kept_gate", before: "the scan rule that blocks the secret's return, matching its fingerprint, in the regression catalog", after: "the scan rule that blocks the secret's return, in the regression catalog and in pre-commit hooks" }] }]
+      markdown_contains:
+        - "It adds 1, removes 0 and changes 1 finding kinds."
+        - "- Finding kind added: `org-dependency-weakness` (closure check upgrade verified in the deployed artifact, judged by s6.release-state-correlator)"
+        - "- Finding kind changed: `exposed-secret` kept_gate: \"the scan rule that blocks the secret's return, matching its fingerprint, in the regression catalog\" to \"the scan rule that blocks the secret's return, in the regression catalog and in pre-commit hooks\""
+    source: "specification"
+
+  - name: "fixture-ir-finding-kind-judge.yaml"
+    description: "A patch that changes only a finding kind's closure check touches the part that judges it, before and after, so the judging parts' marks, separations and should-never codes come into scope (IR-23)."
+    requires_ops: [modify_finding_kind]
+    options: { patch: "O01" }
+    files:
+      patches/O01-secret-judge.md: |
+        # O01: The release state correlator judges secret revocation
+
+        ## Why
+        The organization reads revocation from its release records.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_finding_kind
+            id: exposed-secret
+            set:
+              closure_check:
+                check_type: "revocation check by the credential type's verification recipe (status by identifier first, else the announced status probe repeated over the issuer's propagation time)"
+                judged_by: s6.release-state-correlator
+                expected_outcome: "the issuer reports the credential revoked, or every probe attempt of the series is refused with a code the recipe maps to revoked or invalid, with every derived session ended and an exposure-use review finding no unexplained use; a type with no recipe closes on the owning team's attestation, labeled attested"
+        ```
+
+        ## Risk and threat-model delta
+
+        ## Feasibility note
+        No build work.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        proposed
+    expect:
+      outcome: "ok"
+      exit: 0
+      errors: []
+      warnings: []
+      report_contains:
+        finding_kinds:
+          changed: [{ id: "exposed-secret", fields: [{ field: "closure_check" }] }]
+        enforcing_parts:
+          - { id: "s3.replay-verdict", how_touched: "via-finding-kind" }
+          - { id: "s6.release-state-correlator", how_touched: "via-finding-kind" }
+        separations:
+          - { id: "verifier-proposer" }
+          - { id: "business-risk-owner" }
+          - { id: "security-risk-owner" }
+      codes:
+        sep.verifier-producer: "direct"
+        sep.business-risk-owner: "direct"
+        sep.security-risk-owner: "direct"
+      markdown_contains:
+        - "- `s3.replay-verdict` (via-finding-kind)"
+        - "- `s6.release-state-correlator` (via-finding-kind)"
+    source: "specification"
+
+  - name: "fixture-ir-chained.yaml"
+    description: "The second of two patches is reported against a base that already holds the first. The first is accepted with an empty Risk section, which the patch applier refuses; the impact report applies ops only and never runs the applier's file checks (IR-1)."
+    options: { patch: "O02" }
+    files:
+      patches/O01-add-x.md: &add_x |
+        # O01: Add a lead ranker
+
+        ## Why
+        The organization ranks leads before triage.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: add_element
+            element: { id: org.x, name: Lead ranker, system: S2, level: component, kind: service, responsibility: "Ranks leads for triage.", role_class: producer, trust_zone: reasoning, owner: Validation workflow/producer platform team }
+        ```
+
+        ## Risk and threat-model delta
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+      patches/O02-x-owner.md: &x_owner |
+        # O02: The ranker moves to the AI platform team
+
+        ## Why
+        The AI platform team runs every ranking model.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_element
+            id: org.x
+            set: { owner: AI platform serving operations }
+        ```
+
+        ## Risk and threat-model delta
+
+        ## Feasibility note
+        No build work.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        proposed
+    expect:
+      outcome: "ok"
+      exit: 0
+      errors: []
+      warnings: []
+      report:
+        elements:
+          added: []
+          removed: []
+          changed: [{ id: "org.x", fields: [{ field: "owner", before: "Validation workflow/producer platform team", after: "AI platform serving operations" }] }]
+        relationships: { added: [], removed: [], changed: [] }
+        units: { unbuilt_added_elements: [] }
+    source: "reference implementation"
+
+  - name: "fixture-ir-apply-fail.yaml"
+    description: "A modify of an unknown element does not apply, so there is no report (IR-14)."
+    options: { patch: "O01" }
+    files:
+      patches/O01-unknown.md: |
+        # O01: Touch a part that does not exist
+
+        ## Why
+        A typo in the id.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_element
+            id: s3.approval-svc
+            set: { owner: Control team }
+        ```
+
+        ## Risk and threat-model delta
+
+        ## Feasibility note
+        No build work.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        proposed
+    expect:
+      outcome: "error"
+      exit: 1
+      errors: [{ code: "IR-E-apply", location: "O01 op 0" }]
+      warnings: []
+      no_report: true
+    source: "reference implementation"
+
+  - name: "fixture-ir-no-ops.yaml"
+    description: "A patch with no yaml ops block (IR-14)."
+    options: { patch: "O01" }
+    files:
+      patches/O01-prose-only.md: |
+        # O01: An idea without ops
+
+        ## Why
+        Someone wrote the change in prose.
+
+        ## Ops
+        Add a second approver for production runs.
+
+        ## Risk and threat-model delta
+
+        ## Feasibility note
+        Unknown.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        proposed
+    expect:
+      outcome: "error"
+      exit: 1
+      errors: [{ code: "IR-E-ops", location: "O01" }]
+      warnings: []
+      no_report: true
+    source: "reference implementation"
+
+  - name: "fixture-ir-check-restamp.yaml"
+    description: "An earlier patch changes in a way that leaves this patch's facts alone: only the model hashes differ, which is IR-E-restamp, not IR-E-stale (IR-13)."
+    files:
+      patches/O01-add-x.md: *add_x
+      patches/O02-x-owner.md: *x_owner
+    steps:
+      - run: { patch: "O02" }
+        expect: { outcome: "ok", exit: 0, errors: [], warnings: [] }
+      - run: { patch: "O02", check: true }
+        expect:
+          outcome: "ok"
+          exit: 0
+          errors: []
+          patch_unchanged: true
+          warnings:
+            - "IR-W-unfilled"
+            - "IR-W-unfilled"
+            - "IR-W-unfilled"
+            - "IR-W-unfilled"
+            - "IR-W-unfilled"
+            - "IR-W-unfilled"
+            - "IR-W-unfilled"
+      - replace: { file: "patches/O01-add-x.md", from: "Ranks leads for triage.", to: "Ranks leads for triage by expected yield." }
+      - run: { patch: "O02", check: true }
+        expect:
+          outcome: "error"
+          exit: 1
+          errors: [{ code: "IR-E-restamp", location: "O02" }]
+          patch_unchanged: true
+          warnings:
+            - "IR-W-unfilled"
+            - "IR-W-unfilled"
+            - "IR-W-unfilled"
+            - "IR-W-unfilled"
+            - "IR-W-unfilled"
+            - "IR-W-unfilled"
+            - "IR-W-unfilled"
+    source: "reference implementation"
+
+  - name: "fixture-ir-check-fresh.yaml"
+    description: "Filled judgment slots survive regeneration byte for byte, and check mode passes on a current delta (IR-10, IR-13)."
+    files:
+      patches/O01-add-x.md: *add_x
+    steps:
+      - run: { patch: "O01" }
+        expect: { outcome: "ok", exit: 0, errors: [], warnings: [{ code: "IR-W-tier-missing", location: "org.x" }, { code: "IR-W-unbuilt", location: "org.x" }] }
+      - replace: { file: "patches/O01-add-x.md", from: "attacker_gain: \"FILL\"", to: "attacker_gain: Someone who controls lead text can reorder triage." }
+      - replace: { file: "patches/O01-add-x.md", from: "new_failure_modes: \"FILL\"", to: "new_failure_modes: A stale ranking hides a fresh lead; no new scenario needed." }
+      - replace: { file: "patches/O01-add-x.md", from: "compensating_controls: \"FILL\"", to: "compensating_controls: Weekly sample of unranked leads, tied to model.trifecta." }
+      - replace: { file: "patches/O01-add-x.md", from: "technical_feasibility:\n      grade: \"FILL\"\n      note: \"FILL\"", to: "technical_feasibility:\n      grade: holds\n      note: Ranking runs on the existing gateway." }
+      - replace: { file: "patches/O01-add-x.md", from: "organizational_feasibility:\n      grade: \"FILL\"\n      note: \"FILL\"", to: "organizational_feasibility:\n      grade: bet\n      note: The producer platform team must staff it." }
+      - run: { patch: "O01" }
+        expect:
+          outcome: "ok"
+          exit: 0
+          errors: []
+          warnings: [{ code: "IR-W-tier-missing", location: "org.x" }, { code: "IR-W-unbuilt", location: "org.x" }]
+          patch_contains:
+            - "attacker_gain: Someone who controls lead text can reorder triage."
+            - "new_failure_modes: A stale ranking hides a fresh lead; no new scenario needed."
+            - "compensating_controls: Weekly sample of unranked leads, tied to model.trifecta."
+            - "grade: holds\n      note: Ranking runs on the existing gateway."
+            - "grade: bet\n      note: The producer platform team must staff it."
+            - "- Attacker gain (what someone controlling a touched input or identity can now do): Someone who controls lead text can reorder triage."
+      - run: { patch: "O01", check: true }
+        expect:
+          outcome: "ok"
+          exit: 0
+          errors: []
+          patch_unchanged: true
+          warnings:
+            - { code: "IR-W-tier-missing", location: "org.x" }
+            - { code: "IR-W-unbuilt", location: "org.x" }
+    source: "reference implementation"
+
+  - name: "fixture-ir-bad-grade.yaml"
+    description: "A feasibility grade outside holds, bet, unknown and blocked is an error, and nothing is written (IR-10)."
+    files:
+      patches/O01-add-x.md: *add_x
+    steps:
+      - run: { patch: "O01" }
+        expect: { outcome: "ok", exit: 0, errors: [], warnings: [{ code: "IR-W-tier-missing", location: "org.x" }, { code: "IR-W-unbuilt", location: "org.x" }] }
+      - replace: { file: "patches/O01-add-x.md", from: "technical_feasibility:\n      grade: \"FILL\"", to: "technical_feasibility:\n      grade: likely" }
+      - run: { patch: "O01" }
+        expect:
+          outcome: "error"
+          exit: 1
+          errors: [{ code: "IR-E-grade", location: "O01 judgment.technical_feasibility.grade" }]
+          patch_unchanged: true
+          warnings: [{ code: "IR-W-tier-missing", location: "org.x" }, { code: "IR-W-unbuilt", location: "org.x" }]
+    source: "reference implementation"
+
+  - name: "fixture-ir-determinism.yaml"
+    description: "The remove-element patch run twice leaves identical bytes (IR-12)."
+    runs: 2
+    options: { patch: "O01" }
+    files:
+      patches/O01-remove-response-gate.md: *remove_gate
+    expect:
+      outcome: "ok"
+      exit: 0
+      errors: []
+      warnings: *remove_gate_warnings
+      outputs_byte_identical: true
+    source: "reference implementation"
+
+  - name: "fixture-ir-plane-join.yaml"
+    description: "An added part whose plane and tier come from the compiled layer. Its relationships into other planes show their contract or no_contract reason; the one with neither is a direct model.plane-join finding. A relationship from a person is skipped (D2.4)."
+    options: { patch: "O01" }
+    layer:
+      realization: { org.lead-ranker: { plane: orchestration, class: "Ranking service", examples: ["service on Kubernetes"], swap_point: false, existing_tool_default: false } }
+      quality: { org.lead-ranker: [T2, degrade, "Ranking pauses; leads wait unranked."] }
+    files:
+      patches/O01-lead-ranker.md: |
+        # O01: Add a lead ranker
+
+        ## Why
+        The organization ranks leads before triage.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: add_element
+            element: { id: org.lead-ranker, name: Lead ranker, system: S2, level: component, kind: service, responsibility: "Ranks leads for triage.", role_class: producer, trust_zone: reasoning, owner: Validation workflow/producer platform team }
+          - op: add_relationship
+            relationship: { id: o01-r1, from: s2.workflow-worker-app, to: org.lead-ranker, label: "Leads to rank", carries: [], kind: data, optional: false }
+          - op: add_relationship
+            relationship: { id: o01-r2, from: org.lead-ranker, to: s5.finding-ledger, label: "Rank notes", carries: [], kind: data, optional: false }
+          - op: add_relationship
+            relationship: { id: o01-r3, from: s1.context-service, to: org.lead-ranker, label: "Asset context", carries: [], kind: data, optional: false, no_contract: "A read-only lookup; nothing it returns is evidence." }
+          - op: add_relationship
+            relationship: { id: o01-r4, from: org.lead-ranker, to: s1.context-service, label: "Context queries", carries: [ContextQuery], kind: data, optional: false }
+          - op: add_relationship
+            relationship: { id: o01-r5, from: people.scenario-owner, to: org.lead-ranker, label: "Ranking rules", carries: [], kind: data, optional: false }
+        ```
+
+        ## Risk and threat-model delta
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        proposed
+    expect:
+      outcome: "ok"
+      exit: 0
+      errors: []
+      warnings: [{ code: "IR-W-unbuilt", location: "org.lead-ranker" }]
+      report:
+        plane_joins:
+          - { relationship: "o01-r2", from: "org.lead-ranker", to: "s5.finding-ledger", from_plane: "orchestration", to_plane: "evidence", carries: [], no_contract: null, uncovered: true }
+          - { relationship: "o01-r3", from: "s1.context-service", to: "org.lead-ranker", from_plane: "context", to_plane: "orchestration", carries: [], no_contract: "A read-only lookup; nothing it returns is evidence.", uncovered: false }
+          - { relationship: "o01-r4", from: "org.lead-ranker", to: "s1.context-service", from_plane: "orchestration", to_plane: "context", carries: ["ContextQuery"], no_contract: null, uncovered: false }
+      report_contains:
+        quality: [{ id: "org.lead-ranker", tier: "T2", failure_mode: "degrade", tier_missing: false }]
+        should_never_codes: [{ code: "model.plane-join", card: null, basis: "direct", triggers: ["relationship o01-r2 joins planes orchestration and evidence with no contract and no no_contract reason"] }]
+      codes: { model.plane-join: "direct" }
+      markdown_contains:
+        - "### Plane joins\n\n- `o01-r2` org.lead-ranker (orchestration) to s5.finding-ledger (evidence): no contract and no no_contract reason\n- `o01-r3` s1.context-service (context) to org.lead-ranker (orchestration): no contract: A read-only lookup; nothing it returns is evidence.\n- `o01-r4` org.lead-ranker (orchestration) to s1.context-service (context): carries ContextQuery\n\n"
+    source: "reference implementation"
+
+  - name: "fixture-ir-plane-unmapped.yaml"
+    description: "With no layer entry, an added part has no plane: it counts as its own plane, unmapped, so every relationship into it joins planes, a relationship between two unmapped parts included (D2.4)."
+    options: { patch: "O01" }
+    files:
+      patches/O01-two-parts.md: |
+        # O01: Add two parts with no layer entries
+
+        ## Why
+        The organization has not written their layer entries yet.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: add_element
+            element: { id: org.x, name: Part x, system: S2, level: component, kind: service, responsibility: "Does x.", role_class: producer, trust_zone: reasoning, owner: Validation workflow/producer platform team }
+          - op: add_element
+            element: { id: org.y, name: Part y, system: S2, level: component, kind: service, responsibility: "Does y.", role_class: producer, trust_zone: reasoning, owner: Validation workflow/producer platform team }
+          - op: add_relationship
+            relationship: { id: o01-r1, from: s2.workflow-worker-app, to: org.x, label: "Work", carries: [], kind: data, optional: false }
+          - op: add_relationship
+            relationship: { id: o01-r2, from: org.x, to: org.y, label: "Hand-off", carries: [], kind: data, optional: false }
+        ```
+
+        ## Risk and threat-model delta
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        proposed
+    expect:
+      outcome: "ok"
+      exit: 0
+      errors: []
+      warnings:
+        - { code: "IR-W-tier-missing", location: "org.x" }
+        - { code: "IR-W-tier-missing", location: "org.y" }
+        - { code: "IR-W-unbuilt", location: "org.x" }
+        - { code: "IR-W-unbuilt", location: "org.y" }
+      report:
+        plane_joins:
+          - { relationship: "o01-r1", from: "s2.workflow-worker-app", to: "org.x", from_plane: "orchestration", to_plane: "unmapped:org.x", carries: [], no_contract: null, uncovered: true }
+          - { relationship: "o01-r2", from: "org.x", to: "org.y", from_plane: "unmapped:org.x", to_plane: "unmapped:org.y", carries: [], no_contract: null, uncovered: true }
+      report_contains:
+        should_never_codes: [{ code: "model.plane-join", basis: "direct", triggers: ["relationship o01-r1 joins planes orchestration and unmapped:org.x with no contract and no no_contract reason", "relationship o01-r2 joins planes unmapped:org.x and unmapped:org.y with no contract and no no_contract reason"] }]
+    source: "reference implementation"
+
+  - name: "fixture-ir-earlier-withdrawn.yaml"
+    description: "A withdrawn earlier patch is skipped like a rejected one: the part it would have added is absent from the base, so the patch under report adds the same id without error."
+    options: { patch: "O02" }
+    files:
+      patches/O01-add-x.md: |
+        # O01: Add a lead ranker
+
+        ## Why
+        The organization ranks leads before triage.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: add_element
+            element: { id: org.x, name: Lead ranker, system: S2, level: component, kind: service, responsibility: "Ranks leads for triage.", role_class: producer, trust_zone: reasoning, owner: Validation workflow/producer platform team }
+        ```
+
+        ## Risk and threat-model delta
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        withdrawn by the security risk owner on 2030-02-01
+      patches/O02-add-x-again.md: |
+        # O02: Add the lead ranker for the AI platform team
+
+        ## Why
+        The first design was withdrawn.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: add_element
+            element: { id: org.x, name: Lead ranker, system: S2, level: component, kind: service, responsibility: "Ranks leads for triage.", role_class: producer, trust_zone: reasoning, owner: AI platform serving operations }
+        ```
+
+        ## Risk and threat-model delta
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        proposed
+    expect:
+      outcome: "ok"
+      exit: 0
+      errors: []
+      warnings: [{ code: "IR-W-tier-missing", location: "org.x" }, { code: "IR-W-unbuilt", location: "org.x" }]
+      report:
+        elements:
+          added: [{ id: "org.x", system: "S2", trust_zone: "reasoning", role_class: "producer" }]
+          removed: []
+          changed: []
+    source: "reference implementation"
+
+  - name: "fixture-ir-shipped-enforcers.yaml"
+    description: "The rule-enforcing parts come from the shipped rules.yaml key rule_enforcing_parts.parts: renaming the finding ledger shows its enforces-rule mark with the invariants that key gives it. A rename of that key fails this fixture."
+    options: { patch: "O01" }
+    files:
+      patches/O01-ledger-name.md: |
+        # O01: Rename the finding ledger
+
+        ## Why
+        The organization calls it the findings register.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_element
+            id: s5.finding-ledger
+            set: { name: Findings register }
+        ```
+
+        ## Risk and threat-model delta
+
+        ## Feasibility note
+        No build work.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        proposed
+    expect:
+      outcome: "ok"
+      exit: 0
+      errors: []
+      warnings: []
+      report:
+        enforcing_parts:
+          - { id: "s5.finding-ledger", how_touched: "changed", marks_before: ["control-zone", "decides:coverage", "enforces-rule", "partitioned"], marks_after: ["control-zone", "decides:coverage", "enforces-rule", "partitioned"], gained: [], lost: [], invariants: ["I1", "I3", "I4", "I5", "I6"] }
+      codes: { bought.without-org-controls: "direct" }
+    source: "reference implementation"
+
+  - name: "fixture-ir-enforcers-key-missing.yaml"
+    description: "Edition data whose rules.yaml lacks rule_enforcing_parts.parts is an input error, never a silent fallback."
+    options: { patch: "O01" }
+    data:
+      model.yaml: &toy_model |
+        edition: "9.9.9"
+        systems:
+          - { id: S1, name: "Système un", description: "Accented text, and a \"quoted\" word." }
+          - { id: PEOPLE, name: People, description: Roles }
+        trust_zones:
+          - { id: control, name: Control, description: Control zone }
+          - { id: reasoning, name: Reasoning, description: Reasoning zone }
+        elements:
+          - { id: s1.b, name: Gate, system: S1, level: component, kind: service, responsibility: "Holds 2.0 and 1.5.", role_class: control, trust_zone: control, owner: Team B, weight: 2.0, ratio: 1.5, note: null, since: 2027-01-15 }
+          - { id: s1.a, name: Worker, system: S1, level: component, kind: service, responsibility: Reads requests., role_class: producer, trust_zone: reasoning, owner: Team A }
+        relationships:
+          - { id: r1, from: s1.a, to: s1.b, label: Asks, carries: [Ask], kind: data, optional: false }
+        contracts:
+          - { name: Ask, description: A request., produced_by: [s1.a], consumed_by: [s1.b] }
+        views: []
+      rules.yaml: |
+        families: {}
+      quality.yaml: &toy_quality |
+        elements:
+          s1.a: [T2, degrade, Requests wait.]
+          s1.b: [T0, fail-closed, Nothing passes.]
+        critical_paths:
+          paths: {}
+      failures.yaml: &toy_failures |
+        scenarios: []
+      realization.yaml: &toy_realization |
+        elements:
+          s1.a: { plane: orchestration }
+          s1.b: { plane: control }
+          org.c: { plane: orchestration }
+      overlay-aws.yaml: &toy_overlay |
+        account_classes:
+          control: Control-zone parts.
+          reasoning: Reasoning parts.
+        zone_accounts:
+          control: [control]
+          reasoning: [reasoning]
+        elements:
+          s1.a: { services: [ECS], fit: managed-open, account: reasoning, portability: open }
+          s1.b: { services: [Lambda], fit: managed-open, account: control, portability: open }
+      units.yaml: &toy_units |
+        - { id: U-172, phase: 2, elements: [{ id: s1.a, fidelity_from: stand-in, fidelity_to: built }], independence_sensitive: false, separates: [] }
+        - { id: U-27, phase: 1, elements: [{ id: s1.a, fidelity_from: none, fidelity_to: stand-in }], independence_sensitive: false, separates: [] }
+    files:
+      patches/O01-add-c.md: &toy_patch |
+        # O01: Add a checker
+
+        ## Why
+        The organization checks requests before the gate.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: add_element
+            element: { id: org.c, name: Checker, system: S1, level: component, kind: service, responsibility: "Checks requests.", role_class: producer, trust_zone: reasoning, owner: Team A }
+          - op: add_relationship
+            relationship: { id: o01-r1, from: s1.a, to: org.c, label: Requests, carries: [], kind: data, optional: false }
+          - op: add_relationship
+            relationship: { id: o01-r2, from: org.c, to: s1.b, label: Checked requests, carries: [], kind: data, optional: false }
+        ```
+
+        ## Risk and threat-model delta
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        proposed
+    expect:
+      outcome: "error"
+      exit: 1
+      errors: [{ code: "IR-E-input", location: "rules.yaml" }]
+      warnings: []
+      no_report: true
+    source: "reference implementation"
+
+  - name: "fixture-ir-exact-output.yaml"
+    description: "A fixed input with its exact outputs, for any tool built from the specification: both model hashes (canonical JSON, SHA-256), the whole Markdown, the printed messages and the JSON report's keys. Units sort naturally, U-27 before U-172."
+    options: { patch: "O01" }
+    data:
+      model.yaml: *toy_model
+      rules.yaml: |
+        families: {}
+        rule_enforcing_parts:
+          parts:
+            s1.b: [I1]
+      quality.yaml: *toy_quality
+      failures.yaml: *toy_failures
+      realization.yaml: *toy_realization
+      overlay-aws.yaml: *toy_overlay
+      units.yaml: *toy_units
+    files:
+      patches/O01-add-c.md: *toy_patch
+    expect:
+      outcome: "ok"
+      exit: 0
+      errors: []
+      warnings: [{"code":"IR-W-tier-missing","location":"org.c"},{"code":"IR-W-unbuilt","location":"org.c"}]
+      message_lines:
+        - "warning IR-W-tier-missing org.c: an added element that needs a quality tier and has none"
+        - "warning IR-W-unbuilt org.c: an added element that no work unit builds"
+      json_keys: ["patch","impact_report","markdown","messages","written"]
+      report:
+        patch: "O01-add-c"
+        layout: 2
+        base_model_hash: "4171d57f7c1c4b6209dbc384c7c34be0ec42811dc0a53858ca79ced6c4e20afe"
+        after_model_hash: "e670f7e884fc69c5820c73fc71d27a73543fbd5277ebbd1b53aec774beae30dc"
+        elements: {"added":[{"id":"org.c","system":"S1","trust_zone":"reasoning","role_class":"producer"}],"removed":[],"changed":[]}
+        relationships: {"added":[{"id":"o01-r1","from":"s1.a","to":"org.c","kind":"data","carries":[],"content":null},{"id":"o01-r2","from":"org.c","to":"s1.b","kind":"data","carries":[],"content":null}],"removed":[],"changed":[]}
+        contracts: {"added":[],"removed":[],"changed":[]}
+        crossings: {"created":[{"relationship":"o01-r2","from_zone":"reasoning","to_zone":"control","kind":"data","into_protected_zone":true}],"removed":[]}
+        plane_joins: [{"relationship":"o01-r2","from":"org.c","to":"s1.b","from_plane":"orchestration","to_plane":"control","carries":[],"no_contract":null,"uncovered":true}]
+        placement: {"parts":[],"account_classes":[]}
+        exposure: {"gained":[],"lost":[]}
+        enforcing_parts: [{"id":"s1.b","how_touched":"via-relationship","marks_before":["control","control-zone","enforces-rule","t0"],"marks_after":["control","control-zone","enforces-rule","t0"],"gained":[],"lost":[],"invariants":["I1","I6"]}]
+        separations: [{"id":"control-plane-operator-platform-operator","rule":"rule 1","reasons":["s1.b is a T0 part in the control zone"],"sides":{"a":["separation.control_plane_operator_role"],"b":["separation.platform_operator_role"]},"codes":["admin.cpo-is-platform"]},{"id":"control-plane-operator-producer-verifier","rule":"rule 4","reasons":["s1.b is a T0 part in the control zone"],"sides":{"a":["separation.control_plane_operator_role"],"b":["separation.producer_team","separation.verifier_team"]},"codes":["admin.cpo-is-producer","admin.cpo-is-verifier"]},{"id":"proposer-approver","rule":"rule 1","reasons":["invariant I1 (s1.b)"],"sides":{"a":["separation.producer_team"],"b":["separation.approver_team"]},"codes":["sep.producer-approver"]},{"id":"proposing-tool-authorizing-tool","rule":"rule 1","reasons":["invariant I1 (s1.b)"],"sides":{"a":["existing_tools.STEP-3"],"b":["existing_tools.STEP-4"]},"codes":["sep.tool-propose-authorize"]}]
+        failure_scenarios: []
+        quality: [{"id":"org.c","tier":null,"failure_mode":null,"critical_paths":[],"tier_missing":true},{"id":"s1.a","tier":"T2","failure_mode":"degrade","critical_paths":[],"tier_missing":false},{"id":"s1.b","tier":"T0","failure_mode":"fail-closed","critical_paths":[],"tier_missing":false}]
+        should_never_codes: [{"code":"admin.control-plane-operator","card":null,"basis":"direct","triggers":["s1.b is a T0 control-zone part"]},{"code":"admin.cpo-is-platform","card":null,"basis":"direct","triggers":["separation control-plane-operator-platform-operator in scope"]},{"code":"admin.cpo-is-producer","card":null,"basis":"direct","triggers":["separation control-plane-operator-producer-verifier in scope"]},{"code":"admin.cpo-is-verifier","card":null,"basis":"direct","triggers":["separation control-plane-operator-producer-verifier in scope"]},{"code":"bought.without-org-controls","card":null,"basis":"direct","triggers":["s1.b enforces a rule"]},{"code":"model.plane-join","card":null,"basis":"direct","triggers":["relationship o01-r2 joins planes orchestration and control with no contract and no no_contract reason"]},{"code":"model.trifecta","card":null,"basis":"direct","triggers":["org.c is a producer","s1.a is a producer"]},{"code":"sep.producer-approver","card":null,"basis":"direct","triggers":["separation proposer-approver in scope"]},{"code":"sep.tool-propose-authorize","card":null,"basis":"direct","triggers":["separation proposing-tool-authorizing-tool in scope"]}]
+        units: {"building_touched":[{"unit":"U-27","phase":1,"part":"s1.a","fidelity_from":"none","fidelity_to":"stand-in","independence_sensitive":false,"separates":[]},{"unit":"U-172","phase":2,"part":"s1.a","fidelity_from":"stand-in","fidelity_to":"built","independence_sensitive":false,"separates":[]}],"building_removed":[],"unbuilt_added_elements":["org.c"]}
+        judgment: {"attacker_gain":"FILL","new_failure_modes":"FILL","compensating_controls":"FILL","technical_feasibility":{"grade":"FILL","note":"FILL"},"organizational_feasibility":{"grade":"FILL","note":"FILL"} }
+      markdown_equals: |
+        ### Summary
+
+        This patch adds 1, removes 0 and changes 0 elements; adds 2, removes 0 and changes 0 relationships; and adds 0, removes 0 and changes 0 contracts. It creates 1 and removes 0 trust-zone crossings, touches 1 enforcing parts, and brings 4 separations and 9 should-never codes into scope.
+
+        Every code below is a candidate. The model checks and the profile checker, run on the after model, decide whether a rule is broken.
+
+        ### Elements, relationships and contracts
+
+        - Element added: `org.c` (system S1, zone reasoning, producer)
+        - Relationship added: `o01-r1` s1.a to org.c (data)
+        - Relationship added: `o01-r2` org.c to s1.b (data)
+
+        ### Trust-zone crossings
+
+        - Created: `o01-r2` reasoning to control (data), into a protected zone
+
+        ### Plane joins
+
+        - `o01-r2` org.c (orchestration) to s1.b (control): no contract and no no_contract reason
+
+        ### Placement
+
+        None.
+
+        ### Untrusted-content exposure
+
+        None.
+
+        ### Enforcing parts
+
+        - `s1.b` (via-relationship): keeps control, control-zone, enforces-rule, t0. Invariants I1, I6.
+
+        ### Separations of duty
+
+        - control-plane-operator-platform-operator (rule 1): separation.control_plane_operator_role and separation.platform_operator_role. Because s1.b is a T0 part in the control zone.
+        - control-plane-operator-producer-verifier (rule 4): separation.control_plane_operator_role and separation.producer_team or separation.verifier_team. Because s1.b is a T0 part in the control zone.
+        - proposer-approver (rule 1): separation.producer_team and separation.approver_team. Because invariant I1 (s1.b).
+        - proposing-tool-authorizing-tool (rule 1): existing_tools.STEP-3 and existing_tools.STEP-4. Because invariant I1 (s1.b).
+
+        ### Failure scenarios
+
+        None.
+
+        ### Quality
+
+        - `org.c`: needs a tier and has none
+        - `s1.a`: tier T2, degrade
+        - `s1.b`: tier T0, fail-closed
+
+        ### Should-never codes that may need an exception
+
+        - `admin.control-plane-operator` (basis direct): s1.b is a T0 control-zone part
+        - `admin.cpo-is-platform` (basis direct): separation control-plane-operator-platform-operator in scope
+        - `admin.cpo-is-producer` (basis direct): separation control-plane-operator-producer-verifier in scope
+        - `admin.cpo-is-verifier` (basis direct): separation control-plane-operator-producer-verifier in scope
+        - `bought.without-org-controls` (basis direct): s1.b enforces a rule
+        - `model.plane-join` (basis direct): relationship o01-r2 joins planes orchestration and control with no contract and no no_contract reason
+        - `model.trifecta` (basis direct): org.c is a producer; s1.a is a producer
+        - `sep.producer-approver` (basis direct): separation proposer-approver in scope
+        - `sep.tool-propose-authorize` (basis direct): separation proposing-tool-authorizing-tool in scope
+
+        ### Work units
+
+        - U-27 (phase 1) builds `s1.a` from none to stand-in
+        - U-172 (phase 2) builds `s1.a` from stand-in to built
+        - `org.c` is added and no unit builds it
+
+        ### Judgment
+
+        - Attacker gain (what someone controlling a touched input or identity can now do): FILL
+        - New failure modes (and whether a new failure scenario is needed): FILL
+        - Compensating controls (each tied to a code above): FILL
+        - Technical feasibility (holds, bet, unknown or blocked; note the known limits): FILL. FILL
+        - Organizational feasibility (holds, bet, unknown or blocked; note who must staff, agree to or sustain the change): FILL. FILL
+      yaml_equals: |
+        impact_report:
+          patch: "O01-add-c"
+          layout: 2
+          base_model_hash: "4171d57f7c1c4b6209dbc384c7c34be0ec42811dc0a53858ca79ced6c4e20afe"
+          after_model_hash: "e670f7e884fc69c5820c73fc71d27a73543fbd5277ebbd1b53aec774beae30dc"
+          elements:
+            added:
+              - id: "org.c"
+                system: "S1"
+                trust_zone: "reasoning"
+                role_class: "producer"
+            removed: []
+            changed: []
+          relationships:
+            added:
+              - id: "o01-r1"
+                from: "s1.a"
+                to: "org.c"
+                kind: "data"
+                carries: []
+                content: null
+              - id: "o01-r2"
+                from: "org.c"
+                to: "s1.b"
+                kind: "data"
+                carries: []
+                content: null
+            removed: []
+            changed: []
+          contracts:
+            added: []
+            removed: []
+            changed: []
+          crossings:
+            created:
+              - relationship: "o01-r2"
+                from_zone: "reasoning"
+                to_zone: "control"
+                kind: "data"
+                into_protected_zone: true
+            removed: []
+          plane_joins:
+            - relationship: "o01-r2"
+              from: "org.c"
+              to: "s1.b"
+              from_plane: "orchestration"
+              to_plane: "control"
+              carries: []
+              no_contract: null
+              uncovered: true
+          placement:
+            parts: []
+            account_classes: []
+          exposure:
+            gained: []
+            lost: []
+          enforcing_parts:
+            - id: "s1.b"
+              how_touched: "via-relationship"
+              marks_before:
+                - "control"
+                - "control-zone"
+                - "enforces-rule"
+                - "t0"
+              marks_after:
+                - "control"
+                - "control-zone"
+                - "enforces-rule"
+                - "t0"
+              gained: []
+              lost: []
+              invariants:
+                - "I1"
+                - "I6"
+          separations:
+            - id: "control-plane-operator-platform-operator"
+              rule: "rule 1"
+              reasons:
+                - "s1.b is a T0 part in the control zone"
+              sides:
+                a:
+                  - "separation.control_plane_operator_role"
+                b:
+                  - "separation.platform_operator_role"
+              codes:
+                - "admin.cpo-is-platform"
+            - id: "control-plane-operator-producer-verifier"
+              rule: "rule 4"
+              reasons:
+                - "s1.b is a T0 part in the control zone"
+              sides:
+                a:
+                  - "separation.control_plane_operator_role"
+                b:
+                  - "separation.producer_team"
+                  - "separation.verifier_team"
+              codes:
+                - "admin.cpo-is-producer"
+                - "admin.cpo-is-verifier"
+            - id: "proposer-approver"
+              rule: "rule 1"
+              reasons:
+                - "invariant I1 (s1.b)"
+              sides:
+                a:
+                  - "separation.producer_team"
+                b:
+                  - "separation.approver_team"
+              codes:
+                - "sep.producer-approver"
+            - id: "proposing-tool-authorizing-tool"
+              rule: "rule 1"
+              reasons:
+                - "invariant I1 (s1.b)"
+              sides:
+                a:
+                  - "existing_tools.STEP-3"
+                b:
+                  - "existing_tools.STEP-4"
+              codes:
+                - "sep.tool-propose-authorize"
+          failure_scenarios: []
+          quality:
+            - id: "org.c"
+              tier: null
+              failure_mode: null
+              critical_paths: []
+              tier_missing: true
+            - id: "s1.a"
+              tier: "T2"
+              failure_mode: "degrade"
+              critical_paths: []
+              tier_missing: false
+            - id: "s1.b"
+              tier: "T0"
+              failure_mode: "fail-closed"
+              critical_paths: []
+              tier_missing: false
+          should_never_codes:
+            - code: "admin.control-plane-operator"
+              card: null
+              basis: "direct"
+              triggers:
+                - "s1.b is a T0 control-zone part"
+            - code: "admin.cpo-is-platform"
+              card: null
+              basis: "direct"
+              triggers:
+                - "separation control-plane-operator-platform-operator in scope"
+            - code: "admin.cpo-is-producer"
+              card: null
+              basis: "direct"
+              triggers:
+                - "separation control-plane-operator-producer-verifier in scope"
+            - code: "admin.cpo-is-verifier"
+              card: null
+              basis: "direct"
+              triggers:
+                - "separation control-plane-operator-producer-verifier in scope"
+            - code: "bought.without-org-controls"
+              card: null
+              basis: "direct"
+              triggers:
+                - "s1.b enforces a rule"
+            - code: "model.plane-join"
+              card: null
+              basis: "direct"
+              triggers:
+                - "relationship o01-r2 joins planes orchestration and control with no contract and no no_contract reason"
+            - code: "model.trifecta"
+              card: null
+              basis: "direct"
+              triggers:
+                - "org.c is a producer"
+                - "s1.a is a producer"
+            - code: "sep.producer-approver"
+              card: null
+              basis: "direct"
+              triggers:
+                - "separation proposer-approver in scope"
+            - code: "sep.tool-propose-authorize"
+              card: null
+              basis: "direct"
+              triggers:
+                - "separation proposing-tool-authorizing-tool in scope"
+          units:
+            building_touched:
+              - unit: "U-27"
+                phase: 1
+                part: "s1.a"
+                fidelity_from: "none"
+                fidelity_to: "stand-in"
+                independence_sensitive: false
+                separates: []
+              - unit: "U-172"
+                phase: 2
+                part: "s1.a"
+                fidelity_from: "stand-in"
+                fidelity_to: "built"
+                independence_sensitive: false
+                separates: []
+            building_removed: []
+            unbuilt_added_elements:
+              - "org.c"
+          judgment:
+            attacker_gain: "FILL"
+            new_failure_modes: "FILL"
+            compensating_controls: "FILL"
+            technical_feasibility:
+              grade: "FILL"
+              note: "FILL"
+            organizational_feasibility:
+              grade: "FILL"
+              note: "FILL"
+    source: "reference implementation"
+
+  - name: "fixture-ir-check-stale.yaml"
+    description: "An earlier patch changes a fact this patch's delta records (the owner it modifies from): IR-E-stale, and the patch file is unchanged (IR-13)."
+    files:
+      patches/O01-add-x.md: *add_x
+      patches/O02-x-owner.md: *x_owner
+    steps:
+      - run: { patch: "O02" }
+        expect: { outcome: "ok", exit: 0, errors: [], warnings: [] }
+      - replace: { file: "patches/O01-add-x.md", from: "owner: Validation workflow/producer platform team", to: "owner: Security engineering" }
+      - run: { patch: "O02", check: true }
+        expect:
+          outcome: "error"
+          exit: 1
+          errors: [{ code: "IR-E-stale", location: "O02" }]
+          patch_unchanged: true
+          warnings: ["IR-W-unfilled", "IR-W-unfilled", "IR-W-unfilled", "IR-W-unfilled", "IR-W-unfilled", "IR-W-unfilled", "IR-W-unfilled"]
+    source: "reference implementation"
+
+  - name: "fixture-ir-reaccept.yaml"
+    description: "Regenerating an accepted patch's section: when only the model hashes changed, it is rewritten with no warning and the acceptance stands; when its facts changed, it is rewritten and IR-W-reaccept says the patch goes back through acceptance."
+    files:
+      patches/O01-add-x.md: *add_x
+      patches/O02-x-owner.md: *x_owner
+    steps:
+      - run: { patch: "O02" }
+        expect: { outcome: "ok", exit: 0, errors: [], warnings: [] }
+      - replace: { file: "patches/O02-x-owner.md", from: "## Status\nproposed", to: "## Status\naccepted by the security risk owner on 2030-01-20" }
+      - replace: { file: "patches/O01-add-x.md", from: "Ranks leads for triage.", to: "Ranks leads for triage by expected yield." }
+      - run: { patch: "O02" }
+        expect:
+          outcome: "ok"
+          exit: 0
+          errors: []
+          warnings: []
+          patch_unchanged: false
+          patch_contains: ["## Status\naccepted by the security risk owner on 2030-01-20"]
+      - replace: { file: "patches/O01-add-x.md", from: "owner: Validation workflow/producer platform team", to: "owner: Security engineering" }
+      - run: { patch: "O02" }
+        expect:
+          outcome: "ok"
+          exit: 0
+          errors: []
+          warnings: [{ code: "IR-W-reaccept", location: "O02" }]
+          patch_unchanged: false
+          patch_contains: ["before: \"Security engineering\"", "## Status\naccepted by the security risk owner on 2030-01-20"]
+    source: "reference implementation"
+
+  - name: "fixture-ir-placement-part.yaml"
+    description: "A patch that only moves a rule-enforcing part to another account class changes no element, yet it is a placement change: the Placement section lists it with whether it enforces a rule, the part is touched by placement, and no IR-W-empty is raised. The overlay is the edition's worked example, since no version record names another (D4.2)."
+    options: { patch: "O01", print: true }
+    files:
+      patches/O01-store-in-control.md: |
+        # O01: Hold the evidence store in the control account
+
+        ## Why
+        The organization has one control-zone account for now.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: set_layers
+            id: s5.protected-evidence-store
+            overlay: { account: control }
+        ```
+
+        ## Risk and threat-model delta
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        proposed
+    expect:
+      outcome: "ok"
+      exit: 0
+      errors: []
+      warnings: []
+      report:
+        layout: 2
+        placement:
+          parts: [{ id: "s5.protected-evidence-store", from: "evidence", to: "control", enforces_rule: true }]
+          account_classes: []
+      report_contains:
+        enforcing_parts: [{ id: "s5.protected-evidence-store", how_touched: "placement" }]
+      codes: { bought.without-org-controls: "direct" }
+      markdown_contains:
+        - "- `s5.protected-evidence-store` account class evidence to control, enforces a rule"
+        - "It changes the account class of 1 parts and adds, changes or removes 0 account classes."
+      patch_unchanged: true
+    source: "reference implementation"
+
+  - name: "fixture-ir-overlay-lookup.yaml"
+    description: "The overlay is found as the version record names it: org/version.yaml records overlay-hybrid.yaml and its sha256, so the part moves from the organization's own account class, which the shipped example lacks. A recorded overlay whose bytes no longer match the hash is an input error, however the file was found: naming it with the overlay option does not skip the hash check, as in the patch applier (D4.2)."
+    files:
+      version.yaml: |
+        version: 3.3.0+example.2
+        history: [3.3.0+example.1]
+        overlay: { file: overlay-hybrid.yaml, sha256: 128e9ae4f76ebc17897bbc01a9c232535960d139ab815ba21ed1e9bac985ec21 }
+      overlay-hybrid.yaml: |
+        account_classes:
+          control: Control-zone parts.
+          evidence: Evidence parts.
+          onprem-evidence: Evidence parts on the organization's own cluster.
+        zone_accounts:
+          control: [control, evidence, onprem-evidence]
+        elements:
+          s5.protected-evidence-store: { services: [Object store on the own cluster], fit: self-run, account: onprem-evidence, portability: open }
+      patches/O01-store-to-managed.md: |
+        # O01: Keep evidence in the managed evidence account
+
+        ## Why
+        The organization moves its evidence store back to the managed account.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: set_layers
+            id: s5.protected-evidence-store
+            overlay: { account: evidence }
+        ```
+
+        ## Risk and threat-model delta
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        proposed
+    steps:
+      - run: { patch: "O01", print: true }
+        expect:
+          outcome: "ok"
+          warnings: []
+          report:
+            placement:
+              parts: [{ id: "s5.protected-evidence-store", from: "onprem-evidence", to: "evidence", enforces_rule: true }]
+              account_classes: []
+      - replace: { file: "overlay-hybrid.yaml", from: "on the organization's own cluster.", to: "on the organization's own cluster, edited." }
+      - run: { patch: "O01", print: true }
+        expect:
+          outcome: "error"
+          errors: [{ code: "IR-E-input", location: "overlay-hybrid.yaml" }]
+          no_report: true
+      - run: { patch: "O01", print: true, overlay: "overlay-hybrid.yaml" }
+        expect:
+          outcome: "error"
+          errors: [{ code: "IR-E-input", location: "overlay-hybrid.yaml" }]
+          no_report: true
+    source: "reference implementation"
+
+  - name: "fixture-ir-placement-account-class.yaml"
+    description: "Account classes the patch adds or changes are listed, with their zones, by comparing the compiled overlay before and after the patch, whatever op changed them (D4.2). Runs once the op core has the account-class ops."
+    requires_ops: ["add_account_class", "modify_account_class"]
+    options: { patch: "O01", print: true }
+    files:
+      patches/O01-onprem-evaluation.md: |
+        # O01: Offer an on-premises evaluation account class
+
+        ## Why
+        The organization runs some evaluation parts on its own cluster.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: add_account_class
+            name: org-onprem-evaluation
+            description: Evaluation parts on the organization's own cluster.
+            zones: [evaluation]
+          - op: modify_account_class
+            name: existing
+            description: The organization's own systems, accounts and clusters.
+        ```
+
+        ## Risk and threat-model delta
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        proposed
+    expect:
+      outcome: "ok"
+      errors: []
+      warnings: []
+      report:
+        placement:
+          parts: []
+          account_classes:
+            - { name: "existing", change: "changed", text_after: "The organization's own systems, accounts and clusters." }
+            - { name: "org-onprem-evaluation", change: "added", text_before: null, text_after: "Evaluation parts on the organization's own cluster.", zones_before: [], zones_after: ["evaluation"] }
+    source: "reference implementation"
+
+  - name: "fixture-ir-exposure.yaml"
+    description: "A relationship marked content untrusted into an added producer exposes it, and the exposure propagates along a data edge to a second part: both are listed as gained with the relationships that expose them, the producer adds a model.trifecta trigger, and the relationship line shows its content (F-13, F-14)."
+    options: { patch: "O01", print: true }
+    files:
+      patches/O01-ranker.md: |
+        # O01: Add a lead ranker that reads raw source text
+
+        ## Why
+        The organization ranks leads from the source text itself.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: add_element
+            element: { id: org.x, name: Lead ranker, system: S2, level: component, kind: service, responsibility: "Ranks leads for triage.", role_class: producer, trust_zone: reasoning, owner: Validation workflow/producer platform team }
+          - op: add_element
+            element: { id: org.y, name: Ranking board, system: S7, level: component, kind: service, responsibility: "Shows rankings.", role_class: evaluation, trust_zone: evaluation, owner: Validation workflow/producer platform team }
+          - op: add_relationship
+            relationship: { id: o01-r1, from: s1.source-adapters, to: org.x, label: Source text, carries: [], kind: data, content: untrusted, no_contract: "Raw text, read only by the ranker." }
+          - op: add_relationship
+            relationship: { id: o01-r2, from: org.x, to: org.y, label: Rankings, carries: [], kind: data, no_contract: "A display feed." }
+        ```
+
+        ## Risk and threat-model delta
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        proposed
+    expect:
+      outcome: "ok"
+      exit: 0
+      errors: []
+      report:
+        exposure:
+          gained: [{ id: "org.x", via: ["o01-r1"] }, { id: "org.y", via: ["o01-r2"] }]
+          lost: []
+      report_contains:
+        relationships: { added: [{ id: "o01-r1", content: "untrusted" }, { id: "o01-r2", content: null }] }
+        should_never_codes: [{ code: "model.trifecta", triggers: ["org.x gains untrusted-content exposure", "org.x is a producer", "relationship o01-r1 has content: untrusted"] }]
+      markdown_contains:
+        - "- Relationship added: `o01-r1` s1.source-adapters to org.x (data, content untrusted)"
+        - "- Gained: `org.x` through o01-r1"
+        - "- Gained: `org.y` through o01-r2"
+    source: "reference implementation"
+
+  - name: "fixture-ir-exposure-lost.yaml"
+    description: "Marking the tool lead store's only exposing relationship as structured removes its untrusted-content exposure and the exposure of every part it fed, and the section lists each with the relationships that exposed it before (F-13)."
+    options: { patch: "O01", print: true }
+    files:
+      patches/O01-structured-leads.md: |
+        # O01: Tool leads arrive as typed fields
+
+        ## Why
+        The lead store accepts typed fields only.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_relationship
+            id: p17-r2
+            set: { content: structured }
+        ```
+
+        ## Risk and threat-model delta
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        proposed
+    expect:
+      outcome: "ok"
+      errors: []
+      report_contains:
+        exposure: { gained: [], lost: [{ id: "s1.tool-lead-store", via: ["p17-r2"] }, { id: "s5.evidence-intake-validator", via: ["p17-r5"] }] }
+      markdown_contains: ["- Lost: `s1.tool-lead-store`, which was exposed through p17-r2"]
+    source: "reference implementation"
+
+  - name: "fixture-ir-org-units.yaml"
+    description: "The organization's units in org/units.yaml (beside the patch directory) are read with the edition's: a unit it adds builds the added part, so IR-W-unbuilt clears and the unit is listed (F-15)."
+    options: { patch: "O01", print: true }
+    files:
+      units.yaml: |
+        add:
+          - { id: U-org-01, phase: 2, elements: [{ id: org.x, fidelity_from: none, fidelity_to: built }], independence_sensitive: false, separates: [] }
+        modify: []
+        remove: []
+      patches/O01-add-x.md: |
+        # O01: Add a lead ranker
+
+        ## Why
+        The organization ranks leads before triage.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: add_element
+            element: { id: org.x, name: Lead ranker, system: S2, level: component, kind: service, responsibility: "Ranks leads for triage.", role_class: producer, trust_zone: reasoning, owner: Validation workflow/producer platform team }
+        ```
+
+        ## Risk and threat-model delta
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        proposed
+    expect:
+      outcome: "ok"
+      errors: []
+      warnings: [{ code: "IR-W-tier-missing", location: "org.x" }]
+      report_contains:
+        units: { building_touched: [{ unit: "U-org-01", phase: 2, part: "org.x", fidelity_from: "none", fidelity_to: "built" }], unbuilt_added_elements: [] }
+    source: "reference implementation"
+
+  - name: "fixture-ir-org-units-duplicate-add.yaml"
+    description: "An org/units.yaml that adds a shipped unit id and adds one new id twice is refused: a duplicate add is an error in every tool, so IR-E-input at each reused id and no report. A shipped unit is changed with modify, which raises nothing."
+    options: { patch: "O01" }
+    files:
+      units.yaml: |
+        add:
+          - { id: U-05, phase: 2, elements: [{ id: org.x, fidelity_from: none, fidelity_to: built }], independence_sensitive: false, separates: [] }
+          - { id: U-org-01, phase: 2, elements: [{ id: org.x, fidelity_from: none, fidelity_to: built }], independence_sensitive: false, separates: [] }
+          - { id: U-org-01, phase: 3, elements: [{ id: org.x, fidelity_from: none, fidelity_to: built }], independence_sensitive: false, separates: [] }
+        modify:
+          - { id: U-06, set: { independence_sensitive: true } }
+        remove: []
+      patches/O01-add-x.md: |
+        # O01: Add a lead ranker
+
+        ## Why
+        The organization ranks leads before triage.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: add_element
+            element: { id: org.x, name: Lead ranker, system: S2, level: component, kind: service, responsibility: "Ranks leads for triage.", role_class: producer, trust_zone: reasoning, owner: Validation workflow/producer platform team }
+        ```
+
+        ## Risk and threat-model delta
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        proposed
+    expect:
+      outcome: "error"
+      exit: 1
+      errors: [{ code: "IR-E-input", location: "U-05" }, { code: "IR-E-input", location: "U-org-01" }]
+      warnings: []
+      no_report: true
+    source: "specification (Inputs, the organization's units; error table)"
+
+  - name: "fixture-ir-accepter-unnamed.yaml"
+    description: "An accepted patch, reported with a profile that leaves the security risk owner unfilled, warns that no named role could have accepted it; once the profile names the role the warning goes (F-17)."
+    files:
+      profile.yaml: |
+        profile: { name: Example, description: A toy organization. }
+        separation: { producer_team: Producer platform team, approver_team: Control team, security_risk_owner_role: FILL }
+      patches/O01-add-x.md: |
+        # O01: Add a lead ranker
+
+        ## Why
+        The organization ranks leads before triage.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: add_element
+            element: { id: org.x, name: Lead ranker, system: S2, level: component, kind: service, responsibility: "Ranks leads for triage.", role_class: producer, trust_zone: reasoning, owner: Validation workflow/producer platform team }
+        ```
+
+        ## Risk and threat-model delta
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-20
+    steps:
+      - run: { patch: "O01", print: true }
+        expect:
+          outcome: "ok"
+          warnings: [{ code: "IR-W-accepter", location: "O01" }, "IR-W-tier-missing", "IR-W-unbuilt"]
+      - replace: { file: "profile.yaml", from: "security_risk_owner_role: FILL", to: "security_risk_owner_role: Second-line risk" }
+      - run: { patch: "O01", print: true }
+        expect:
+          outcome: "ok"
+          warnings: ["IR-W-tier-missing", "IR-W-unbuilt"]
+    source: "reference implementation"
+
+  - name: "fixture-ir-check-skips-withdrawn.yaml"
+    description: "Check mode skips a withdrawn or rejected patch: the withdrawn second patch modifies a part only the withdrawn first patch adds, so regenerating it would fail to apply, yet check mode warns IR-W-skipped and exits 0 (F-6)."
+    files:
+      patches/O01-add-x.md: |
+        # O01: Add a lead ranker
+
+        ## Why
+        The organization ranks leads before triage.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: add_element
+            element: { id: org.x, name: Lead ranker, system: S2, level: component, kind: service, responsibility: "Ranks leads for triage.", role_class: producer, trust_zone: reasoning, owner: Validation workflow/producer platform team }
+        ```
+
+        ## Risk and threat-model delta
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        withdrawn by the security risk owner on 2030-02-01
+      patches/O02-x-owner.md: |
+        # O02: Hand the ranker to the AI platform team
+
+        ## Why
+        The AI platform team runs it.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_element
+            id: org.x
+            set: { owner: AI platform serving operations }
+        ```
+
+        ## Risk and threat-model delta
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        withdrawn by the security risk owner on 2030-02-01
+      patches/O03-rejected.md: |
+        # O03: Rename the ranker
+
+        ## Why
+        A rejected idea.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_element
+            id: org.x
+            set: { name: Ranker }
+        ```
+
+        ## Risk and threat-model delta
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        rejected by the security risk owner on 2030-02-02
+    steps:
+      - run: { patch: "O02", check: true }
+        expect:
+          outcome: "ok"
+          errors: []
+          warnings: [{ code: "IR-W-skipped", location: "O02" }]
+          patch_unchanged: true
+      - run: { patch: "O03", check: true }
+        expect:
+          outcome: "ok"
+          errors: []
+          warnings: [{ code: "IR-W-skipped", location: "O03" }]
+      - run: { patch: "O02" }
+        expect:
+          outcome: "error"
+          errors: [{ code: "IR-E-apply", location: "O02 op 0" }]
+    source: "reference implementation"
+
+  - name: "fixture-ir-preview-withdraw.yaml"
+    description: "A replacement can be previewed together with the withdrawal it implies: the second patch adds the part the accepted first patch already adds, which fails to apply, until --preview-withdraw O01 leaves the first out of the base. Naming a patch that is not earlier is an input error (F-4)."
+    files:
+      patches/O01-add-x.md: |
+        # O01: Add a lead ranker
+
+        ## Why
+        The organization ranks leads before triage.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: add_element
+            element: { id: org.x, name: Lead ranker, system: S2, level: component, kind: service, responsibility: "Ranks leads for triage.", role_class: producer, trust_zone: reasoning, owner: Validation workflow/producer platform team }
+        ```
+
+        ## Risk and threat-model delta
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-20
+      patches/O02-replace-x.md: |
+        # O02: Add the lead ranker for the AI platform team
+
+        ## Why
+        Replaces O01, which will be withdrawn.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: add_element
+            element: { id: org.x, name: Lead ranker, system: S2, level: component, kind: service, responsibility: "Ranks leads for triage.", role_class: producer, trust_zone: reasoning, owner: AI platform serving operations }
+        ```
+
+        ## Risk and threat-model delta
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        proposed
+    steps:
+      - run: { patch: "O02", print: true }
+        expect:
+          outcome: "error"
+          errors: [{ code: "IR-E-apply", location: "O02 op 0" }]
+      - run: { patch: "O02", print: true, preview_withdraw: ["O01"] }
+        expect:
+          outcome: "ok"
+          errors: []
+          report:
+            elements: { added: [{ id: "org.x", system: "S2", trust_zone: "reasoning", role_class: "producer" }], removed: [], changed: [] }
+      - run: { patch: "O01", print: true, preview_withdraw: ["O02"] }
+        expect:
+          outcome: "error"
+          errors: [{ code: "IR-E-input", location: "options" }]
+          no_report: true
+    source: "reference implementation"
+
+  - name: "fixture-ir-check-profile.yaml"
+    description: "Team names are facts of the recorded block, so check mode must be given the profile the block was written with: without it the block is stale and the message says why; renaming a team makes the patch stale too, which sends an accepted patch back through acceptance (F-7)."
+    files:
+      profile.yaml: |
+        profile: { name: Example, description: A toy organization. }
+        separation: { producer_team: Producer platform team, approver_team: Control team, security_risk_owner_role: Second-line risk }
+      patches/O01-approval-owner.md: |
+        # O01: The producer platform team runs approvals
+
+        ## Why
+        One team is all the organization has for now.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_element
+            id: s3.approval-service
+            set: { owner: Validation workflow/producer platform team }
+        ```
+
+        ## Risk and threat-model delta
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        proposed
+    steps:
+      - run: { patch: "O01" }
+        expect: { outcome: "ok", errors: [] }
+      - run: { patch: "O01", check: true }
+        expect: { outcome: "ok", errors: [] }
+      - run: { patch: "O01", check: true, no_profile: true }
+        expect:
+          outcome: "error"
+          errors: [{ code: "IR-E-stale", location: "O01" }]
+      - replace: { file: "profile.yaml", from: "approver_team: Control team", to: "approver_team: Control platform team" }
+      - run: { patch: "O01", check: true }
+        expect:
+          outcome: "error"
+          errors: [{ code: "IR-E-stale", location: "O01" }]
+          patch_unchanged: true
+    source: "reference implementation"
+
+  - name: "fixture-ir-team-ids.yaml"
+    description: "Stable team ids: the block carries each team's id beside its name; renaming a team that keeps its id changes only wording, so check mode reports a restamp and the acceptance stands; changing the id itself is a fact change (IR-22)."
+    files:
+      profile.yaml: |
+        profile: { name: Example, description: A toy organization. }
+        separation: { producer_team: Producer platform team, approver_team: Control team, security_risk_owner_role: Second-line risk, team_ids: { Producer platform team: T-01, Control team: T-02 } }
+      patches/O01-approval-owner.md: |
+        # O01: The producer platform team runs approvals
+
+        ## Why
+        One team is all the organization has for now.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_element
+            id: s3.approval-service
+            set: { owner: Validation workflow/producer platform team }
+        ```
+
+        ## Risk and threat-model delta
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        proposed
+    steps:
+      - run: { patch: "O01" }
+        expect:
+          outcome: "ok"
+          errors: []
+          report_contains:
+            separations: [{ id: "proposer-approver", teams: { a: ["Producer platform team"], b: ["Control team"] }, team_ids: { a: ["T-01"], b: ["T-02"] } }]
+      - replace: { file: "profile.yaml", from: "approver_team: Control team", to: "approver_team: Control platform team" }
+      - replace: { file: "profile.yaml", from: "Control team: T-02", to: "Control platform team: T-02" }
+      - run: { patch: "O01", check: true }
+        expect:
+          outcome: "error"
+          errors: [{ code: "IR-E-restamp", location: "O01" }]
+          patch_unchanged: true
+      - replace: { file: "profile.yaml", from: "Control platform team: T-02", to: "Control platform team: T-09" }
+      - run: { patch: "O01", check: true }
+        expect:
+          outcome: "error"
+          errors: [{ code: "IR-E-stale", location: "O01" }]
+          patch_unchanged: true
+    source: "specification (Inputs, organization profile; IR-22)"
+
+  - name: "fixture-ir-layout-restamp.yaml"
+    description: "A block recorded in an earlier layout (no layout key, no placement or exposure keys, the plane spelled unmapped, list order and the edition's wording differing) holds the same facts as a regenerated one, so check mode says IR-E-restamp; a changed id in it is IR-E-stale (D4.3)."
+    files:
+      patches/O01-add-x.md: |
+        # O01: Add a lead ranker
+
+        ## Why
+        The organization ranks leads before triage.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: add_element
+            element: { id: org.x, name: Lead ranker, system: S2, level: component, kind: service, responsibility: "Ranks leads for triage.", role_class: producer, trust_zone: reasoning, owner: Validation workflow/producer platform team }
+          - op: add_relationship
+            relationship: { id: o01-r1, from: s2.workflow-worker-app, to: org.x, label: Leads, carries: [], kind: data, optional: false }
+        ```
+
+        ## Risk and threat-model delta
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        proposed
+    steps:
+      - run: { patch: "O01" }
+        expect: { outcome: "ok", errors: [] }
+      - replace: { file: "patches/O01-add-x.md", from: "  layout: 2\n", to: "" }
+      - replace: { file: "patches/O01-add-x.md", from: "  placement:\n    parts: []\n    account_classes: []\n  exposure:\n    gained:\n      - id: \"org.x\"\n        via:\n          - \"o01-r1\"\n    lost: []\n", to: "" }
+      - replace: { file: "patches/O01-add-x.md", from: "      to_plane: \"unmapped:org.x\"\n", to: "      to_plane: \"unmapped\"\n" }
+      - replace: { file: "patches/O01-add-x.md", from: "        - \"org.x is a producer\"\n", to: "        - \"org.x is a producer service\"\n" }
+      - run: { patch: "O01", check: true }
+        expect:
+          outcome: "error"
+          errors: [{ code: "IR-E-restamp", location: "O01" }]
+          patch_unchanged: true
+      - replace: { file: "patches/O01-add-x.md", from: "  unbuilt_added_elements:\n      - \"org.x\"", to: "  unbuilt_added_elements:\n      - \"org.z\"" }
+      - run: { patch: "O01", check: true }
+        expect:
+          outcome: "error"
+          errors: [{ code: "IR-E-stale", location: "O01" }]
+    source: "reference implementation"
+
+  - name: "fixture-ir-layout-separates.yaml"
+    description: "Layout 1 wrote a unit row's separates as pairs; layout 2 writes each pair as one string, a and b. A block recorded with pairs holds the same facts, so check mode says IR-E-restamp (D4.3)."
+    files:
+      patches/O01-move-verifier.md: |
+        # O01: Move the verifier to the evaluation team
+
+        ## Why
+        The organization moves the verifier to its evaluation team.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_element
+            id: s5.independent-verifier
+            set: { owner: Evaluation team }
+        ```
+
+        ## Risk and threat-model delta
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        proposed
+    steps:
+      - run: { patch: "O01" }
+        expect: { outcome: "ok", errors: [] }
+      - replace: { file: "patches/O01-move-verifier.md", from: "  layout: 2\n", to: "" }
+      - replace: { file: "patches/O01-move-verifier.md", from: "        separates:\n          - \"proposer and verifier\"\n      - unit: \"U-36\"", to: "        separates:\n          - [\"proposer\", \"verifier\"]\n      - unit: \"U-36\"" }
+      - run: { patch: "O01", check: true }
+        expect:
+          outcome: "error"
+          errors: [{ code: "IR-E-restamp", location: "O01" }]
+          patch_unchanged: true
+    source: "reference implementation"
+
+  - name: "fixture-ir-tier-existing.yaml"
+    description: "An organization part whose role class is existing needs no tier, as in the model checks' quality coverage, so the report does not ask for one even outside systems EXT and PEOPLE."
+    options: { patch: "O01", print: true }
+    files:
+      patches/O01-add-tracker.md: |
+        # O01: Record the existing ticket tracker
+
+        ## Why
+        The organization's ticket tracker is an existing system the loop writes to.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: add_element
+            element: { id: org.tracker, name: Ticket tracker, system: S6, level: component, kind: service, responsibility: "Holds tickets.", role_class: existing, trust_zone: shared:existing, owner: Platform team }
+        ```
+
+        ## Risk and threat-model delta
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        proposed
+    expect:
+      outcome: "ok"
+      errors: []
+      warnings: [{ code: "IR-W-unbuilt", location: "org.tracker" }]
+    source: "reference implementation"
+
+  - name: "fixture-ir-wording-restamp.yaml"
+    description: "In the current layout too, a recorded block that differs only in the edition's wording (a separation's reasons, a code's triggers) is a restamp, never stale (D4.3)."
+    files:
+      patches/O01-add-x.md: |
+        # O01: Add a lead ranker
+
+        ## Why
+        The organization ranks leads before triage.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: add_element
+            element: { id: org.x, name: Lead ranker, system: S2, level: component, kind: service, responsibility: "Ranks leads for triage.", role_class: producer, trust_zone: reasoning, owner: Validation workflow/producer platform team }
+        ```
+
+        ## Risk and threat-model delta
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        proposed
+    steps:
+      - run: { patch: "O01" }
+        expect: { outcome: "ok", errors: [] }
+      - replace: { file: "patches/O01-add-x.md", from: "        - \"org.x is a producer\"\n", to: "        - \"org.x produces candidate findings\"\n" }
+      - run: { patch: "O01", check: true }
+        expect:
+          outcome: "error"
+          errors: [{ code: "IR-E-restamp", location: "O01" }]
+    source: "reference implementation"
+
+  - name: "fixture-ir-natural-order-tie.yaml"
+    description: "Unit ids whose digit runs tie in value sort with the shorter run first, whatever the file order: U-1, then U-01, then U-001."
+    options: { patch: "O01" }
+    data:
+      model.yaml: *toy_model
+      rules.yaml: |
+        families: {}
+        rule_enforcing_parts:
+          parts:
+            s1.b: [I1]
+      quality.yaml: *toy_quality
+      failures.yaml: *toy_failures
+      realization.yaml: *toy_realization
+      overlay-aws.yaml: *toy_overlay
+      units.yaml: |
+        - { id: U-001, phase: 2, elements: [{ id: s1.a, fidelity_from: stand-in, fidelity_to: built }], independence_sensitive: false, separates: [] }
+        - { id: U-01, phase: 1, elements: [{ id: s1.a, fidelity_from: none, fidelity_to: stand-in }], independence_sensitive: false, separates: [] }
+        - { id: U-1, phase: 3, elements: [{ id: s1.a, fidelity_from: built, fidelity_to: built }], independence_sensitive: false, separates: [] }
+    files:
+      patches/O01-add-c.md: *toy_patch
+    expect:
+      outcome: "ok"
+      errors: []
+      warnings: [{"code":"IR-W-tier-missing","location":"org.c"},{"code":"IR-W-unbuilt","location":"org.c"}]
+      report:
+        units: {"building_touched":[{"unit":"U-1","phase":3,"part":"s1.a","fidelity_from":"built","fidelity_to":"built","independence_sensitive":false,"separates":[]},{"unit":"U-01","phase":1,"part":"s1.a","fidelity_from":"none","fidelity_to":"stand-in","independence_sensitive":false,"separates":[]},{"unit":"U-001","phase":2,"part":"s1.a","fidelity_from":"stand-in","fidelity_to":"built","independence_sensitive":false,"separates":[]}],"building_removed":[],"unbuilt_added_elements":["org.c"]}
+    source: "reference implementation"
+
+  - name: "fixture-ir-unset.yaml"
+    description: "A patch that takes a key away with unset lists its target as changed, the key's value before and null after (IR-24, behavior 3): the shipped stop gate redrawn as a harness in one op loses not_harness and gains harness. Written from the specification."
+    options: { patch: "O01", print: true }
+    files:
+      patches/O01-stop-gate-harness.md: |
+        # O01: Redraw the stop gate as a harness
+
+        ## Why
+        The organization's stop hook runs the agent's sessions after all.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_element
+            id: jig:stop-gate
+            unset: [not_harness]
+            set: { harness: { stop_gate: true, telemetry_export: full, version_pinning: true, blocking_hooks: true } }
+        ```
+
+        ## Risk and threat-model delta
+
+        ## Feasibility note
+        No build work.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        proposed
+    expect:
+      outcome: "ok"
+      exit: 0
+      errors: []
+      warnings: []
+      report:
+        elements: { added: [], removed: [] }
+      report_contains:
+        elements:
+          changed:
+            - id: "jig:stop-gate"
+              fields:
+                - { field: "harness", before: null, after: { stop_gate: true, telemetry_export: "full", version_pinning: true, blocking_hooks: true } }
+                - { field: "not_harness", after: null }
+      markdown_contains: ["- Element changed: `jig:stop-gate` not_harness: \"", "to null"]
+    source: "specification"
+
+  - name: "fixture-ir-preview-withdraw-list.yaml"
+    description: "A preview withdrawal takes one id or a comma-separated list and may be repeated; every id counts, an id given twice once (Inputs, as the patch applier's PA-26). The runner passes each listed value as one --preview-withdraw, so a value holding a comma tests the list form. Written from the specification."
+    files:
+      patches/O01-add-x.md: |
+        # O01: Add a lead ranker
+
+        ## Why
+        The organization ranks leads before triage.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: add_element
+            element: { id: org.x, name: Lead ranker, system: S2, level: component, kind: service, responsibility: "Ranks leads for triage.", role_class: producer, trust_zone: reasoning, owner: Validation workflow/producer platform team }
+        ```
+
+        ## Risk and threat-model delta
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-20
+      patches/O02-add-y.md: |
+        # O02: Add a lead deduplicator
+
+        ## Why
+        The organization merges duplicate leads before triage.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: add_element
+            element: { id: org.y, name: Lead deduplicator, system: S2, level: component, kind: service, responsibility: "Merges duplicate leads.", role_class: producer, trust_zone: reasoning, owner: Validation workflow/producer platform team }
+        ```
+
+        ## Risk and threat-model delta
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-20
+      patches/O03-replace-both.md: |
+        # O03: Add both lead parts for the AI platform team
+
+        ## Why
+        Replaces O01 and O02, which will be withdrawn.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: add_element
+            element: { id: org.x, name: Lead ranker, system: S2, level: component, kind: service, responsibility: "Ranks leads for triage.", role_class: producer, trust_zone: reasoning, owner: AI platform serving operations }
+          - op: add_element
+            element: { id: org.y, name: Lead deduplicator, system: S2, level: component, kind: service, responsibility: "Merges duplicate leads.", role_class: producer, trust_zone: reasoning, owner: AI platform serving operations }
+        ```
+
+        ## Risk and threat-model delta
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        proposed
+    steps:
+      - run: { patch: "O03", print: true, preview_withdraw: ["O01"] }
+        expect:
+          outcome: "error"
+          errors: [{ code: "IR-E-apply", location: "O03 op 1" }]
+      - run: { patch: "O03", print: true, preview_withdraw: ["O01,O02"] }
+        expect:
+          outcome: "ok"
+          errors: []
+          report:
+            elements: { added: [{ id: "org.x", system: "S2", trust_zone: "reasoning", role_class: "producer" }, { id: "org.y", system: "S2", trust_zone: "reasoning", role_class: "producer" }], removed: [], changed: [] }
+      - run: { patch: "O03", print: true, preview_withdraw: ["O02", "O01,O02"] }
+        expect:
+          outcome: "ok"
+          errors: []
+          report:
+            elements: { added: [{ id: "org.x" }, { id: "org.y" }], removed: [], changed: [] }
+    source: "specification"
+
+  - name: fixture-ir-unanswered-team-fill.yaml
+    options: 
+      &options
+      patch: O01
+    files: 
+      profile.yaml: "{separation: {producer_team: FILL,approver_team: FILL,team_ids: {FILL: must-not-be-used} } }"
+      patches/O01-approval-owner.md: "# O01: The producer platform team runs approvals\n\n## Why\nOne team is all the organization has for now.\n\n## Ops\n```yaml\nops:\n  - op: modify_element\n    id: s3.approval-service\n    set: { owner: Validation workflow/producer platform team }\n```\n\n## Risk and threat-model delta\n\n## Feasibility note\nNo build work.\n\n## Exceptions needed\nTo be decided from this report.\n\n## Status\nproposed\n"
+    expect: 
+      exit: 0
+      errors: 
+        []
+      report_contains: 
+        separations: 
+          - id: proposer-approver
+            teams: 
+              a: 
+                - null
+              b: 
+                - null
+      markdown_contains: 
+        - separation.producer_team and separation.approver_team (now not set and not set)
+  - name: fixture-ir-unanswered-team-empty-null.yaml
+    options: 
+      *options
+    files: 
+      profile.yaml: "{separation: {producer_team: \"\",approver_team: null} }"
+      patches/O01-approval-owner.md: "# O01: The producer platform team runs approvals\n\n## Why\nOne team is all the organization has for now.\n\n## Ops\n```yaml\nops:\n  - op: modify_element\n    id: s3.approval-service\n    set: { owner: Validation workflow/producer platform team }\n```\n\n## Risk and threat-model delta\n\n## Feasibility note\nNo build work.\n\n## Exceptions needed\nTo be decided from this report.\n\n## Status\nproposed\n"
+    expect: 
+      exit: 0
+      errors: 
+        []
+      report_contains: 
+        separations: 
+          - id: proposer-approver
+            teams: 
+              a: 
+                - null
+              b: 
+                - null
+      markdown_contains: 
+        - separation.producer_team and separation.approver_team (now not set and not set)
+  - name: fixture-ir-unanswered-team-missing.yaml
+    options: 
+      *options
+    files: 
+      profile.yaml: "{}"
+      patches/O01-approval-owner.md: "# O01: The producer platform team runs approvals\n\n## Why\nOne team is all the organization has for now.\n\n## Ops\n```yaml\nops:\n  - op: modify_element\n    id: s3.approval-service\n    set: { owner: Validation workflow/producer platform team }\n```\n\n## Risk and threat-model delta\n\n## Feasibility note\nNo build work.\n\n## Exceptions needed\nTo be decided from this report.\n\n## Status\nproposed\n"
+    expect: 
+      exit: 0
+      errors: 
+        []
+      report_contains: 
+        separations: 
+          - id: proposer-approver
+            teams: 
+              a: 
+                - null
+              b: 
+                - null
+      markdown_contains: 
+        - separation.producer_team and separation.approver_team (now not set and not set)
+
+
+namespace_reports:
+  - name: fixture-ir-jig-target
+    ops: [{op: modify_element, id: 'jig:check-suite', set: {name: Creation check suite} }]
+    changed_elements: ['jig:check-suite']
+    scenarios: ['shared:F129']
+  - name: fixture-ir-shared-crossing
+    ops: [{op: modify_relationship, id: 'shared:p30-r2', set: {point: Declared derived-check handoff} }]
+    changed_relationships: ['shared:p30-r2']
+    scenarios: ['shared:F129']
+  - name: fixture-ir-shared-replay-layer
+    explicit_shared: true
+    earlier_ops:
+      - op: set_seam_exceptions
+        seam: shared:secure-creation
+        exceptions:
+          []
+    ops:
+      - op: add_element
+        element:
+          id: jig:org.report-harness
+          name: Organization harness
+          system: shared:EXT
+          trust_zone: shared:existing
+          kind: service
+          level: component
+          role_class: existing
+          responsibility: Runs a declared check.
+        layers:
+          realization:
+            plane: shared:integration
+            class: service
+            examples:
+              []
+            swap_point: false
+            existing_tool_default: organization
+          overlay:
+            services:
+              []
+            fit: existing
+            account: existing
+            portability: declared
+      - op: add_relationship
+        relationship:
+          id: shared:o02-report
+          from: s6.regression-catalog
+          to: jig:org.report-harness
+          kind: data
+          carries:
+            []
+          optional: true
+          no_contract: Reports the declared check signal.
+    added_elements:
+      - jig:org.report-harness
+    planes:
+      jig:org.report-harness: shared:integration
+  - name: fixture-ir-scenario-only-add
+    ops:
+      - op: add_failure_scenario
+        scenario:
+          &scenario
+          id: org.hostile-response
+          title: Hostile model response
+          elements:
+            - s4.response-proposal-gate
+            - s2.workflow-engine
+            - s2.producer-adapters
+          trigger: A hostile response reaches the gate.
+          required_behavior: The gate refuses it and no action is authorized.
+          invariant: I1
+          detection: The refusal is recorded.
+          runbook: RB-org.hostile-response
+          test:
+            kind: pipeline
+            steps: Send hostile response text and assert refusal.
+    changed_elements:
+      []
+    changed_relationships:
+      []
+    added_elements:
+      []
+    scenarios:
+      - org.hostile-response
+  - name: fixture-ir-scenario-only-modify
+    earlier_ops:
+      - op: add_failure_scenario
+        scenario:
+          *scenario
+    ops:
+      - op: modify_failure_scenario
+        id: org.hostile-response
+        set:
+          title: A hostile response remains denied
+    changed_elements:
+      []
+    changed_relationships:
+      []
+    scenarios:
+      - org.hostile-response

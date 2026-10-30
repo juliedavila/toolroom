@@ -1,0 +1,1080 @@
+# Acceptance fixtures for the unit graph tool (spec-unit-graph.md). One entry per fixture under fixtures.
+#
+# Each fixture builds one unit list and one model, runs the tool, and compares the result with its expect block.
+#   base: shipped   the shipped units.yaml with the shipped model.yaml
+#   base: toy       the toy_units list below with the toy_model below
+#   base: none      the fixture's own units list with the toy_model below
+# The tool also reads a manual-work catalog and a premise register: the shipped manual-work.yaml and claims.yaml for
+#   base: shipped, and toy_manual_work and toy_claims below for base: toy and base: none.
+# edits: JSON Patch operations (RFC 6902: add, remove, replace) applied in order to the base unit list, with one
+#   extension: a path segment written [key=value] selects the one list item whose key field equals value, for example
+#   /[id=U-03]/contract. A selector that matches no item or more than one item is an error in the fixture. A trailing
+#   - appends to a list, as in RFC 6902.
+# exercises: a one-line description for people; no runner checks it.
+# units: with base: none, the fixture's own unit list.
+# org: the organization's unit changes (the org/units.yaml file), applied over the edited list as the tool applies them.
+# repeat: run the tool this many times on the same inputs; every report must be identical.
+# expect:
+#   exit: the exit status (0 without errors, 1 with errors).
+#   errors, warnings: findings written "<code> <unit or capability>: <text>". Each entry is the start of one finding
+#     and must consume exactly one; the fixture passes only when every entry is consumed and no finding is left over.
+#     An empty list means none.
+#   report: a partial report. Every key given must equal the tool's report under unit_graph; mappings are compared
+#     key by key at every depth, mappings inside lists included (only the keys given are compared); a list must match in
+#     length and item by item, in order.
+
+toy_model:
+  elements:
+    - id: t1.request-form
+    - id: t2.run-ledger
+    - id: t3.scanner
+      module: tool-portfolio
+    - id: t4.road-catalog
+      module: paved-road
+  contracts:
+    - name: RequestCard
+    - name: RunRecord
+
+# A clean five-unit plan: no errors and no warnings.
+toy_units:
+  - id: U-01
+    phase: 1
+    seam: STEP-1
+    kind: agreement
+    flow_item: risk
+    contract: RequestCard
+    elements: [{id: t1.request-form, fidelity_from: none, fidelity_to: existing-tool}]
+    provides: [cap.request]
+    requires: []
+    check: "The request card names three distinct owners."
+    feedback_speed: next-loop-run
+    independence_sensitive: true
+    separates: [[proposer, approver]]
+    contract_shape_ok: true
+  - id: U-02
+    phase: 1
+    seam: STEP-2
+    kind: measurement
+    flow_item: debt
+    contract: RunRecord
+    elements: [{id: t2.run-ledger, fidelity_from: none, fidelity_to: stand-in}]
+    provides: [cap.run-record]
+    requires: [cap.request]
+    check: "The ledger sheet holds one row per run."
+    feedback_speed: minutes
+    independence_sensitive: false
+    contract_shape_ok: true
+  - id: U-03
+    phase: 2
+    seam: STEP-1
+    kind: code
+    flow_item: feature
+    relieves:
+      - {manual_work: triage, effect: reduce, rests_on: TP-1, strength: weak, strength_reason: "A request without owners is refused at the API, so nobody chases owners by hand."}
+    contract: RequestCard
+    elements: [{id: t1.request-form, fidelity_from: existing-tool, fidelity_to: built}]
+    provides: [cap.request-api]
+    requires: [cap.request]
+    check: "The request API rejects a card without owners."
+    feedback_speed: minutes
+    independence_sensitive: false
+  - id: U-04
+    phase: 2
+    seam: STEP-4
+    kind: code
+    flow_item: risk
+    module: tool-portfolio
+    elements: [{id: t3.scanner, fidelity_from: none, fidelity_to: built}]
+    provides: [cap.scan]
+    requires: [cap.request-api]
+    check: "The scanner runs only on an accepted request."
+    feedback_speed: minutes
+    independence_sensitive: false
+  - id: U-05
+    phase: 3
+    seam: STEP-6
+    kind: code
+    flow_item: defect
+    contract: RunRecord
+    elements: [{id: t2.run-ledger, fidelity_from: stand-in, fidelity_to: built}]
+    provides: [cap.verdict]
+    requires: [cap.scan, cap.run-record]
+    check: "Every verdict links its run record."
+    feedback_speed: minutes
+    independence_sensitive: false
+
+# A toy manual-work catalog and a toy premise register, given to the tool for base toy and base none.
+toy_manual_work:
+  namespace: shared
+  version: "1.0.0"
+  manual_work:
+    - {id: triage, name: Manual triage, description: "Sorting findings by hand.", flow_item: risk}
+    - {id: retest, name: Manual retest, description: "Re-running a fixed attack by hand.", flow_item: risk}
+
+toy_claims:
+  claims:
+    - {id: TP-1, statement: "A refused request costs less than a chased one.", verdict: holds, strength: moderate}
+    - {id: TP-2, statement: "A claim the register dropped.", verdict: drop, strength: weak}
+    - {id: TP-3, statement: "A claim graded in two halves.", verdict: honest bet, strength: "moderate (toil) / none (safety)"}
+
+fixtures:
+  - name: fixture-ug-shipped.yaml
+    exercises: the shipped units unchanged
+    base: shipped
+    expect:
+      exit: 0
+      errors: []
+      warnings:
+        - "UG-W-breaking U-08: stand-in for ExecutionGrant has a breaking shape gap; its consumers change when the stand-in is replaced; the profile records what stands in at phase_1_boundary.runner_limit"
+        - "UG-W-breaking U-09: stand-in for ExecutionGrant has a breaking shape gap; its consumers change when the stand-in is replaced; the profile records what stands in at phase_1_boundary.runner_limit"
+      report:
+        units: 318
+        by_phase: {1: 30, 2: 111, 3: 104, 4: 54, 5: 19}
+        by_kind: {agreement: 53, code: 194, measurement: 71}
+        by_module: {consequence-gates: 3, core: 257, paved-road: 19, production-effects: 6, secure-creation: 18, tool-portfolio: 15}
+        by_feedback_speed: {minutes: 134, next-loop-run: 65, several-runs: 62, weeks: 57}
+        by_flow_item: {debt: 31, defect: 1, feature: 21, risk: 265}
+        changed_from_upstream: {added: [], changed: [], removed: []}
+        capabilities: 334
+        dependency_edges: 636
+        missing_capabilities: []
+        multiply_provided: {}
+        cycles: []
+        longest_chain:
+          length: 23
+          path: [U-158, U-01, U-03, U-05, U-08, U-09, U-11, U-12, U-14, U-15, U-16, U-17, U-47, U-48, U-109, U-110, U-133, U-196, U-434, jig:JU-01, jig:U-436, jig:U-438, jig:U-431]
+        phase_1_self_contained: true
+        pull_after_phase_1:
+          layer_widths: [25, 23, 19, 26, 27, 32, 33, 26, 32, 25, 15, 4, 1]
+          frontier_by_phase: {2: 21, 3: 2, 4: 2}
+        phase_order:
+          later_phase_prerequisites: []
+        sensitive_orderings: []
+        entry_checked_orderings:
+          - {unit: U-60, phase: 3, role: verifier, pair: [evaluator, verifier], check: sep.evaluator-conflicted}
+          - {unit: U-60, phase: 3, role: verifier, pair: [risk-acceptor, verifier], check: sep.business-risk-owner}
+          - {unit: U-60, phase: 3, role: verifier, pair: [road-owner, verifier], check: road.owner-verifies}
+          - {unit: U-62, phase: 3, role: verifier, pair: [evaluator, verifier], check: sep.evaluator-conflicted}
+          - {unit: U-62, phase: 3, role: verifier, pair: [risk-acceptor, verifier], check: sep.business-risk-owner}
+          - {unit: U-62, phase: 3, role: verifier, pair: [road-owner, verifier], check: road.owner-verifies}
+          - {unit: U-67, phase: 3, role: evaluator, pair: [decision-owner, evaluator], check: sep.evaluator-conflicted}
+          - {unit: U-67, phase: 3, role: evaluator, pair: [evaluator, promotion-authority], check: ownership.broken-separation}
+          - {unit: U-67, phase: 3, role: evaluator, pair: [evaluator, road-owner], check: sep.evaluator-conflicted}
+          - {unit: U-67, phase: 3, role: evaluator, pair: [evaluator, tool-owner], check: sep.evaluator-conflicted}
+          - {unit: U-67, phase: 3, role: evaluator, pair: [evaluator, verifier], check: sep.evaluator-conflicted}
+        phase_1_automation: [{unit: U-05, role: proposer}]
+        stand_in_shape_gaps:
+          - {unit: U-03, phase: 1, contract: ContextSnapshot, gap: additive}
+          - {unit: U-04, phase: 1, contract: OracleSpec, gap: additive}
+          - {unit: U-06, phase: 1, contract: ModelRequest, gap: additive}
+          - {unit: U-08, phase: 1, contract: ExecutionGrant, gap: breaking}
+          - {unit: U-09, phase: 1, contract: ExecutionGrant, gap: breaking}
+          - {unit: U-11, phase: 1, contract: ExecutionReceipt, gap: additive}
+          - {unit: U-12, phase: 1, contract: ValidationArtifact, gap: additive}
+          - {unit: U-14, phase: 1, contract: FindingDisposition, gap: additive}
+          - {unit: U-16, phase: 1, contract: shared:ChangeRecord, gap: additive}
+          - {unit: U-105, phase: 2, contract: FailureClass, gap: additive}
+          - {unit: U-106, phase: 2, contract: shared:RoadEntry, gap: additive}
+          - {unit: U-117, phase: 2, contract: shared:ToolLead, gap: additive}
+          - {unit: U-126, phase: 2, contract: ConsequenceFact, gap: additive}
+        relief:
+          audit-evidence: {retire: [], reduce: [U-45, U-102, U-205]}
+          change-review: {retire: [], reduce: [U-82]}
+          finding-triage: {retire: [], reduce: [U-60, U-122, U-124, U-130, U-137, U-187, U-331]}
+          fix-retest: {retire: [], reduce: [U-46, U-66, U-84]}
+          fix-work: {retire: [], reduce: [U-236]}
+          manual-testing: {retire: [], reduce: [U-74, U-75]}
+          run-approval: {retire: [], reduce: [U-47, U-48, U-76, U-221]}
+          scanner-upkeep: {retire: [], reduce: [U-123, U-165]}
+          test-upkeep: {retire: [], reduce: [U-112, U-157, U-203, U-204]}
+
+  - name: fixture-ug-toy-clean.yaml
+    exercises: the toy units unchanged, the baseline every toy fixture edits
+    base: toy
+    expect:
+      exit: 0
+      errors: []
+      warnings: []
+      report:
+        units: 5
+        by_phase: {1: 2, 2: 2, 3: 1}
+        by_flow_item: {debt: 1, defect: 1, feature: 1, risk: 2}
+        relief:
+          retest: {retire: [], reduce: []}
+          triage: {retire: [], reduce: [U-03]}
+        capabilities: 5
+        dependency_edges: 5
+        longest_chain: {length: 4, path: [U-01, U-03, U-04, U-05]}
+        phase_1_self_contained: true
+        pull_after_phase_1:
+          layers: [[U-03], [U-04], [U-05]]
+          layer_widths: [1, 1, 1]
+          frontier_by_phase: {2: 1}
+        phase_order:
+          later_phase_prerequisites: []
+          held_back_by_phase_order: []
+          phase_understates_dependencies:
+            - {unit: U-04, phase: 2, pull_layer: 2}
+            - {unit: U-05, phase: 3, pull_layer: 3}
+
+  - name: fixture-ug-dup-id.yaml
+    exercises: a unit list holding U-01 twice
+    base: toy
+    edits:
+      - op: add
+        path: /-
+        value: {id: U-01, phase: 1, seam: STEP-1, kind: agreement, flow_item: risk, elements: [], provides: [cap.request], requires: [], feedback_speed: minutes}
+    expect:
+      exit: 1
+      errors: ["UG-E-dup U-01"]
+      warnings: []
+      report: {units: 5}
+
+  - name: fixture-ug-bad-fields.yaml
+    exercises: one unit with phase 6, kind process and feedback speed hours
+    base: toy
+    edits:
+      - {op: replace, path: "/[id=U-05]/phase", value: 6}
+      - {op: replace, path: "/[id=U-05]/kind", value: process}
+      - {op: replace, path: "/[id=U-05]/feedback_speed", value: hours}
+    expect:
+      exit: 1
+      errors:
+        - "UG-E-field U-05: phase 6"
+        - "UG-E-field U-05: kind process"
+        - "UG-E-field U-05: feedback_speed hours"
+      warnings: []
+
+  - name: fixture-ug-unknown-part.yaml
+    exercises: one unit building part s9.nothing
+    base: toy
+    edits:
+      - {op: replace, path: "/[id=U-03]/elements/0/id", value: s9.nothing}
+    expect:
+      exit: 1
+      errors: ["UG-E-part U-03: part s9.nothing"]
+      warnings: []
+
+  - name: fixture-ug-fidelity-down.yaml
+    exercises: one unit taking a part from built down to existing-tool
+    base: toy
+    edits:
+      - {op: replace, path: "/[id=U-05]/elements/0/fidelity_from", value: built}
+      - {op: replace, path: "/[id=U-05]/elements/0/fidelity_to", value: existing-tool}
+    expect:
+      exit: 1
+      errors: ["UG-E-fidelity U-05: t2.run-ledger fidelity built -> existing-tool"]
+      warnings: []
+
+  - name: fixture-ug-fidelity-off-ladder.yaml
+    exercises: one unit taking a part to a level that is not on the ladder
+    base: toy
+    edits:
+      - {op: replace, path: "/[id=U-03]/elements/0/fidelity_to", value: production}
+    expect:
+      exit: 1
+      errors: ["UG-E-fidelity U-03: t1.request-form fidelity existing-tool -> production"]
+      warnings: []
+
+  - name: fixture-ug-unknown-contract.yaml
+    exercises: one unit naming contract NoSuchContract
+    base: toy
+    edits:
+      - {op: replace, path: "/[id=U-03]/contract", value: NoSuchContract}
+    expect:
+      exit: 1
+      errors: ["UG-E-contract U-03: contract NoSuchContract"]
+      warnings: []
+
+  - name: fixture-ug-capid.yaml
+    exercises: one unit requiring request without the cap. prefix; the entry adds no edge
+    base: toy
+    edits:
+      - {op: replace, path: "/[id=U-02]/requires/0", value: request}
+    expect:
+      exit: 1
+      errors: ["UG-E-capid U-02: requires entry request"]
+      warnings: []
+      report: {dependency_edges: 4, missing_capabilities: []}
+
+  - name: fixture-ug-missing-cap.yaml
+    exercises: an added phase 2 unit requiring cap.never-provided
+    base: toy
+    edits:
+      - op: add
+        path: /-
+        value: {id: U-06, phase: 2, seam: STEP-3, kind: code, flow_item: risk, elements: [], provides: [cap.extra], requires: [cap.never-provided], feedback_speed: minutes}
+    expect:
+      exit: 1
+      errors: ["UG-E-missing cap.never-provided: required by U-06"]
+      warnings: []
+      report:
+        missing_capabilities: [cap.never-provided]
+        pull_after_phase_1: {layers: [[U-03, U-06], [U-04], [U-05]]}
+
+  - name: fixture-ug-cycle.yaml
+    exercises: two added phase 3 units, each requiring a capability the other provides
+    base: toy
+    edits:
+      - op: add
+        path: /-
+        value: {id: U-06, phase: 3, seam: STEP-8, kind: code, flow_item: risk, elements: [], provides: [cap.loop-a], requires: [cap.loop-b], feedback_speed: minutes}
+      - op: add
+        path: /-
+        value: {id: U-07, phase: 3, seam: STEP-8, kind: code, flow_item: risk, elements: [], provides: [cap.loop-b], requires: [cap.loop-a], feedback_speed: minutes}
+    expect:
+      exit: 1
+      errors:
+        - "UG-E-cycle U-06: dependency cycle U-06 > U-07 > U-06"
+        - "UG-E-stuck U-06: no unit is ready while 2 remain: U-06, U-07"
+      warnings: []
+      report:
+        cycles: [[U-06, U-07, U-06]]
+        longest_chain: {length: 0, path: []}
+        pull_after_phase_1: {layers: [[U-03], [U-04], [U-05]]}
+
+  - name: fixture-ug-self-cycle.yaml
+    exercises: one added unit requiring a capability it provides
+    base: toy
+    edits:
+      - op: add
+        path: /-
+        value: {id: U-06, phase: 2, seam: STEP-8, kind: code, flow_item: risk, elements: [], provides: [cap.self], requires: [cap.self], feedback_speed: minutes}
+    expect:
+      exit: 1
+      errors:
+        - "UG-E-cycle U-06: dependency cycle U-06 > U-06"
+        - "UG-E-stuck U-06: no unit is ready while 1 remain: U-06"
+      warnings: []
+      report:
+        cycles: [[U-06, U-06]]
+        dependency_edges: 6   # the toy plan's 5 plus the self edge (step 6 counts self edges)
+        longest_chain: {length: 0, path: []}
+
+  - name: fixture-ug-phase1-leak.yaml
+    exercises: U-01 additionally requires a capability only a phase 2 unit provides
+    base: toy
+    edits:
+      - op: add
+        path: /-
+        value: {id: U-06, phase: 2, seam: STEP-3, kind: code, flow_item: risk, elements: [], provides: [cap.early], requires: [], feedback_speed: minutes}
+      - {op: add, path: "/[id=U-01]/requires/-", value: cap.early}
+    expect:
+      exit: 1
+      errors: ["UG-E-phase1 U-01: needs U-06 (phase 2) for cap.early"]
+      warnings: []
+      report: {phase_1_self_contained: false}
+
+  - name: fixture-ug-phase-order.yaml
+    exercises: an added phase 2 unit requiring a capability only a phase 4 unit provides
+    base: toy
+    edits:
+      - op: add
+        path: /-
+        value: {id: U-06, phase: 4, seam: STEP-10, kind: code, flow_item: risk, elements: [], provides: [cap.late], requires: [], feedback_speed: minutes}
+      - op: add
+        path: /-
+        value: {id: U-07, phase: 2, seam: STEP-3, kind: code, flow_item: risk, elements: [], provides: [cap.early-user], requires: [cap.late], feedback_speed: minutes}
+    expect:
+      exit: 0
+      errors: []
+      warnings: ["UG-W-phase-order U-07: phase 2 unit needs U-06 (phase 4) for cap.late"]
+      report:
+        phase_order:
+          later_phase_prerequisites: [{unit: U-07, phase: 2, needs: U-06, needs_phase: 4, capabilities: [cap.late]}]
+
+  - name: fixture-ug-layers.yaml
+    exercises: "a minimal list: two phase 1 units, A (phase 2) needs phase 1, B (phase 2) needs A, C (phase 4) needs phase 1"
+    base: none
+    units:
+      - {id: U-01, phase: 1, seam: STEP-1, kind: agreement, flow_item: risk, elements: [], provides: [cap.first], requires: [], feedback_speed: minutes}
+      - {id: U-02, phase: 1, seam: STEP-2, kind: agreement, flow_item: risk, elements: [], provides: [cap.second], requires: [cap.first], feedback_speed: minutes}
+      - {id: U-03, phase: 2, seam: STEP-3, kind: code, flow_item: risk, elements: [], provides: [cap.a], requires: [cap.first], feedback_speed: minutes}
+      - {id: U-04, phase: 2, seam: STEP-4, kind: code, flow_item: risk, elements: [], provides: [cap.b], requires: [cap.a], feedback_speed: minutes}
+      - {id: U-05, phase: 4, seam: STEP-5, kind: code, flow_item: risk, elements: [], provides: [cap.c], requires: [cap.second], feedback_speed: minutes}
+    expect:
+      exit: 0
+      errors: []
+      warnings: []
+      report:
+        pull_after_phase_1:
+          layers: [[U-03, U-05], [U-04]]
+          layer_widths: [2, 1]
+          frontier_by_phase: {2: 1, 4: 1}
+        phase_order:
+          later_phase_prerequisites: []
+          held_back_by_phase_order: [{unit: U-05, phase: 4, pull_layer: 1}]
+          phase_understates_dependencies: [{unit: U-04, phase: 2, pull_layer: 2}]
+
+  - name: fixture-ug-module-tag.yaml
+    exercises: one unit building a tool-portfolio part to built with no module tag
+    base: toy
+    edits:
+      - {op: remove, path: "/[id=U-04]/module"}
+    expect:
+      exit: 1
+      errors: ["UG-E-module U-04: builds t3.scanner of module tool-portfolio but is tagged core"]
+      warnings: []
+
+  - name: fixture-ug-module-unknown.yaml
+    exercises: one unit tagged module quantum
+    base: toy
+    edits:
+      - {op: add, path: "/[id=U-03]/module", value: quantum}
+    expect:
+      exit: 1
+      errors: ["UG-E-module U-03: module quantum is not a module of the model"]
+      warnings: []
+
+  - name: fixture-ug-module-extend.yaml
+    exercises: a unit of one module extends another module's part that is already built (built to built)
+    base: toy
+    edits:
+      - {op: replace, path: "/[id=U-04]/module", value: paved-road}
+      - {op: replace, path: "/[id=U-04]/elements/0/fidelity_from", value: built}
+    expect:
+      exit: 0
+      errors: []
+      warnings: []
+
+  - name: fixture-ug-module-extend-core.yaml
+    exercises: a core unit extends a module part that is already built (built to built)
+    base: toy
+    edits:
+      - {op: remove, path: "/[id=U-04]/module"}
+      - {op: replace, path: "/[id=U-04]/elements/0/fidelity_from", value: built}
+    expect:
+      exit: 1
+      errors: ["UG-E-module U-04: builds t3.scanner of module tool-portfolio but is tagged core"]
+      warnings: []
+
+  - name: fixture-ug-shape-missing.yaml
+    exercises: one unit taking a part from none to stand-in without contract_shape_ok
+    base: toy
+    edits:
+      - {op: remove, path: "/[id=U-02]/contract_shape_ok"}
+    expect:
+      exit: 1
+      errors: ["UG-E-shape U-02: takes a part to a stand-in without contract_shape_ok"]
+      warnings: []
+
+  - name: fixture-ug-shape-unclassified.yaml
+    exercises: contract_shape_ok false with no shape_gap
+    base: toy
+    edits:
+      - {op: replace, path: "/[id=U-02]/contract_shape_ok", value: false}
+    expect:
+      exit: 1
+      errors: ["UG-E-shape U-02: contract_shape_ok is false and shape_gap is missing"]
+      warnings: []
+      report:
+        stand_in_shape_gaps: [{unit: U-02, phase: 1, contract: RunRecord, gap: null}]
+
+  - name: fixture-ug-shape-breaking.yaml
+    exercises: contract_shape_ok false with a breaking shape gap
+    base: toy
+    edits:
+      - {op: replace, path: "/[id=U-02]/contract_shape_ok", value: false}
+      - {op: add, path: "/[id=U-02]/shape_gap", value: breaking}
+    expect:
+      exit: 0
+      errors: []
+      warnings: ["UG-W-breaking U-02: stand-in for RunRecord has a breaking shape gap"]
+      report:
+        stand_in_shape_gaps: [{unit: U-02, phase: 1, contract: RunRecord, gap: breaking}]
+
+  - name: fixture-ug-sensitive-guarded.yaml
+    exercises: a phase 2 unit separating verifier and proposer is a prerequisite of a phase 3 unit automating verifier
+    base: none
+    units:
+      - {id: U-01, phase: 1, seam: STEP-1, kind: agreement, flow_item: risk, elements: [], provides: [cap.start], requires: [], feedback_speed: minutes}
+      - {id: U-02, phase: 2, seam: STEP-7, kind: code, flow_item: risk, elements: [], provides: [cap.separated], requires: [cap.start], feedback_speed: minutes, separates: [[verifier, proposer]]}
+      - {id: U-03, phase: 3, seam: STEP-7, kind: code, flow_item: risk, elements: [], provides: [cap.auto-verify], requires: [cap.separated], feedback_speed: minutes, role_automated: verifier}
+    expect:
+      exit: 0
+      errors: []
+      warnings: []
+      report: {sensitive_orderings: []}
+
+  - name: fixture-ug-sensitive-open.yaml
+    exercises: the guarded list with the dependency removed
+    base: none
+    units:
+      - {id: U-01, phase: 1, seam: STEP-1, kind: agreement, flow_item: risk, elements: [], provides: [cap.start], requires: [], feedback_speed: minutes}
+      - {id: U-02, phase: 2, seam: STEP-7, kind: code, flow_item: risk, elements: [], provides: [cap.separated], requires: [cap.start], feedback_speed: minutes, separates: [[verifier, proposer]]}
+      - {id: U-03, phase: 3, seam: STEP-7, kind: code, flow_item: risk, elements: [], provides: [cap.auto-verify], requires: [cap.start], feedback_speed: minutes, role_automated: verifier}
+    expect:
+      exit: 0
+      errors: []
+      warnings: ["UG-W-sensitive U-03: automates verifier; no phase 2 or later prerequisite separates proposer and verifier; unordered separators: U-02"]
+      report:
+        sensitive_orderings: [{unit: U-03, phase: 3, role: verifier, pair: [proposer, verifier], unordered_separators: [U-02]}]
+
+  - name: fixture-ug-entry-checked.yaml
+    exercises: the open list with the automating unit naming a phase entry check for the pair
+    base: none
+    units:
+      - {id: U-01, phase: 1, seam: STEP-1, kind: agreement, flow_item: risk, elements: [], provides: [cap.start], requires: [], feedback_speed: minutes}
+      - {id: U-02, phase: 2, seam: STEP-7, kind: code, flow_item: risk, elements: [], provides: [cap.separated], requires: [cap.start], feedback_speed: minutes, separates: [[verifier, proposer]]}
+      - {id: U-03, phase: 3, seam: STEP-7, kind: code, flow_item: risk, elements: [], provides: [cap.auto-verify], requires: [cap.start], feedback_speed: minutes, role_automated: verifier, entry_checks: [{pair: [proposer, verifier], code: sep.verifier-producer}]}
+    expect:
+      exit: 0
+      errors: []
+      warnings: []
+      report:
+        sensitive_orderings: []
+        entry_checked_orderings: [{unit: U-03, phase: 3, role: verifier, pair: [proposer, verifier], check: sep.verifier-producer}]
+
+  - name: fixture-ug-entry-check-bad.yaml
+    exercises: the open list with an entry check for a pair that does not include the automated role
+    base: none
+    units:
+      - {id: U-01, phase: 1, seam: STEP-1, kind: agreement, flow_item: risk, elements: [], provides: [cap.start], requires: [], feedback_speed: minutes}
+      - {id: U-02, phase: 2, seam: STEP-7, kind: code, flow_item: risk, elements: [], provides: [cap.separated], requires: [cap.start], feedback_speed: minutes, separates: [[verifier, proposer]]}
+      - {id: U-03, phase: 3, seam: STEP-7, kind: code, flow_item: risk, elements: [], provides: [cap.auto-verify], requires: [cap.start], feedback_speed: minutes, role_automated: verifier, entry_checks: [{pair: [approver, proposer], code: sep.producer-approver}]}
+    expect:
+      exit: 1
+      errors: ["UG-E-entry-check U-03: entry check pair approver and proposer does not include the role the unit automates"]
+      warnings: ["UG-W-sensitive U-03: automates verifier; no phase 2 or later prerequisite separates proposer and verifier; unordered separators: U-02"]
+      report:
+        entry_checked_orderings: []
+
+  - name: fixture-ug-phase1-separator.yaml
+    exercises: the guarded list with the separating unit moved to phase 1 and kept as a prerequisite
+    base: none
+    units:
+      - {id: U-01, phase: 1, seam: STEP-1, kind: agreement, flow_item: risk, elements: [], provides: [cap.start], requires: [], feedback_speed: minutes}
+      - {id: U-02, phase: 1, seam: STEP-7, kind: agreement, flow_item: risk, elements: [], provides: [cap.separated], requires: [cap.start], feedback_speed: minutes, separates: [[verifier, proposer]]}
+      - {id: U-03, phase: 3, seam: STEP-7, kind: code, flow_item: risk, elements: [], provides: [cap.auto-verify], requires: [cap.separated], feedback_speed: minutes, role_automated: verifier}
+    expect:
+      exit: 0
+      errors: []
+      warnings: ["UG-W-sensitive U-03: automates verifier; no phase 2 or later prerequisite separates proposer and verifier; unordered separators: none"]
+      report:
+        sensitive_orderings: [{unit: U-03, phase: 3, role: verifier, pair: [proposer, verifier], unordered_separators: []}]
+
+  - name: fixture-ug-phase1-automation.yaml
+    exercises: a phase 1 unit that moves a role into a standing policy is listed for information only
+    base: toy
+    edits:
+      - {op: add, path: "/[id=U-02]/role_automated", value: proposer}
+    expect:
+      exit: 0
+      errors: []
+      warnings: []
+      report:
+        phase_1_automation: [{unit: U-02, role: proposer}]
+        sensitive_orderings: []
+
+  - name: fixture-ug-multi-provider.yaml
+    exercises: two units providing the same capability; a third requires it and depends on both
+    base: toy
+    edits:
+      - op: add
+        path: /-
+        value: {id: U-06, phase: 2, seam: STEP-1, kind: code, flow_item: risk, elements: [], provides: [cap.request-api], requires: [cap.request], feedback_speed: minutes}
+    expect:
+      exit: 0
+      errors: []
+      warnings: ["UG-W-multi cap.request-api: provided by U-03, U-06"]
+      report:
+        multiply_provided: {cap.request-api: [U-03, U-06]}
+        dependency_edges: 7
+        pull_after_phase_1: {layers: [[U-03, U-06], [U-04], [U-05]]}
+
+  - name: fixture-ug-upstream-delta.yaml
+    exercises: the organization adds one unit, changes one and removes one whose capabilities nothing else requires
+    base: toy
+    org:
+      add:
+        - {id: U-org-01, phase: 3, seam: STEP-9, kind: measurement, flow_item: risk, elements: [], provides: [cap.scan-summary], requires: [cap.scan], feedback_speed: weeks}
+      modify:
+        - id: U-03
+          set: {feedback_speed: next-loop-run}
+      remove: [U-05]
+    expect:
+      exit: 0
+      errors: []
+      warnings: []
+      report:
+        units: 5
+        changed_from_upstream: {added: [U-org-01], changed: [U-03], removed: [U-05]}
+
+  - name: fixture-ug-overlay-bad.yaml
+    exercises: org/units.yaml modifying U-999 and adding U-01
+    base: toy
+    org:
+      add:
+        - {id: U-01, phase: 1, seam: STEP-1, kind: agreement, flow_item: risk, elements: [], provides: [cap.other], requires: [], feedback_speed: minutes}
+      modify:
+        - id: U-999
+          set: {phase: 2}
+    expect:
+      exit: 1
+      errors:
+        - "UG-E-overlay U-01: add reuses an existing unit id"
+        - "UG-E-overlay U-999: modify names an unknown unit"
+      warnings: []
+      report:
+        changed_from_upstream: {added: [], changed: [], removed: []}
+
+  - name: fixture-ug-determinism.yaml
+    exercises: fixture-ug-shipped.yaml run twice
+    base: shipped
+    repeat: 2
+    expect:
+      exit: 0
+      errors: []
+      warnings:
+        - "UG-W-breaking U-08"
+        - "UG-W-breaking U-09"
+
+  - name: fixture-ug-dup-first-kept.yaml
+    exercises: a second U-01 placed first in the file; the analysis keeps the first unit with the id in file order
+    base: toy
+    edits:
+      - op: add
+        path: /0
+        value: {id: U-01, phase: 2, seam: STEP-1, kind: agreement, flow_item: risk, elements: [], provides: [cap.request], requires: [], feedback_speed: minutes}
+    expect:
+      exit: 1
+      errors: ["UG-E-dup U-01", "UG-E-phase1 U-02: needs U-01 (phase 2) for cap.request"]
+      warnings: []
+      report: {units: 5, by_phase: {1: 1, 2: 3, 3: 1} }
+
+  - name: fixture-ug-module-core-part.yaml
+    exercises: a unit tagged paved-road builds a core part (one with no module) to built; the module rule covers only parts that belong to a module
+    base: toy
+    edits:
+      - {op: add, path: "/[id=U-03]/module", value: paved-road}
+    expect:
+      exit: 0
+      errors: []
+      warnings: []
+      report:
+        by_module: {core: 3, paved-road: 1, tool-portfolio: 1}
+
+  - name: fixture-ug-entry-check-code-shape.yaml
+    exercises: entry check codes must be lowercase letters, digits and hyphens, a dot, then more; an uppercase code and one without a dot are refused
+    base: none
+    units:
+      - {id: U-01, phase: 1, seam: STEP-1, kind: agreement, flow_item: risk, elements: [], provides: [cap.start], requires: [], feedback_speed: minutes}
+      - {id: U-02, phase: 2, seam: STEP-7, kind: code, flow_item: risk, elements: [], provides: [cap.separated], requires: [cap.start], feedback_speed: minutes, separates: [[verifier, proposer]]}
+      - {id: U-03, phase: 3, seam: STEP-7, kind: code, flow_item: risk, elements: [], provides: [cap.auto-verify], requires: [cap.start], feedback_speed: minutes, role_automated: verifier, entry_checks: [{pair: [proposer, verifier], code: SEP.verifier-producer}, {pair: [proposer, verifier], code: sep_verifier_producer}]}
+    expect:
+      exit: 1
+      errors:
+        - "UG-E-entry-check U-03: entry check {\"pair\":[\"proposer\",\"verifier\"],\"code\":\"SEP.verifier-producer\"} needs a role pair and a rule code"
+        - "UG-E-entry-check U-03: entry check {\"pair\":[\"proposer\",\"verifier\"],\"code\":\"sep_verifier_producer\"} needs a role pair and a rule code"
+      warnings: ["UG-W-sensitive U-03: automates verifier"]
+      report:
+        entry_checked_orderings: []
+
+  - name: fixture-ug-phase-non-integer.yaml
+    exercises: a phase of 2.5 is not an integer from 1 to 5
+    base: toy
+    edits:
+      - {op: replace, path: "/[id=U-05]/phase", value: 2.5}
+    expect:
+      exit: 1
+      errors: ["UG-E-field U-05: phase 2.5 is not an integer from 1 to 5"]
+      warnings: []
+
+  - name: fixture-ug-phase-string.yaml
+    exercises: a phase written as the string "2" is not an integer
+    base: toy
+    edits:
+      - {op: replace, path: "/[id=U-04]/phase", value: "2"}
+    expect:
+      exit: 1
+      errors: ['UG-E-field U-04: phase "2" is not an integer from 1 to 5']
+      warnings: []
+
+  - name: fixture-ug-org-add-remove.yaml
+    exercises: the organization adds a unit and removes it in the same file; the remove applies to the added unit, so nothing changes from upstream
+    base: toy
+    org:
+      add:
+        - {id: U-org-01, phase: 3, seam: STEP-9, kind: measurement, flow_item: risk, elements: [], provides: [cap.scan-summary], requires: [cap.scan], feedback_speed: weeks}
+      modify: []
+      remove: [U-org-01]
+    expect:
+      exit: 0
+      errors: []
+      warnings: []
+      report:
+        units: 5
+        changed_from_upstream: {added: [], changed: [], removed: []}
+
+  - name: fixture-ug-shape-listed-without-stand-in.yaml
+    exercises: a unit with no stand-in part that records contract_shape_ok false is still listed under stand_in_shape_gaps; no error, since UG-11 does not apply to it
+    base: toy
+    edits:
+      - {op: add, path: "/[id=U-03]/contract_shape_ok", value: false}
+      - {op: add, path: "/[id=U-03]/shape_gap", value: additive}
+    expect:
+      exit: 0
+      errors: []
+      warnings: []
+      report:
+        stand_in_shape_gaps: [{unit: U-03, phase: 2, contract: RequestCard, gap: additive}]
+
+  - name: fixture-ug-capid-provides.yaml
+    exercises: a provides entry without the cap. prefix provides nothing; capabilities counts distinct well-formed provided capabilities only
+    base: toy
+    edits:
+      - {op: replace, path: "/[id=U-02]/provides/0", value: run-record}
+    expect:
+      exit: 1
+      errors: ["UG-E-capid U-02: provides entry run-record", "UG-E-missing cap.run-record: required by U-05"]
+      warnings: []
+      report: {capabilities: 4, missing_capabilities: [cap.run-record]}
+
+  - name: fixture-ug-natural-order-tie.yaml
+    exercises: "ids whose digit runs tie in value: on a tie the shorter run sorts first, so U-1 comes before U-01 and U-01 before U-001, whatever the file order"
+    base: none
+    units:
+      - {id: U-001, phase: 2, seam: STEP-3, kind: code, flow_item: risk, elements: [], provides: [cap.c], requires: [cap.first], feedback_speed: minutes}
+      - {id: U-01, phase: 2, seam: STEP-2, kind: code, flow_item: risk, elements: [], provides: [cap.b], requires: [cap.first], feedback_speed: minutes}
+      - {id: U-9, phase: 1, seam: STEP-1, kind: agreement, flow_item: risk, elements: [], provides: [cap.first], requires: [], feedback_speed: minutes}
+      - {id: U-1, phase: 2, seam: STEP-4, kind: code, flow_item: risk, elements: [], provides: [cap.a], requires: [cap.first], feedback_speed: minutes}
+    expect:
+      exit: 0
+      errors: []
+      warnings: []
+      report:
+        longest_chain: {length: 2, path: [U-9, U-1]}
+        pull_after_phase_1:
+          layers: [[U-1, U-01, U-001]]
+
+  - name: fixture-ug-phase-absent.yaml
+    exercises: "a unit with no phase is a field error, stays in the analysis, is in no phase and meets no phase condition: a phase 1 unit that needs it leaks out of phase 1, a phase 2 unit that needs it has no later-phase prerequisite, and it is pulled like any unit outside phase 1"
+    base: toy
+    edits:
+      - {op: remove, path: "/[id=U-01]/phase"}
+    expect:
+      exit: 1
+      errors: ["UG-E-field U-01: phase null is not an integer from 1 to 5", "UG-E-phase1 U-02: needs U-01 (phase none) for cap.request; phase 1 must close on its own"]
+      warnings: []
+      report:
+        by_phase: {"1": 1, "2": 2, "3": 1, none: 1}
+        phase_1_self_contained: false
+        pull_after_phase_1:
+          layers: [[U-01], [U-03], [U-04], [U-05]]
+          frontier_by_phase: {none: 1}
+
+  - name: fixture-ug-phase-word.yaml
+    exercises: "a phase that does not read as a number (the word two) is a field error and puts the unit in no phase, like an absent one: a later unit that needs it raises no phase-order warning, it is not compared with the phase model, and the phase counts key it none"
+    base: toy
+    edits:
+      - {op: replace, path: "/[id=U-03]/phase", value: two}
+    expect:
+      exit: 1
+      errors: ['UG-E-field U-03: phase "two" is not an integer from 1 to 5']
+      warnings: []
+      report:
+        by_phase: {"1": 2, "2": 1, "3": 1, none: 1}
+        phase_1_self_contained: true
+        pull_after_phase_1:
+          layers: [[U-03], [U-04], [U-05]]
+          frontier_by_phase: {none: 1}
+        phase_order:
+          later_phase_prerequisites: []
+          held_back_by_phase_order: []
+          phase_understates_dependencies: [{unit: U-04, phase: 2, pull_layer: 2}, {unit: U-05, phase: 3, pull_layer: 3}]
+
+  - name: fixture-ug-separates-not-pair.yaml
+    exercises: "a separates entry that is not two role names (three roles, a single role name) is a field error and separates nothing, while the unit's well-formed pair still counts: one sensitive ordering, never one for a three-role pair"
+    base: none
+    units:
+      - {id: U-01, phase: 1, seam: STEP-1, kind: agreement, flow_item: risk, elements: [], provides: [cap.start], requires: [], feedback_speed: minutes}
+      - {id: U-02, phase: 2, seam: STEP-7, kind: code, flow_item: risk, elements: [], provides: [cap.separated], requires: [cap.start], feedback_speed: minutes, separates: [[verifier, proposer], [verifier, proposer, approver], verifier]}
+      - {id: U-03, phase: 3, seam: STEP-7, kind: code, flow_item: risk, elements: [], provides: [cap.auto-verify], requires: [cap.start], feedback_speed: minutes, role_automated: verifier}
+    expect:
+      exit: 1
+      errors: ['UG-E-field U-02: separates entry ["verifier","proposer","approver"] is not a pair of two role names', 'UG-E-field U-02: separates entry "verifier" is not a pair of two role names']
+      warnings: ["UG-W-sensitive U-03: automates verifier; no phase 2 or later prerequisite separates proposer and verifier; unordered separators: U-02"]
+      report:
+        sensitive_orderings: [{unit: U-03, phase: 3, role: verifier, pair: [proposer, verifier], unordered_separators: [U-02]}]
+
+  - name: fixture-ug-separates-not-list.yaml
+    exercises: "a separates field that is not a list, and a separates entry that is a number, are field errors; the tool reports them and goes on, and neither separates anything"
+    base: none
+    units:
+      - {id: U-01, phase: 1, seam: STEP-1, kind: agreement, flow_item: risk, elements: [], provides: [cap.start], requires: [], feedback_speed: minutes, separates: [7]}
+      - {id: U-02, phase: 2, seam: STEP-7, kind: code, flow_item: risk, elements: [], provides: [cap.separated], requires: [cap.start], feedback_speed: minutes, separates: verifier}
+      - {id: U-03, phase: 3, seam: STEP-7, kind: code, flow_item: risk, elements: [], provides: [cap.auto-verify], requires: [cap.start], feedback_speed: minutes, role_automated: verifier}
+    expect:
+      exit: 1
+      errors: ["UG-E-field U-01: separates entry 7 is not a pair of two role names", 'UG-E-field U-02: separates "verifier" is not a list of role pairs']
+      warnings: []
+      report:
+        sensitive_orderings: []
+        pull_after_phase_1:
+          layers: [[U-02, U-03]]
+
+  - name: fixture-ug-flow-item-missing.yaml
+    exercises: a unit with no flow item is a warning, never an error, and the counts key it none
+    base: toy
+    edits:
+      - {op: remove, path: "/[id=U-02]/flow_item"}
+    expect:
+      exit: 0
+      errors: []
+      warnings: ["UG-W-flow-item U-02: no flow_item (feature, defect, risk or debt)"]
+      report:
+        by_flow_item: {defect: 1, feature: 1, none: 1, risk: 2}
+
+  - name: fixture-ug-flow-item-bad.yaml
+    exercises: a flow item outside the four is a field error, and the counts key it by its own value
+    base: toy
+    edits:
+      - {op: replace, path: "/[id=U-04]/flow_item", value: security}
+    expect:
+      exit: 1
+      errors: ["UG-E-field U-04: flow_item security is not feature, defect, risk, debt"]
+      warnings: []
+      report:
+        by_flow_item: {debt: 1, defect: 1, feature: 1, risk: 1, security: 1}
+
+  - name: fixture-ug-flow-item-override.yaml
+    exercises: the organization overrides the edition's default flow item with modify
+    base: toy
+    org:
+      add: []
+      modify:
+        - id: U-04
+          set: {flow_item: debt}
+      remove: []
+    expect:
+      exit: 0
+      errors: []
+      warnings: []
+      report:
+        by_flow_item: {debt: 2, defect: 1, feature: 1, risk: 1}
+        changed_from_upstream: {added: [], changed: [U-04], removed: []}
+
+  - name: fixture-ug-relief-unknown-kind.yaml
+    exercises: a relief mark naming a kind the catalog does not list is an error, and the mark is listed under no kind
+    base: toy
+    edits:
+      - {op: replace, path: "/[id=U-03]/relieves/0/manual_work", value: code-review}
+    expect:
+      exit: 1
+      errors: ['UG-E-relief U-03: relief 1 names manual work "code-review", which the catalog does not list']
+      warnings: []
+      report:
+        relief:
+          retest: {retire: [], reduce: []}
+          triage: {retire: [], reduce: []}
+
+  - name: fixture-ug-relief-bad-effect.yaml
+    exercises: an effect other than retire or reduce is an error, and the unit is listed under no effect
+    base: toy
+    edits:
+      - {op: replace, path: "/[id=U-03]/relieves/0/effect", value: remove}
+    expect:
+      exit: 1
+      errors: ['UG-E-relief U-03: relief 1 has effect "remove"; it must be retire or reduce']
+      warnings: []
+      report:
+        relief:
+          triage: {retire: [], reduce: []}
+
+  - name: fixture-ug-relief-unknown-premise.yaml
+    exercises: a relief mark resting on an id the premise register lacks is an error; the mark stays listed under its kind
+    base: toy
+    edits:
+      - {op: replace, path: "/[id=U-03]/relieves/0/rests_on", value: TP-9}
+    expect:
+      exit: 1
+      errors: ['UG-E-relief U-03: relief 1 rests on "TP-9", which is not a premise in the register']
+      warnings: []
+      report:
+        relief:
+          triage: {retire: [], reduce: [U-03]}
+
+  - name: fixture-ug-relief-dropped-premise.yaml
+    exercises: a relief mark resting on a dropped premise is an error, and its grade is not compared with the dropped premise
+    base: toy
+    edits:
+      - {op: replace, path: "/[id=U-03]/relieves/0/rests_on", value: TP-2}
+    expect:
+      exit: 1
+      errors: ["UG-E-relief U-03: relief 1 rests on TP-2, a dropped premise"]
+      warnings: []
+
+  - name: fixture-ug-relief-over-graded.yaml
+    exercises: a relief mark graded above the premise it rests on is an error
+    base: toy
+    edits:
+      - {op: replace, path: "/[id=U-03]/relieves/0/strength", value: strong}
+    expect:
+      exit: 1
+      errors: ["UG-E-relief U-03: relief 1 is graded strong, above its premise TP-1 (moderate)"]
+      warnings: []
+
+  - name: fixture-ug-relief-compound-grade.yaml
+    exercises: "a premise whose strength names two grades takes the higher: moderate passes on moderate (toil) / none (safety), strong does not"
+    base: toy
+    edits:
+      - {op: replace, path: "/[id=U-03]/relieves/0/rests_on", value: TP-3}
+      - {op: replace, path: "/[id=U-03]/relieves/0/strength", value: moderate}
+      - op: add
+        path: "/[id=U-05]/relieves"
+        value: [{manual_work: retest, effect: reduce, rests_on: TP-3, strength: strong, strength_reason: "Each verdict links its run record, so no person re-runs it to confirm."}]
+    expect:
+      exit: 1
+      errors: ["UG-E-relief U-05: relief 1 is graded strong, above its premise TP-3 (moderate)"]
+      warnings: []
+
+  - name: fixture-ug-relief-bad-strength.yaml
+    exercises: a strength off the scale and a missing reason are one error each
+    base: toy
+    edits:
+      - {op: replace, path: "/[id=U-03]/relieves/0/strength", value: high}
+      - {op: remove, path: "/[id=U-03]/relieves/0/strength_reason"}
+    expect:
+      exit: 1
+      errors:
+        - 'UG-E-relief U-03: relief 1 has strength "high"; it must be none, weak, moderate or strong'
+        - "UG-E-relief U-03: relief 1 gives no strength_reason"
+      warnings: []
+
+  - name: fixture-ug-relief-repeat-kind.yaml
+    exercises: a unit that names one kind twice is an error at the second entry, and the first entry decides how the unit is listed
+    base: toy
+    edits:
+      - op: add
+        path: "/[id=U-03]/relieves/-"
+        value: {manual_work: triage, effect: retire, rests_on: TP-1, strength: weak, strength_reason: "Owners are named once, at the API."}
+    expect:
+      exit: 1
+      errors: ["UG-E-relief U-03: relief 2 names triage again; a unit names each kind once"]
+      warnings: []
+      report:
+        relief:
+          triage: {retire: [], reduce: [U-03]}
+
+  - name: fixture-ug-relief-not-list.yaml
+    exercises: a relieves value that is not a list, and an entry that is not a mapping, are errors and list nothing
+    base: toy
+    edits:
+      - {op: replace, path: "/[id=U-03]/relieves", value: triage}
+      - {op: add, path: "/[id=U-05]/relieves", value: [retest]}
+    expect:
+      exit: 1
+      errors:
+        - 'UG-E-relief U-03: relieves "triage" is not a list of reliefs'
+        - 'UG-E-relief U-05: relief 1 is not a mapping: "retest"'
+      warnings: []
+      report:
+        relief:
+          retest: {retire: [], reduce: []}
+          triage: {retire: [], reduce: []}
+
+  - name: fixture-ug-relief-report.yaml
+    exercises: the report lists every catalog kind with the units that retire it and the units that reduce it
+    base: toy
+    edits:
+      - op: add
+        path: "/[id=U-05]/relieves"
+        value: [{manual_work: retest, effect: retire, rests_on: TP-1, strength: moderate, strength_reason: "Each verdict links its run record, so no person re-runs it to confirm."}]
+    expect:
+      exit: 0
+      errors: []
+      warnings: []
+      report:
+        relief:
+          retest: {retire: [U-05], reduce: []}
+          triage: {retire: [], reduce: [U-03]}
+
+namespace_graphs:
+  - name: fixture-ug-composed-lines
+    composition: full
+    error_codes: []
+    wait: {unit: jig:U-430, needs: U-196, phase: 1, needs_phase: 4}
+    counts: {units: 318, capabilities: 334, dependency_edges: 636, phase_1_self_contained: true}
+    longest_chain: 23
+  - name: fixture-ug-ratchet-alone
+    composition: ratchet
+    error_codes: []
+    counts: {units: 309}
+  - name: fixture-ug-jig-alone
+    composition: jig
+    no_phase_order_warnings: true
+    error_codes: []
+    counts: {units: 9, capabilities: 16}
+  - name: fixture-ug-external-declaration-missing
+    composition: jig
+    remove_declarations: true
+    error_codes: [UG-E-missing]
+  - name: fixture-ug-cross-namespace-cycle
+    composition: full
+    cycle: true
+    error_codes: [UG-E-cycle, UG-E-stuck]
+    longest_chain: 0
+
+  - name: fixture-ug-same-line-later-stage
+    composition: full
+    phase_case: same
+    error_codes: [UG-E-phase1]
+  - name: fixture-ug-cross-line-later-stage
+    composition: full
+    phase_case: cross
+    error_codes: []
+    longest_chain: 2
+    wait: {unit: U-1, needs: 'jig:U-2', phase: 1, needs_phase: 4}
+  - name: fixture-ug-jig-qualified-external-waits
+    composition: jig
+    error_codes:
+      []
+    external_waits:
+      &external_waits
+      - unit: U-430
+        phase: 1
+        capability: shared:cap.creation-loop-targets
+        providers:
+          - ratchet
+      - unit: U-436
+        phase: 1
+        capability: shared:cap.catch-layer
+        providers:
+          - ratchet
+      - unit: U-436
+        phase: 1
+        capability: shared:cap.lagged-cohort-reporting
+        providers:
+          - ratchet
+      - unit: JU-01
+        phase: 1
+        capability: shared:cap.class-test-count-published
+        providers:
+          - ratchet
+      - unit: U-431
+        phase: 2
+        capability: shared:cap.derived-checks
+        providers:
+          - ratchet
+      - unit: U-438
+        phase: 2
+        capability: shared:cap.derived-check-misses-counted
+        providers:
+          - ratchet
+      - unit: JU-02
+        phase: 2
+        capability: shared:cap.typed-handoff-published
+        providers:
+          - ratchet
+      - unit: U-437
+        phase: 4
+        capability: shared:cap.lagged-cohort-reporting
+        providers:
+          - ratchet
+  - name: fixture-ug-jig-bare-references-qualified-declarations
+    composition: jig
+    bare_capabilities: true
+    error_codes:
+      []
+    external_waits:
+      *external_waits

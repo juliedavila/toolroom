@@ -1,0 +1,514 @@
+# Ratchet edition 5.1.2. Generated; do not edit.
+version: 1
+categories: 
+  signals-in: What feeds the loop and helps choose what to test.
+  stakes: How the loop weighs consequence.
+  reach: Where tests may act.
+  prevention-out: "Where proven results flow outward, so the next defect is stopped where code is written."
+wiring_ladder: 
+  none: Nothing crosses yet.
+  connected: "Data crosses at all, through whatever connection the existing system allows: a network path, an export or an adapter."
+  conformant: "What crosses matches the module's contract: its fields, provenance and trust labels."
+  aligned: "The module's practice keeps the four rules and its separations, or carries a recorded exception."
+rules: 
+  proposal_not_permission: A proposal is never permission
+  proof_out_of_reach: "Proof conditions stay out of the testing agent's reach"
+  intake_only: Findings enter the record only after validation and an independent reproduction
+  independent_acceptance: Acceptance is independent
+modules: 
+  tool-portfolio: 
+    name: Existing security tools as leads
+    category: signals-in
+    existing_practice: "The security tools and review practices the organization already runs: static and dynamic analysis, dependency, secrets, infrastructure and container scanning, linters, bug bounty, external tests, threat modeling and security review. The module wires their exports in as leads and builds nothing where a tool already runs."
+    depends_on: 
+      []
+    switch_on: 
+      evidence: 
+        - closed_cases_with_lead_provenance
+        - lead_text_quarantined
+      test: "At least 20 closed cases record which leads pointed at them, or that none did, and lead text reaches only the quarantined, tool-less reader."
+    interface_points: 
+      - id: admin-in
+        direction: in
+        crosses: "Dual-controlled administrative sessions from the privileged access broker, recorded before each command runs; never content edits."
+        contracts: 
+          - AdminSession
+        relationships: 
+          - p45-r16
+          - p45-r29
+        target: aligned
+      - id: leads-in
+        direction: in
+        crosses: "Findings entered at the operator console, with source provenance and tool, rule and version when available. Signal intake normalizes each submission into a lead before storage. Its text stays untrusted."
+        contracts: 
+          - DiscoveryLeadSubmission
+        relationships: 
+          - p29-r5
+        target: aligned
+      - id: exposed-secret-hits-out
+        direction: out
+        crosses: "Secret scanner hits, value included, sent only to the exposed-secret intake, which replaces the value with a fingerprint before anything stores it."
+        contracts: 
+          []
+        relationships: 
+          - p42-r1
+        target: aligned
+      - id: leads-to-loop
+        direction: out
+        crosses: "Structured lead fields to the context builder, and leads linked to candidate findings at intake, labeled as leads and never as findings."
+        contracts: 
+          - shared:ToolLead
+        relationships: 
+          - p17-r3
+          - p17-r5
+        target: aligned
+      - id: quarantined-reader-route
+        direction: both
+        crosses: "Model requests from the quarantined lead reader through the request-data gate, and the gated responses back."
+        contracts: 
+          - ModelRequest
+          - GatedResponse
+        relationships: 
+          - p18-r2
+          - p18-r3
+        target: aligned
+      - id: typed-decisions-in
+        direction: in
+        crosses: "Typed decisions that rank and route leads, as structured fields only."
+        contracts: 
+          - TypedDecision
+        relationships: 
+          - p27-r3
+          - p27-r4
+        target: aligned
+      - id: review-practice
+        direction: both
+        crosses: "Security review and threat-model outputs into the normative store as claims, and from there into yield evaluation."
+        contracts: 
+          - ReviewClaim
+        relationships: 
+          - p17-r4
+          - p17-r12
+        target: aligned
+      - id: yield-sample
+        direction: out
+        crosses: Pre-registered samples of leads per tool class for the sampling service.
+        contracts: 
+          []
+        relationships: 
+          - p17-r8
+        target: aligned
+      - id: portfolio-decisions-out
+        direction: out
+        crosses: "Integrate, migrate or deprecate decisions per tool, to the owning teams' change process."
+        contracts: 
+          - PortfolioDecision
+        relationships: 
+          - p17-r14
+        target: aligned
+      - id: developer-queue
+        direction: both
+        crosses: "Leads that cleared the confidence bar, to the engineering workflows, and the dial settings that set the bar."
+        contracts: 
+          - shared:ToolLead
+          - DialSetting
+        relationships: 
+          - shared:p17-r16
+          - p20-r4
+        target: aligned
+      - id: delivery-cost
+        direction: both
+        crosses: "Delivery telemetry per tool in, and per-tool delivery cost out to the value ledger."
+        contracts: 
+          - shared:DeliveryTelemetry
+        relationships: 
+          - shared:p17-r17
+          - p17-r18
+          - p20-r18
+        target: aligned
+    rules: 
+      proposal_not_permission: "A lead never authorizes a test or an action; it only suggests what to test, and every action still goes through authorization."
+      proof_out_of_reach: "Lead text is untrusted and reaches only the quarantined, tool-less reader, never a test-drafting agent's context or a proof condition."
+      intake_only: "A lead is a hypothesis: it never counts as coverage or as a finding until an independent reproduction enters through intake."
+      independent_acceptance: "A tool's owner never computes that tool's yield, and portfolio decisions sit with a role that neither runs the agents nor owns the tool."
+    separations: 
+      - between: tool owner and yield owner
+        enforced_by: tools.owner-grades-own
+      - between: "portfolio decision owner, and the team that runs the agents or owns the tool"
+        enforced_by: tools.decision-conflicted
+  consequence-gates: 
+    name: Consequence-informed gates beyond tiers
+    category: stakes
+    existing_practice: "Business impact analysis, continuity tiers, the service catalog's criticality and data classification, and the threat intelligence feed the organization already subscribes to."
+    depends_on: 
+      []
+    switch_on: 
+      evidence: 
+        - findings_with_reached_assets
+      test: "At least 10 accepted findings record the assets their reproduced path reaches, and at least 80 percent of the crown-jewel register is confirmed by asset owners."
+    interface_points: 
+      - id: admin-in
+        direction: in
+        crosses: "Dual-controlled administrative sessions from the privileged access broker, recorded before each command runs; never content edits."
+        contracts: 
+          - AdminSession
+        relationships: 
+          - p45-r25
+        target: aligned
+      - id: consequence-in
+        direction: in
+        crosses: "Consequence tiers from the register, and source facts about what connects to what."
+        contracts: 
+          - ConsequenceFact
+          - SourceRecord
+        relationships: 
+          - p14-r4
+          - p14-r5
+        target: aligned
+      - id: dispositions-in
+        direction: in
+        crosses: "The assets each reproduced path reaches, recorded at disposition."
+        contracts: 
+          - FindingDisposition
+        relationships: 
+          - p14-r6
+          - p17-r6
+        target: aligned
+      - id: threat-signals
+        direction: out
+        crosses: "Threat signals, as untrusted text, into the source adapters."
+        contracts: 
+          []
+        relationships: 
+          - p14-r2
+        target: aligned
+      - id: observed-exploitation-to-fix-cap
+        direction: out
+        crosses: "Observed exploitation as structured fields only (report reference, vulnerability identifier, component and version, date observed) to the fix-cap gate, which matches them to findings by rule, and to disposition review, which records the match as a pass ground; threat text never crosses. The public known exploited catalog reaches the gate in the core without this module."
+        contracts: 
+          - ExploitationSignal
+        relationships: 
+          - p44-r10
+          - p44-r12
+        target: aligned
+      - id: posture-out
+        direction: out
+        crosses: "Composed consequence per path for the gate failure policy: the disposition's reached assets with their tiers."
+        contracts: 
+          - FindingDisposition
+          - ConsequenceFact
+        relationships: 
+          - p14-r7
+        target: aligned
+      - id: reach-out
+        direction: out
+        crosses: "Consequence reached, for failure classes, lead ranking and tool yield."
+        contracts: 
+          - FindingDisposition
+        relationships: 
+          - p16-r3
+          - p17-r7
+          - p17-r11
+        target: aligned
+    rules: 
+      proposal_not_permission: "Consequence sets how a gate fails while the platform is down, never whether an action is authorized; ship-through is an attributed, expiring acceptance by the business risk owner with the security risk owner's concurrence."
+      proof_out_of_reach: Consequence data informs gate posture and never reaches a proof condition; threat signals enter as untrusted text through the source adapters.
+      intake_only: Reached assets are recorded at disposition from reproduced paths only; a modeled path is never a finding.
+      independent_acceptance: The testing team drafts consequence tiers and the line-of-business owner confirms them; nobody confirms their own draft.
+    separations: 
+      - between: tier drafter and asset owner
+        enforced_by: attest.owner-drafts
+      - between: "the party that drafts an asset's tier and the party that confirms it"
+        enforced_by: attest.self-confirmed
+      - between: ship-through acceptor and concurrence
+        enforced_by: shipthrough.no-concurrence
+      - between: "ship-through acceptor, and the teams that propose, fix or verify"
+        enforced_by: shipthrough.acceptor-conflicted
+  production-effects: 
+    name: Production effects
+    category: reach
+    existing_practice: "The organization's production change process, its chaos or game-day practice, and incident response."
+    depends_on: 
+      []
+    switch_on: 
+      evidence: 
+        - phase_3_continue_decision
+        - approved_production_profile
+      test: "The matched evaluation recorded a continue decision, and an approved production profile names the reversible effect classes, health pauses and cleanup."
+    interface_points: 
+      - id: grants-in
+        direction: in
+        crosses: Exact execution grants from the action control service.
+        contracts: 
+          - ExecutionGrant
+        relationships: 
+          - r056
+        target: aligned
+      - id: receipts-out
+        direction: out
+        crosses: "Execution receipts to incident response, so a test's effect is never mistaken for an attack."
+        contracts: 
+          - ExecutionReceipt
+        relationships: 
+          - p08-r1
+        target: aligned
+    rules: 
+      proposal_not_permission: "Every production effect runs under an exact grant from authorization, limited to the reversible effect classes the approved production profile names."
+      proof_out_of_reach: The production cell runs the test and never holds its proof condition.
+      intake_only: "Production observations enter the record only through intake, like any other evidence."
+      independent_acceptance: The verifier and the closure acceptor stay outside the team that runs production tests.
+    separations: 
+      - between: verifier and the team that runs the agents
+        enforced_by: sep.verifier-producer
+      - between: administrator of a fail-closed execution part and the team that runs the agents
+        enforced_by: admin.execution-by-producer
+  paved-road: 
+    name: Paved road
+    category: prevention-out
+    existing_practice: "The developer portal, golden templates, base images, container platform policy, shared auth libraries, the gateway, secure-default linters and the scorecards the platform team already runs."
+    depends_on: 
+      []
+    switch_on: 
+      evidence: 
+        - classes_with_two_reproduced
+      test: At least 3 failure classes each have two or more independently reproduced findings.
+    interface_points: 
+      - id: admin-in
+        direction: in
+        crosses: "Dual-controlled administrative sessions from the privileged access broker, recorded before each command runs; never content edits."
+        contracts: 
+          - AdminSession
+        relationships: 
+          - p45-r15
+          - p45-r27
+          - p45-r28
+        target: aligned
+      - id: findings-in
+        direction: in
+        crosses: "Reproduced findings, verifier dispositions, closed changes and source facts that form failure classes."
+        contracts: 
+          - FindingDisposition
+          - shared:ChangeRecord
+          - SourceRecord
+        relationships: 
+          - p16-r1
+          - p16-r2
+          - p16-r4
+          - p16-r9
+        target: aligned
+      - id: assurance-in
+        direction: in
+        crosses: Independent road assurance per entry version.
+        contracts: 
+          - RoadAssurance
+        relationships: 
+          - p16-r16
+        target: aligned
+      - id: fix-path
+        direction: both
+        crosses: "Proven failure classes to the owner change connector, and road changes back as patch candidates and change records."
+        contracts: 
+          - FailureClass
+          - PatchCandidate
+          - shared:ChangeRecord
+        relationships: 
+          - p16-r5
+          - p16-r6
+        target: aligned
+      - id: estate-in
+        direction: in
+        crosses: "Deployed state per call site, read from the estate."
+        contracts: 
+          []
+        relationships: 
+          - p16-r11
+        target: aligned
+      - id: road-entries-out
+        direction: out
+        crosses: "Road entries for dispatch, retest planning and the regression catalog."
+        contracts: 
+          - shared:RoadEntry
+        relationships: 
+          - p16-r7
+          - p16-r8
+        target: aligned
+      - id: adoption-out
+        direction: out
+        crosses: "Road adoption per call site, for retest planning, the context builder and the developer queue."
+        contracts: 
+          - RoadAdoption
+        relationships: 
+          - p16-r12
+          - p16-r19
+          - p17-r20
+        target: aligned
+      - id: metrics-out
+        direction: out
+        crosses: "Road metrics to flow cost, sampling and the value ledger."
+        contracts: 
+          []
+        relationships: 
+          - p16-r15
+          - p16-r20
+          - p20-r17
+        target: aligned
+      - id: sample-frame-in
+        direction: in
+        crosses: "The sampling service's list of planted changes, so road-adoption telemetry can count each reviewer's catches."
+        contracts: 
+          - SampleFrame
+        relationships: 
+          - p62-r1
+        target: aligned
+    rules: 
+      proposal_not_permission: "Road changes are proposals into the owning team's change process; a road entry never authorizes a test or a deploy."
+      proof_out_of_reach: A road entry carries no proof condition; road-level regressions stay in the regression catalog inside the loop.
+      intake_only: "A failure class needs independently reproduced members and is never created or merged by a model judgment; conformance is read from deployed state, never from declarations."
+      independent_acceptance: The road owner never verifies its own retirement claims or computes its own road metrics.
+    separations: 
+      - between: road owner and the verifier of retirement claims
+        enforced_by: road.owner-verifies
+      - between: road owner and road metrics owner
+        enforced_by: road.owner-metrics
+  secure-creation: 
+    name: Secure creation (Jig)
+    category: prevention-out
+    existing_practice: "The coding-agent guardrails, editor and pre-commit checks, protected-branch required checks, AI code review and change provenance stamps the organization already runs where code is written. Built only where none exists."
+    depends_on: 
+      - paved-road
+    switch_on: 
+      evidence: 
+        - provenance_stamped_share
+        - provenance_share_required
+        - derived_checks_running
+      test: "The share of merged changes carrying a provenance stamp reaches the share the organization sets, and at least one derived check runs while code is written."
+    interface_points: 
+      - id: proven-classes
+        direction: in
+        crosses: "Failure classes with at least one independently reproduced member, with existence, definition, fix rule, road answer and derived-check references. No per-class count crosses to an agent-reachable part at any closure state; counts go only directly to the policy-owning team: people, never an agent. While any member finding is open, no services or components spanned or highest consequence tier crosses; spans and tier are sent only once every member's finding is closed and withdrawn in the next version if a member opens again. A third-party class names the component without its versions until a fix exists. No verdict or fixture-set reference crosses. The model provider is a reader through the coding agent's model route."
+        contracts: 
+          - shared:ProvenClass
+        relationships: 
+          - shared:p30-r1
+        target: aligned
+      - id: derived-checks
+        direction: in
+        crosses: "Static or in-process checks derived from kept regressions: pass or fail with a fixed message, never an expected outcome, an expected-outcome hash or outsider text."
+        contracts: 
+          - shared:DerivedCheck
+        relationships: 
+          - shared:p30-r2
+        target: aligned
+      - id: fix-briefs
+        direction: in
+        crosses: "A fixing agent's description of a weakness, written by a person or derived by rule only from the weakness a signed proof condition names and the model-free reproduction; never outsider text, the output of a model that read it, or an expected outcome."
+        contracts: 
+          - shared:FixBrief
+        relationships: 
+          - shared:p40-r5
+        target: aligned
+      - id: vetted-road-entries
+        direction: in
+        crosses: "Road entries with their conformance check and rule version, and the assurance status that says which versions are current, without fixture-set or verdict references."
+        contracts: 
+          - shared:RoadEntry
+          - shared:RoadAssuranceStatus
+        relationships: 
+          - shared:p30-r3
+          - shared:p30-r4
+        target: aligned
+      - id: change-provenance
+        direction: out
+        crosses: "A signed provenance stamp per change, and provenance per change as a declared fact: recorded by the engineering system and completed by Ratchet's source adapters from the verified stamp, with its verification status; unlabeled and unverifiable changes stay in every denominator."
+        contracts: 
+          - shared:ProvenanceStamp
+          - shared:ChangeProvenance
+        relationships: 
+          - shared:p30-r5
+          - shared:p30-r6
+          - p30-r7
+          - p30-r8
+        target: aligned
+      - id: creation-leads
+        direction: out
+        crosses: "Findings from its checks and AI reviewers as the loop's own lead record, with the layer that raised them, its triage verdict as a label and rule summaries for high-volume rules, normalized into tool leads at intake, and its log of derived checks dropped or disabled."
+        contracts: 
+          - shared:CreationLead
+          - shared:DroppedCheck
+        relationships: 
+          - shared:p30-r9
+        target: aligned
+        requires_module: tool-portfolio
+      - id: drift-seeds
+        direction: in
+        crosses: "Seeded known-bad agent-written changes for the reviewer-drift baseline, opened on sandbox branches and never on the protected branch, each a record that holds the change only, and sent from the engineering system to a reviewer of agent-written changes or of high-risk hunks for review."
+        contracts: 
+          - shared:SeededChange
+        relationships: 
+          - shared:p32-r1
+          - shared:p60-r2
+          - shared:p60-r3
+        target: aligned
+      - id: tracker-text
+        direction: in
+        crosses: "Issue and review text from the organization's tracker, which can quote outsiders, read only by the quarantined reader and never by a coding agent."
+        contracts: 
+          - shared:TrackerText
+        relationships: 
+          - shared:p55-r10
+        target: aligned
+      - id: rule-class-tests
+        direction: both
+        crosses: "Each policy-owning team's rule goes out for testing against its class's reproduced members before the fix; only pass or fail per rule version returns to agent-reachable parts, with no per-class counts, member locations or finding text."
+        contracts: 
+          - shared:CreationRule
+          - shared:ClassTestCount
+        relationships: 
+          - shared:p55-r31
+          - shared:p55-r32
+        target: aligned
+      - id: catch-layers
+        direction: in
+        crosses: "The layer that should have caught each accepted defect, assigned by the evaluation group, as a value from a closed list with finding and change ids."
+        contracts: 
+          - shared:CatchLayer
+        relationships: 
+          - shared:p55-r69
+        target: aligned
+        requires_module: tool-portfolio
+      - id: drift-rates
+        direction: in
+        crosses: "Each reviewer's seeded known-bad changes caught over those received, computed by evaluation; which changes were seeds never crosses."
+        contracts: 
+          - shared:ReviewerSeedCatch
+        relationships: 
+          - shared:p55-r70
+        target: aligned
+      - id: derived-check-misses
+        direction: in
+        crosses: "Per derived check, the number of changes that passed it and later failed its kept test's replay, over a window against the check's floor; never which changes, the replay results or any test content."
+        contracts: 
+          - shared:DerivedCheckMisses
+        relationships: 
+          - shared:p60-r1
+        target: aligned
+      - id: class-test-totals
+        direction: in
+        crosses: "Per-class test totals go from the regression catalog directly to the policy-owning team: people, never an agent, and never reach an agent-reachable part or the model route."
+        contracts: 
+          - shared:ClassTestTotals
+        relationships: 
+          - shared:p65-r1
+        target: aligned
+    rules: 
+      proposal_not_permission: "A coding agent's change is a proposal: it merges only through the protected branch, with required checks run server-side that the agent cannot skip or reconfigure."
+      proof_out_of_reach: "Narrower by design: checks sit out of the agent's edit reach, not out of its sight. A derived check reports pass or fail with a fixed message, and the kept regression, its variants and the retest stay inside the loop."
+      intake_only: "Its checks and AI reviewers return leads; a deterministic check can place a defect only in the check-confirmed tier, and the reproduced tier needs a reproduction."
+      independent_acceptance: "Narrower by design: one independent sign-off to merge. The author of a change is the agent together with the person whose session produced it, and whoever merges is neither."
+    separations: 
+      - between: "whoever merges a change, and its author (the agent and the person whose session produced it)"
+        enforced_by: creation.author-merges
+      - between: "the evaluation group that assigns the catch layer, and the secure-creation owner and the road owner"
+        enforced_by: creation.catch-layer-conflicted
+      - between: "reviewers of agent-written changes, and the team that reports their approval drift"
+        enforced_by: creation.drift-reporter-is-reviewer

@@ -1,0 +1,1110 @@
+# Ratchet edition 5.1.2. Generated; do not edit.
+version: 1
+security_test_time: 
+  target_minutes: 10
+  profile_field: delivery.security_test_time_target_minutes
+  objective: "Security checks aim for test time strictly below the target at every delivery stage. The organization may change the target in its profile. A missing profile value uses the shipped default. This objective does not change a gate's timeout or failure posture."
+deploy_gate: 
+  applies_to: "The regression stage that s6.enterprise-adapters places in each owning service's pipeline."
+  failure_mode: posture-from-policy
+  dependency_grain: "A regression test declares its dependencies at this grain: the artifact digests it exercises, each library it exercises at its resolved version, each configuration key it reads, each policy id and each identity. A change touches the test when it changes any of these; a change to the service's deployable alone touches only tests that declare that artifact's digest. A declaration that names only the deployable makes every deploy of it a replay, so the test costs its full time on every deploy and saves nothing by scoping."
+  scope_when_unavailable: "Only deploys that touch a regression's declared dependencies (artifact, policy, identity) are subject to the posture, reusing the dependency-scoped invalidation rule. Every other deploy proceeds while the gate is unavailable and is recorded, with its replay owed after recovery only if a later check finds it touched a dependency."
+  core_posture_defaults: "Fail-closed when the demonstrated path reaches a crown-jewel or critical asset; fail-open-with-record for standard. Ship-through on a critical or crown-jewel path is a short-lived acceptance by the business risk owner with security risk owner concurrence. A path reaching the ship-through renewal cap (default 2 consecutive acceptances, a dial) refuses another until its posture review, fed by gate outcomes, is recorded. Profiles may override with attribution."
+  service_level_owed_to_service_teams: 
+    availability: "99.9% during the service's deploy windows (default), given the pipeline reached the stage; composed in critical_paths.deploy-gate from the execution cell alone, counting the four co-deployed cell parts as one unit; if they fail independently the same path composes to about 99.6%, and phase 2 measures which holds; the figure excludes the staging target's own availability"
+    added_deploy_latency_p95: "10 minutes (default; the organization sets it in its profile, gate_failure_policy.added_latency_objective_minutes, beside the regression time budget dial, also 10 minutes by default). The stage stops waiting at the budget and applies the posture; an objective below the budget is refused unless the organization records dependency-scoped or post-deploy handling"
+    blast_radius: "an outage holds only deploys inside a regression's declared dependency scope; the program reports how many deploys an outage held and how many it let through"
+    decision: the program publishes this SLO and reports against it monthly; breaching it is a program incident
+  unknown_consequence: "No core default. Each organization profile must set unattested_default (crown-jewel | critical | standard); the unattested count is reported as a register-gap metric. truly unattested assets should be rare, because someone in the organization usually knows roughly how critical an asset is."
+elements: 
+  s1.context-service: 
+    - T2
+    - mark-unknown
+    - snapshot reads by content hash
+  s1.source-adapters: 
+    - T2
+    - mark-unknown
+    - "collector outage marks facts unknown, never current"
+  s1.identity-validity-resolver: 
+    - T2
+    - mark-unknown
+    - unresolved identity is unknown
+  s1.context-compiler: 
+    - T2
+    - mark-unknown
+    - deterministic output per input versions; incomplete snapshot refuses decision-critical runs
+  s1.live-precondition-resolver: 
+    - T0
+    - fail-closed
+    - fresh read at decision time; consulted by the policy decision point
+  s1.source-facts: 
+    - T2
+    - mark-unknown
+    - temporal; freshness per fact
+  s1.criterion-registry: 
+    - T1
+    - queue-and-retry
+    - versioned; writes by rule owners only
+  s1.normative-store: 
+    - T1
+    - queue-and-retry
+    - versioned; writes by rule owners only
+  s1.snapshot-index: 
+    - T2
+    - queue-and-retry
+    - "content-addressed, immutable entries"
+  s1.consequence-register: 
+    - T1
+    - mark-unknown
+    - "versioned attestations with drafter and confirmer; unconfirmed reads as unattested, which gate policy maps to the profile's unattested_default"
+  s1.tool-signal-intake: 
+    - T2
+    - mark-unknown
+    - "a stopped export marks that tool's leads stale; per-tool rate limits keep one noisy tool from crowding out others"
+  s1.tool-lead-store: 
+    - T2
+    - queue-and-retry
+    - leads append with versions; status changes only from accepted evidence or sampled outcomes
+  s2.operator-interface: 
+    - T3
+    - degrade-to-manual
+    - status reads may lag
+  s2.workflow-worker-app: 
+    - T2
+    - queue-and-retry
+    - replay-safe workers; effect-uncertain on crash after send
+  s2.request-dispatcher: 
+    - T2
+    - queue-and-retry
+    - idempotent request API
+  s2.workflow-engine: 
+    - T2
+    - queue-and-retry
+    - event-sourced workflow history
+  s2.approved-producers: 
+    - T1
+    - fail-closed
+    - unlisted or unsigned producer cannot be dispatched
+  s2.producer-adapters: 
+    - T2
+    - queue-and-retry
+    - at-least-once with idempotency key
+  s2.hybrid-source-producer: 
+    - T3
+    - continue-without
+    - optional producer
+  s2.runtime-assessment-producer: 
+    - T3
+    - continue-without
+    - optional producer
+  s2.workflow-state-store: 
+    - T2
+    - queue-and-retry
+    - strong per workflow
+  s2.artifact-exchange: 
+    - T2
+    - queue-and-retry
+    - per-run prefixes; immutable objects
+  s2.dispatch-queue: 
+    - T2
+    - queue-and-retry
+    - transactional outbox; at-least-once; consumers dedupe on idempotency key
+  s2.quarantined-lead-reader: 
+    - T3
+    - continue-without
+    - free text waits unread; structured lead fields still flow; output rejected unless it validates against the classification schema
+  s2.proof-condition-drafter: 
+    - T3
+    - continue-without
+    - the scenario owner writes the proof condition without a draft; nothing else waits
+  s2.typed-decision-worker: 
+    - T3
+    - continue-without
+    - each decision type drops to its declared fallback (frontier text route or a rule); nothing waits on a typed route
+  s3.action-control-service: 
+    - T0
+    - fail-closed
+    - "denies when any dependency is unavailable; failing closed covers effects not yet started, and a running attack injection is restored by its cell at the time limit with no call to this service"
+  s3.action-broker: 
+    - T0
+    - fail-closed
+    - "canonical normalization by a versioned normalizer per reviewed action primitive, the same normalizer the bounded runner uses to parse what it executes; hash over normalized ActionSpec; an action whose normalizer version differs from the runner's is refused"
+  s3.policy-decision-point: 
+    - T0
+    - fail-closed
+    - default deny; decisions logged before effect
+  s3.approval-service: 
+    - T0
+    - fail-closed
+    - no approval means no grant
+  s3.approval-console: 
+    - T0
+    - fail-closed
+    - "unavailable console means no approvals, not implied approvals"
+  s3.grant-approval-store: 
+    - T0
+    - fail-closed
+    - linearizable single-use consume; expiry checked against a trusted clock with skew margin
+  s3.protected-audit: 
+    - T0
+    - fail-closed
+    - audit write acknowledged before effect; audit unavailable stops high-risk execution
+  s3.credential-lease-broker: 
+    - T0
+    - fail-closed
+    - "no lease, no credential; leases expire independently of the caller"
+  s3.gate-failure-policy: 
+    - T1
+    - fail-closed
+    - "signed postures with expiry from the posture_expiry_hours dial; consumers verify offline; an expired or untrusted posture falls back to its tier default held offline in the stage, never to fail-closed for a standard path"
+  s3.key-management: 
+    - T0
+    - fail-closed
+    - "no signature, no new posture, bundle, lease or receipt; consumers keep verifying with cached key references until verifies-until"
+  s3.privileged-access-broker: 
+    - T0
+    - fail-closed
+    - "broker down means no administrative access, never direct access; break-glass needs dual control and the security risk owner"
+  s3.policy-release-pipeline: 
+    - T1
+    - fail-closed
+    - pipeline down means no release; the current signed policy keeps running; rollback is itself a release
+  s3.local-enforcement-point: 
+    - T0
+    - fail-closed
+    - "destination allowlist bound to grant; enforcement local to the cell; a hostname is resolved at execution and the resolved address is checked against the grant, so an approval binds the address actually reached; refuses an injection whose signed restore grant it does not hold, and its dead-man timer runs that restore at the time limit with the control plane down"
+  s3.bounded-runner: 
+    - T0
+    - fail-closed
+    - runs only with a consumed grant; cleanup verified
+  s3.source-build-cell: 
+    - T0
+    - fail-closed
+    - no runtime internet
+  s3.staging-cell: 
+    - T0
+    - fail-closed
+    - "isolation per team profile; a target under test runs in a sandboxed runtime or behind a separate VM, cluster or account boundary, because it receives attack payloads and a shared kernel is one container escape from other cells"
+  s3.production-cell: 
+    - T0
+    - fail-closed
+    - health pause and stop; reversible actions only
+  s3.observation-receipt: 
+    - T1
+    - queue-and-retry
+    - signed; held in the outbox until S5 acknowledges; receipt loss marks the attempt effect-uncertain
+  s3.local-audit-buffer: 
+    - T0
+    - fail-closed
+    - a buffer that cannot write or is full stops execution; drains to protected audit with the hash chain verified
+  s3.replay-verdict: 
+    - T0
+    - fail-closed
+    - "unknown applies the stage's posture; a verdict never comes from a model; hashes only the reviewed test's declared projection of the observation (refused or allowed, status class, assertion results), never timestamps, session ids or ordering, so a run that varies only in excluded fields gets the same verdict"
+  s4.model-data-gateway: 
+    - T2
+    - fail-closed
+    - "no route, no request; never falls back to an unlisted route"
+  s4.request-data-gate: 
+    - T0
+    - fail-closed
+    - payload not classified means payload not sent
+  s4.route-budget-broker: 
+    - T2
+    - fail-closed
+    - budget unknown means request refused
+  s4.response-proposal-gate: 
+    - T0
+    - fail-closed
+    - invalid schema is rejected; output never grants authority
+  s4.qualification-route-registry: 
+    - T1
+    - fail-closed
+    - unqualified route refused
+  s4.inference-endpoints: 
+    - T3
+    - queue-and-retry
+    - provider outage pauses runs; fallback only to an eligible route
+  s4.route-usage-receipts: 
+    - T3
+    - continue-without
+    - usage gaps flagged in cost ledger
+  s5.proof-evidence-service: 
+    - T1
+    - queue-and-retry
+    - sole writer to evidence stores
+  s5.evidence-intake-validator: 
+    - T1
+    - queue-and-retry
+    - rejects incomplete receipts with a reason; holds valid ones until stores recover
+  s5.exposed-secret-intake: 
+    - T0
+    - fail-closed
+    - a hit it cannot fingerprint is held sealed and alerts the evidence owner; the value is never forwarded
+  s5.independent-verifier: 
+    - T1
+    - degrade-to-manual
+    - manual reproduction is the recorded fallback
+  s5.repair-checks: 
+    - T1
+    - degrade-to-manual
+    - unmodified harness checksum verified
+  s5.disposition-review: 
+    - T1
+    - queue-and-retry
+    - "attributed, expiring dispositions"
+  s5.review-console: 
+    - T1
+    - degrade-to-manual
+    - reviewers fall back to the recorded manual procedure
+  s5.fixture-oracle-registry: 
+    - T1
+    - fail-closed
+    - "no oracle, no verification; solver identities excluded"
+  s5.protected-evidence-store: 
+    - T1
+    - queue-and-retry
+    - write-once
+  s5.finding-ledger: 
+    - T1
+    - queue-and-retry
+    - append-only; writes only through disposition
+  s5.path-impact-graph: 
+    - T1
+    - queue-and-retry
+    - "edges only from accepted, reproduced paths; recomputed posture is signed before use"
+  s5.failure-class-registry: 
+    - T1
+    - queue-and-retry
+    - "classes only from reproduced findings; versions append, never overwrite"
+  s5.fix-brief-builder: 
+    - T1
+    - degrade-to-manual
+    - "a person writes the brief; no model-written description replaces it, and a finding waits for its brief rather than going out without one"
+  s5.learning-store: 
+    - T1
+    - queue-and-retry
+    - "append-only; written only by disposition review; while it is unavailable producers run without learned items, and nothing is retrieved around the provenance check; an item validated under a grant whose status the store cannot read is withheld as if the grant had lapsed"
+  s5.road-assurance-record: 
+    - T1
+    - queue-and-retry
+    - written only by the independent verifier and disposition review; no current record means no call site is covered-by-road
+  s6.hardening-service: 
+    - T2
+    - queue-and-retry
+    - "organization's release workflow"
+  s6.owner-change-connector: 
+    - T2
+    - queue-and-retry
+    - exactly one linked change per accepted finding (idempotency key = finding id)
+  s6.release-state-correlator: 
+    - T1
+    - mark-unknown
+    - unknown deployed state cannot close
+  s6.retest-regression-planner: 
+    - T2
+    - queue-and-retry
+    - owed replays persist across outages
+  s6.change-closure-records: 
+    - T1
+    - queue-and-retry
+    - two attributed human acceptances plus a machine deployment record; environment label on every closure; append-only
+  s6.regression-catalog: 
+    - T1
+    - queue-and-retry
+    - versioned tests with dependency headers
+  s6.fix-cap-refusal-log: 
+    - T2
+    - queue-and-retry
+    - "a refusal is written before the finding is held back; while the log is down the finding waits with the security side, never routed past the cap and never dropped; reviews count only with the co-signature of the security role that agreed the cap; append-only"
+  s6.fix-cap-gate: 
+    - T2
+    - fail-closed
+    - "unavailable means only a finding whose disposition records a pass ground (at or above the consequence line, exploited, or under an external deadline) enters an owning team's queue, and the gate writes its over-cap record and checks the ground on recovery; every other validated finding waits with the security side, its wait measured; none is dropped; only the gate writes refusals"
+  s6.enterprise-adapters: 
+    - T2
+    - posture-from-policy
+    - regression stage applies the signed posture when the platform cannot answer
+  s6.paved-road-catalog: 
+    - T2
+    - queue-and-retry
+    - "entries change only through the platform release path; a catalog outage blocks road changes, never service deploys"
+  s6.road-conformance-check: 
+    - T1
+    - mark-unknown
+    - "unknown conformance means off-road: per-service regressions stay in force"
+  s6.developer-queue-filter: 
+    - T2
+    - fail-closed
+    - unavailable means no lead reaches developer queues; demonstrated findings still flow; held leads are never dismissed
+  s7.evaluation-operations: 
+    - T3
+    - continue-without
+    - evaluation pauses; no promotion while paused
+  s7.snapshot-cohort-manager: 
+    - T1
+    - queue-and-retry
+    - pre-registration timestamps must be trustworthy
+  s7.matched-evaluation-executor: 
+    - T3
+    - continue-without
+    - no result means no conclusion
+  s7.promotion-review: 
+    - T1
+    - fail-closed
+    - no decision means no promotion
+  s7.evaluation-artifacts: 
+    - T3
+    - queue-and-retry
+    - immutable per run
+  s7.qualification-assurance-record: 
+    - T1
+    - queue-and-retry
+    - append-only
+  s7.flow-cost-telemetry: 
+    - T3
+    - continue-without
+    - gaps flagged; gate scripts fail on missing rows
+  s7.dial-register: 
+    - T1
+    - fail-closed
+    - "append-only history; while unavailable no dial can be turned and consumers keep the last signed setting; design limits and the consequence line are read from a versioned copy under a lease, and a reader whose lease lapses sends grant-only actions to a person"
+  s7.sampling-service: 
+    - T3
+    - continue-without
+    - a missed draw is reported against its floor; a floor-bearing draw that misses by a day alerts and the gap counts against the floor; a frame is never redrawn after results exist
+  s7.failover-drill: 
+    - T3
+    - continue-without
+    - a missed drill is reported and alerts once a day overdue; a fallback past its drill interval is marked stale and the route broker treats it as unavailable
+  s7.reliability-monitor: 
+    - T2
+    - mark-unknown
+    - "missing indicators page as unknown, never healthy; a silent loop canary trips the external dead-man alarm"
+  s7.value-ledger: 
+    - T3
+    - continue-without
+    - gaps flagged per line of business; sampled escapes subtracted before any friction or risk figure
+  s7.road-adoption-telemetry: 
+    - T3
+    - continue-without
+    - gaps flagged; no road claim drawn from a period with missing data
+  s7.tool-yield-evaluator: 
+    - T3
+    - continue-without
+    - no yield conclusion below the pre-registered sample minimum; untested leads never counted false
+  s7.tool-delivery-impact: 
+    - T3
+    - continue-without
+    - "a metric the organization does not collect is reported as not measured, never estimated; correlations labeled as such"
+  s7.tool-portfolio-decisions: 
+    - T3
+    - continue-without
+    - "decisions are versioned records; an outage delays decisions, never changes a tool's state"
+  s7.assurance-incident-integration: 
+    - T2
+    - queue-and-retry
+    - incident signals never suppressed; queue on outage and alert
+  s6.team-regression-suite: 
+    - T1
+    - queue-and-retry
+    - Missing or stale observations mean unknown protection. Source writes are denied.
+  s6.kept-test-mirror: 
+    - T1
+    - queue-and-retry
+    - Missing or stale observations mean unknown protection. Source writes are denied.
+contracts: 
+  ContextQuery: 
+    - request-response
+    - read-only; safe to retry
+  ContextSnapshot: 
+    - immutable artifact by content hash
+    - "same hash, same bytes"
+  ValidationRequest: 
+    - at-least-once
+    - idempotency key = request id
+  CandidateFinding: 
+    - at-least-once
+    - dedup at intake on producer run id plus finding fingerprint
+  ValidationArtifact: 
+    - at-least-once
+    - content-addressed; duplicates collapse
+  PatchCandidate: 
+    - at-least-once
+    - content-addressed
+  ActionSpec: 
+    - at-least-once
+    - hash over normalized spec; duplicate submissions map to one approval
+  ExecutionGrant: 
+    - exactly-once consumption
+    - atomic single-use consume in the grant store; replay denied; expiry against trusted time with skew margin
+  ExecutionReceipt: 
+    - at-least-once
+    - keyed by grant id; a grant has at most one terminal receipt; missing receipt means effect-uncertain
+  FindingDisposition: 
+    - at-least-once
+    - "keyed by finding id and version; later versions supersede, never overwrite"
+  RegressionSpec: 
+    - at-least-once
+    - versioned by test id
+  ModelRequest: 
+    - at-most-once per attempt
+    - retries create a new attempt with a new key; usage recorded per attempt
+  TestFixture: 
+    - immutable artifact by version
+    - checksum verified before use
+  OracleSpec: 
+    - immutable artifact by version
+    - readable only by S5; others receive a hash reference
+  EvaluationSnapshot: 
+    - immutable artifact by version
+    - frozen before the first run of a cohort
+  ConsequenceFact: 
+    - versioned record
+    - attestation id; supersedes chain; expiry
+  RunRecord: 
+    - event-sourced
+    - attempt ids are unique; delivery acknowledgment never sets succeeded
+  CostHandoffEntry: 
+    - at-least-once
+    - "keyed by run, activity and actor; corrections append"
+  FailureClass: 
+    - versioned record
+    - class id plus version; membership changes append; merges only by disposition review
+  RoadAdoption: 
+    - at-least-once
+    - "keyed by service, call site, entry version and deployed digest; latest observation wins, history kept"
+  RoadAssurance: 
+    - versioned record
+    - "entry id plus version; superseded or withdrawn, never overwritten"
+  PortfolioDecision: 
+    - versioned record
+    - "tool id plus version; superseded, never overwritten"
+  TypedDecision: 
+    - at-least-once
+    - "keyed by decision type, subject and route version; advisory, so a lost or duplicate decision changes a ranking or a flag, never a grant, verdict or closure"
+  DialSetting: 
+    - versioned record
+    - dial id plus version; every turn appends with actor and evidence; a setting past its floor links a risk acceptance
+  SampleFrame: 
+    - immutable artifact by version
+    - frozen before any result; draws reproducible from the recorded seed
+  ValueLedgerEntry: 
+    - at-least-once
+    - "keyed by line of business, period and source; corrections append"
+  AdminSession: 
+    - append-only record
+    - session id; every command recorded before it runs; never edits evidence or grant content
+  KeyReference: 
+    - versioned artifact
+    - key id plus version; overlapping validity windows; revocation propagates to every consumer within the posture expiry; a window bundle already minted sees a revocation only when it expires
+  ReplayRequest: 
+    - at-least-once
+    - idempotency key = stage run id plus test id
+  ReplayWindowBundle: 
+    - signed artifact with expiry
+    - "one per service and deploy window; each grant inside is consumed once; verified offline; its revocation lag is its lifetime: a narrowed design limit or a revoked key reaches a bundle only when it expires, so the lifetime from minting to expiry is capped by window_bundle_max_hours, or by posture_expiry_hours while that dial is unset, and a longer bundle is never minted"
+  ReplayVerdict: 
+    - at-least-once
+    - "keyed by stage run id, test id and grant id; one terminal verdict per grant"
+  AuditRecord: 
+    - append-only
+    - hash-chained; written before the effect; drained exactly once by record id
+  PolicyBundle: 
+    - versioned artifact
+    - bundle id plus version; staged; rollback re-releases the previous version
+  ReleaseAttestation: 
+    - versioned artifact
+    - "artifact digest plus signed increasing release sequence; release-purpose verification before admission; durable per-cell high-water mark, consumed rollback number and sticky refusal ranges; pipeline provisioning initializes new and rebuilt cells"
+  ServiceIndicator: 
+    - at-least-once
+    - "keyed by indicator, source and window; missing windows read as unknown"
+  ErrorBudgetStatus: 
+    - latest-wins record
+    - objective id plus window; freeze state changes are recorded with actor
+  ModelResponse: 
+    - at-most-once per attempt
+    - attempt id; untrusted content; never retried into a different attempt
+  FeedbackProposal: 
+    - at-least-once
+    - proposal id; applies only after context owner review
+  PromotionDecision: 
+    - versioned record
+    - "configuration id plus version; superseded, never overwritten"
+  GateOutcome: 
+    - at-least-once
+    - "keyed by gate, path and event"
+  RouteQualification: 
+    - latest-wins record
+    - route id; history kept
+  SourceRecord: 
+    - at-least-once
+    - "keyed by source system, record id and cursor window; a re-read appends, never overwrites"
+  RouteUsage: 
+    - at-least-once
+    - "keyed by attempt id; one record per attempt, rejected attempts included"
+  CredentialLease: 
+    - exactly-once consumption
+    - bound to one grant id; single use; expiry against trusted time; revocation honored before use
+  DefensiveObservation: 
+    - at-least-once
+    - "keyed by detection source and observation id; reconciliation appends, never edits the observation"
+  ReviewClaim: 
+    - versioned record
+    - claim id plus version; status changes append with their evidence references
+  GatedResponse: 
+    - at-most-once per attempt
+    - attempt id; keeps the untrusted marking of its input; never retried into a different attempt
+  ApprovalOutcome: 
+    - at-least-once
+    - keyed by ActionSpec hash and approver; one terminal decision per approval request
+  AutonomyGrant: 
+    - versioned record
+    - grant id plus version; lapse and revocation append with the record that caused them; an expired grant is never renewed in place
+  KeptTestStatus: 
+    - versioned record
+    - test id plus version; every lane or status change appends with who decided it; a retired test is never deleted
+  DetectionProposal: 
+    - append-only record
+    - "keyed by proposal id; the defensive side's review outcome appends and never overwrites"
+  EscapeRecord: 
+    - versioned record
+    - "keyed by escape id; confirmation, recovery and fix scope append as they happen, and an unconfirmed record never counts in a measure"
+  FixPath: 
+    - versioned record
+    - "keyed by finding id; the owning team's decision on the drafted fix appends and never overwrites; complete only with all three parts"
+  FixCapRefusal: 
+    - append-only record
+    - keyed by finding id and refusal date; each review appends its outcome; a refusal is never deleted
+  LearnedItem: 
+    - append-only record
+    - keyed by item id and version; provenance and clearing records append and never change; each retrieval decision is logged
+  OutsiderLabelSet: 
+    - versioned record
+    - "carried inside the record it labels; a clearing appends a clearing record to the field and never removes the field's sources; recomputed from input ids where a part checks coverage"
+  PostmortemRecord: 
+    - versioned record
+    - "keyed by postmortem id; the review, the security risk owner's signature and each action item's outcome append; a record is never deleted, and one trigger event opens at most one postmortem"
+  DesignLimit: 
+    - versioned record
+    - "limit id plus version; every change appends with the role that made it and its evidence; each grant records the version it was last checked against, and a grant checked only against an older version is not honored, except a grant inside a window bundle already minted, which is honored until the bundle expires (the bundle's stated revocation lag)"
+  ConsequenceLine: 
+    - versioned record
+    - one current line plus version; every change appends with the business risk owner who made it and the reason; lowering it starts a new limit version
+  AgentActionRecord: 
+    - append-only record
+    - keyed by action id; the accuracy verdict and the cost of a wrong action append later and never overwrite what the action touched
+  InjectionRecord: 
+    - append-only record
+    - "keyed by experiment id; detection, a stop, recovery and the actual cost append as they happen and never overwrite the layer and estimate recorded before the start"
+  RestoreGrant: 
+    - exactly-once consumption
+    - "signed artifact with the injection grant's expiry; verified offline by the local enforcement point and consumed once, by the cell's timer at expiry or early on a stop; never extended"
+  SecretRevocation: 
+    - append-only record
+    - "keyed by finding id; the owning team's revocation and rotation and each revocation check result append as they happen; the record holds the credential's fingerprint and never its value"
+  CredentialRecipe: 
+    - versioned register
+    - keyed by credential type; a recipe change is a new version and the next revocation check uses it; a type with no recipe closes only on attestation
+  SealedCredential: 
+    - sealed record
+    - released once per probe series to the lease broker and destroyed after its last attempt; an unreleased value is destroyed when the finding closes
+  ConformanceRead: 
+    - append-only record
+    - keyed by finding id; every read appends with its result; unknown never closes
+  ExploitationSignal: 
+    - versioned record
+    - keyed by source and catalog entry or report reference; a later listing or retraction appends a version and never overwrites the date first listed or observed
+  PriorityInputs: 
+    - versioned record
+    - keyed by finding id; a changed exposure or automatable value appends a version with who or which check set it and never overwrites the value in force at disposition
+  MitigationRecord: 
+    - append-only record
+    - "keyed by finding id and mitigation; each replay result, expiry and removal appends as it happens and never overwrites what held the path or who applied it"
+  DisclosureRecord: 
+    - append-only record
+    - keyed by finding id and direction; a changed deadline or a new outcome appends with its date and never overwrites the deadline or outcome recorded before it
+  GateCatchRate: 
+    - latest-wins record
+    - "keyed by gate, person and window; recomputed by rule from recorded outcomes, so a resend replaces the window's value; a window with no record reads as silent, never as zero"
+  OutcomeFeedback: 
+    - latest-wins record
+    - "keyed by receiving role, decision type, measure and window; recomputed by rule from the records it references, so a resend replaces the window's value; a window with no record reads as silent, never as zero"
+  VerifiedObservation: 
+    - append-only record
+    - "keyed by run or intake id and the observer's version; a repeat with the same key and hashes adds nothing, and a new observation appends and never overwrites an earlier one"
+  ClassTestResult: 
+    - append-only record
+    - "keyed by rule id, rule version and test date; appended to the rule version it tested and never overwrites an earlier result; it never leaves the regression catalog"
+  RegressionHashes: 
+    - versioned record
+    - "keyed by test id and version; carries no expected behavior, only the registered hash"
+  WeaknessStatement: 
+    - immutable artifact by version
+    - "keyed by proof condition id and version; a new condition version yields a new statement, never an edit in place"
+  DiscoveryLeadSubmission: 
+    - at-least-once
+    - "Keyed by request or finding reference, author and time; each decision appends a record."
+  AutonomyGrantRequest: 
+    - at-least-once
+    - "Keyed by request or finding reference, author and time; each decision appends a record."
+  AutonomyGrantConcurrence: 
+    - at-least-once
+    - "Keyed by request or finding reference, author and time; each decision appends a record."
+  AdminSessionRequest: 
+    - at-least-once
+    - "Keyed by request or finding reference, author and time; each decision appends a record."
+  AdminSessionApproval: 
+    - at-least-once
+    - "Keyed by request or finding reference, author and time; each decision appends a record."
+  PolicyChangeProposal: 
+    - at-least-once
+    - "Keyed by request or finding reference, author and time; each decision appends a record."
+  PolicyChangeApproval: 
+    - at-least-once
+    - "Keyed by request or finding reference, author and time; each decision appends a record."
+  PersonWrittenBrief: 
+    - at-least-once
+    - "Keyed by request or finding reference, author and time; each decision appends a record."
+  InstanceRegression: 
+    - at-least-once
+    - "Append-only observations keyed by test id, version, source revision and run."
+  InstanceTestObservation: 
+    - at-least-once
+    - "Append-only observations keyed by test id, version, source revision and run."
+  KeptTestMirrorStatus: 
+    - at-least-once
+    - "Append-only observations keyed by test id, version, source revision and run."
+  jig:HunkRouteAdvice: 
+    - at-least-once
+    - "keyed by change id, hunk id and advisor version; a repeat adds nothing, since advice can only add a hunk to the human route"
+  jig:CreationOutcome: 
+    - latest-wins record
+    - "keyed by author, measure and closed cohort; recomputed by rule from the shared record, so a resend replaces the cohort's value; a window with no record reads as silent, never as zero"
+  jig:ReviewerDrift: 
+    - latest-wins record
+    - "keyed by reviewer and window; recomputed by rule from review outcomes and the seeded catch counts Ratchet sends, so a resend replaces the window's value; a window with no record reads as silent, never as zero"
+  jig:LayerCatchRate: 
+    - latest-wins record
+    - "keyed by layer or rule and closed cohort; recomputed by rule from the layer log and the assigned catch layers, so a resend replaces the cohort's value; a window with no record reads as silent, never as zero"
+  shared:RoadEntry: 
+    - versioned artifact
+    - entry id plus version; released through the platform pipeline
+  shared:DerivedCheck: 
+    - versioned record
+    - "keyed by check id and version with the kept regression's test id and version it came from; a new regression version yields a new check version, never an edit in place"
+  shared:DroppedCheck: 
+    - append-only record
+    - "keyed by check id, version and time; a re-enabled check appends a new record"
+  shared:ProvenClass: 
+    - versioned record
+    - class id plus projection version; public semantic or closure-state changes increase it; membership changes while already open alone do not
+  shared:RoadAssuranceStatus: 
+    - versioned record
+    - "entry id plus version, projected from the road assurance record; superseded or withdrawn, never overwritten"
+  shared:FixBrief: 
+    - versioned record
+    - "keyed by finding id; a new reproduction or proof-condition version yields a new brief version, never an edit in place; how it was made is part of the record"
+  shared:CreationRule: 
+    - versioned artifact
+    - "rule id plus version, written only by the policy-owning team; a class test's result is a record of its own and never edits the rule"
+  shared:CatchLayer: 
+    - versioned record
+    - keyed by finding id; a reassignment appends a version with who assigned it and never overwrites the layer in force when a measure was reported
+  shared:ClassTestCount: 
+    - latest-wins record
+    - rule id plus rule version; only the current pass or fail is projected from the protected class-test result
+  shared:CreationLead: 
+    - at-least-once
+    - "keyed by tool, rule id (with rename mapping) and fingerprint; the tool signal intake normalizes each into a tool lead and deduplicates within the tool"
+  shared:ProvenanceStamp: 
+    - immutable artifact by content hash
+    - signed once per change and revision; a restamp is a new artifact and never replaces the stamp a review saw
+  shared:ReviewerSeedCatch: 
+    - latest-wins record
+    - "keyed by reviewer and window; recomputed by rule from review outcomes and the seed frame, so a resend replaces the window's value; a window with no record reads as silent, never as zero"
+  shared:SeededChange: 
+    - immutable artifact by content hash
+    - keyed by sandbox branch and revision; a reseed is a new branch and never replaces a change a reviewer has seen
+  shared:DerivedCheckMisses: 
+    - latest-wins record
+    - "keyed by check id, check version and window; recomputed by rule from replay results, so a resend replaces the window's value; a window with no record reads as silent, never as zero"
+  shared:ClassTestTotals: 
+    - versioned record
+    - "rule and class versions; delivered directly to the policy-owning team: people, never an agent, with no agent-readable copy"
+  shared:ChangeRecord: 
+    - at-least-once
+    - keyed by finding id plus change id
+  shared:GateFailurePosture: 
+    - signed artifact with expiry
+    - verified offline by the pipeline stage; an expired or untrusted posture falls back to the tier default it carries
+  shared:ToolLead: 
+    - at-least-once
+    - "keyed by tool, rule id (with rename mapping) and fingerprint; status updates append"
+  shared:DeliveryTelemetry: 
+    - at-least-once
+    - "keyed by tool gate, service and period"
+  shared:ChangeProvenance: 
+    - at-least-once
+    - "keyed by change id and revision; a later attestation verification appends, never overwrites; an unlabeled change is recorded as unlabeled and an unverifiable stamp as unverified"
+  shared:TrackerText: 
+    - at-least-once
+    - "keyed by item id and the time the text was written; an edited issue or comment appends a new record, and only the quarantined reader receives it"
+tool_metrics: 
+  lead_yield: "Share of sampled leads the loop demonstrates when tested, per tool, rule family and tool class. Untested leads are outside the sample and never count as false."
+  miss_rate: "Demonstrated paths inside a tool's declared scope that no lead from that tool pointed at, per tool class."
+  review_claim_contradictions: "Threat-model and review invariants contradicted by a demonstrated path, per review practice."
+  developer_queue_toil: "Leads reaching developer queues per service-month and triage hours per item, before and after the confidence bar."
+  delivery_impact_per_tool: "Side-quest metric. Direct: stage time and queue time attributable to each tool gate, deploys blocked or delayed by the tool, developer triage time per lead, all from pipeline timings and tracker data. Associated: DORA's five metrics (change lead time, deployment frequency, failed deployment recovery time, change fail rate, deployment rework rate) by tool configuration, reported as correlational, never causal, with the comparison set named. Only metrics the profile lists as collected."
+  held_lead_sample_outcomes: Demonstration rate among sampled held-back leads; a rise means the bar is too high.
+  typed_route_calibration: "Per typed route and decision type, on the organization's sampled ground truth: expected calibration error over ten equal-width probability bins, and its one-sided 90% upper confidence bound from a basic bootstrap over the labeled sample, which also removes the estimate's upward bias at small samples. A route qualifies for a decision type when the bound is at or under typed_route_max_calibration_error and it has at least the labels the dial register lists for that ceiling. Below that count the report says sample too small, the type stays on its declared fallback, and nothing is said about the model. Typed routes pay off where labels are cheap and plentiful, such as lead triage at high volume, and rarely where reproduced outcomes arrive a few dozen a quarter."
+  catch_layer_per_accepted_defect: "For each accepted finding, two layers (agent-edit, stop-gate, commit, push, pr, post-merge, external, or none): where it was caught, the earliest layer at which any lead pointed at it, supplied only by the leads' detection_layer; and where it should have been caught, assigned by the evaluation group, which is independent of the secure-creation loop and of the road owner, so neither grades its own layers. Reported per failure class and tool. The secure-creation loop logs each derived check it drops or disables, and evaluation reports each such drop against the catch layer of the later findings in that check's class."
+road_metrics: 
+  road_answer_share: Share of accepted findings whose failure class has at least one road entry with a verified (constraint-enforced) retirement claim.
+  adoption: "Share of in-scope services the road conformance check finds on-road, per entry, from deployed state."
+  escape_hatch_rate: "Escape-hatch uses per on-road service per month, per entry and per hatch; a rise under deadline pressure is read as drift (F27)."
+  reintroduction_on_vs_off_road: "Findings in a retired class per service-month, on-road versus off-road. A road entry whose on-road rate is not lower than off-road loses its retirement claim for that class."
+  findings_per_change_on_vs_off_road: "Accepted findings per merged change, on-road versus off-road, split by human-written and agent-generated changes where the organization can label authorship, and further by tool and model where change provenance carries them. Counted on the reproduced tier only (see record_tiers), with the check-confirmed tier beside it; unlabeled changes stay in the denominator as their own row. Reported per lagged cohort (see lagged_cohorts). This is the measurable form of 'engineers can build however they like on the road, and it matters less'."
+  record_tiers: "Every defect in the shared record carries one of two labeled tiers. Check-confirmed: a deterministic check confirmed it. Reproduced: Ratchet's independent verifier, or a person outside the authoring team, reproduced it against a proof condition. Shared measures count the reproduced tier; the check-confirmed tier is reported beside it and never merged into it, because the classes deterministic checks see best are the secure-creation loop's own targets."
+  self_validated_findings: "While any earned-autonomy grant is active, every measure that counts findings is reported twice: with the findings the system validated itself under a grant, and without them. A self-validated finding carries its label and grant id in the record, is never counted in the reproduced tier, and each grant's honesty and correctness records are reported beside the measures it touches."
+  lagged_cohorts: "Every defect-based measure (findings per change, reintroduction per retired class, catch layer) is reported only for cohorts of changes merged in a period whose reproduction window has closed; each report shows, beside the value, the count of candidate findings for that cohort still pending reproduction. A cohort inside its window is shown as pending, never as a value."
+  reviewer_approval_drift_on_agent_changes: "Reported per period. Approval rate per reviewer on agent-authored changes (an agent together with the person whose session produced the change) against that reviewer's trailing baseline and against the same reviewer's rate on human-written changes, with the accepted findings later traced to the changes each approved. The baseline includes seeded known-bad agent-written changes from the sampling and seeding service (s7.sampling-service), the same way it seeds known-bad proposals for approvers (seeded_proposal_rate, approval_gate_health). Seeds go only into sandbox branches the reviewer cannot tell apart from real ones, never onto the protected branch, so a seed approved by mistake can never merge. A seed's approval rate is the drift signal that does not wait for findings to be traced. Seed results are read pooled per change kind with a confidence interval, and per reviewer only once that reviewer's own interval is narrower than approver_drift_threshold_pp. A rise in approvals with no fall in traced findings, or a rise in seeds approved, opens a recalibration task; it is never a performance rating."
+  tailoring_return: "Scanner findings, triage time and analysis effort removed at covered-by-road call sites, against escapes found by testing the pre-registered sample of covered call sites (F36). A rising escape rate withdraws coverage for that entry and class."
+  vetted_version_share: Share of on-road call sites running an entry version with a current road assurance record; unvetted versions confer no coverage.
+  test_load_avoided: "Per-service regressions replaced by inherited road-level regressions, net of reinstatements; the program's testing-toil return on the road."
+program_metrics: 
+  security_test_time: "Security test time at every delivery stage, by service and stage: median, p95, sample size and share of stage runs strictly below delivery.security_test_time_target_minutes, using the shipped 10-minute target when the profile omits it. Report the effective target beside each result. Measure elapsed time spent running security checks, including parallel checks only once, and report queue time separately. A stage without collected timings reads not measured and remains visible."
+  handoffs_per_closed_loop: "Headline flow metric from phase 2. Handoffs per closed loop and queue time per handoff, against the profile ceiling per claim; over the ceiling, the next pull must remove a handoff."
+  ship_through_rate: "Ship-through acceptances per path, team and tier against a trailing baseline, shown beside the deploy-gate SLO; the renewal cap forces a posture review."
+  posture_review_triggers: "Posture reviews by trigger (renewal cap, failed post-recovery replay, interval) and outcome (raised, lowered, unchanged)."
+  approval_gate_health: "Approval latency, edit, approve and reject rates per approver and action class, with seeded known-bad proposals (default 1 in 50 approvals) as the denominator. Seeds are few at that rate, so their results are reported pooled per action class with a confidence interval; a per-approver seed figure is shown only once that approver's own interval is narrower than approver_drift_threshold_pp, and is labeled too few seeds to read until then."
+  reviewer_wip_and_queue_age: Open items and oldest item age per approver and verifier against their dial limits; dispatcher refusals by reason.
+  things_went_right: "First-run regression pass share, legitimate-function check pass share, false-failure rate, time to adapt a regression after a legitimate change; reported next to findings and closures."
+  regression_stage_time: Regression stage time per service as a trend against its budget; replays skipped because no declared dependency changed; regressions consolidated onto constraint-enforced classes or vetted road entries.
+  skipped_replay_misses: "Failures found later whose cause lies in a dependency a skipped replay did not declare (a transitive library, a framework default, configuration outside the declaration), per test and per kind of dependency; each one corrects that test's declaration."
+  attestation_load: Owner minutes and testing-team drafting hours per attestation.
+  value_per_line_of_business: "Cost paid, risk reduced on its assets and friction removed per line of business (s7.value-ledger), net of sampled escapes."
+  no_agent_arm: "Time, cost and outcome per seeded case for the agent arm and the scripted no-agent arm from phase 1; descriptive only until phase 3's pre-registered minimum; feeds the early stop rule."
+  loop_canary: "Scheduled end-to-end runs of the phase 1 seeded scenario against the live loop from phase 2: pass, or the first failing seam."
+  dial_turns: "Every dial turn with actor, evidence and, past a floor, the linked risk acceptance."
+  fix_capacity_saturation: "Per owning team: accepted findings open past the remediation window for their consequence tier (the profile's window for the highest tier the finding's path reaches, or its single window where that tier has none), median accepted-finding age trend, open accepted findings against the WIP cap, which is the team's fix cap (set by the team with security, or the program's default cap). On while age rises for the profile window with open findings at the cap; while on, new producers targeting the team are deferred and paved-road work is recommended."
+  fix_path_and_refusals: "Per owning team: validated findings that entered its queue with a complete fix path, findings waiting for one and for how long, the team's decision on each drafted fix (taken, edited, declined), the team's hours per accepted finding on the fix path against its hours per finding before (from the current-practice map), and refusals above its fix cap by reason and age, with reviews done and overdue against the review interval (monthly unless the organization sets another)."
+  approval_rate_drift: Approval-rate trend per approver and action class against a trailing baseline; drift past approver_drift_threshold_pp opens a rotation or recalibration task. Seeds measure gate health; they are not a vigilance control.
+  verification_hours_per_closure: "Intake, reproduction, disposition review and retest hours per accepted closure and per rejected candidate, per arm; a cost comparison without them is refused."
+  degradation_rung_time: "Share of runs and hours per rung of the degradation ladder (frontier, self-hosted, no-agent, manual), rung changes by cause, and work paused for lack of a rung."
+  fallback_drill_freshness: "Days since each fallback route last passed a failover drill, the drill comparison with the primary route, and routes marked stale."
+  clearing_gate_health: "Clearing outsider-labeled free text is an approval action class. Per clearer: open clearing requests against the approver WIP limit, the time from request to decision against the organization's objective, the clearing rate against a trailing baseline (drift past approver_drift_threshold_pp opens a recalibration task, as for approvals), and seeded requests carrying a planted instruction (sent at seeded_proposal_rate) that were cleared. Seeds measure gate health and screen clearers; finding what nobody flagged stays with the sampling frames."
+  human_gate_load: "Per role and week, reported beside the remediation measures: approvals, clearings, person-written fix briefs, fix-cap reviews co-signed and approvals above the consequence line, each with its open count and oldest age. Clearing volume grows with findings and leads while the number of people who clear stays the same, so a gate turning into a formality shows here first."
+  fix_brief_sources: "Per quarter: fix briefs derived by rule against briefs a person wrote, and derivations sent to a person because a labeled field (free-text steps, the target's output) was needed. A rising person-written share means the derived brief is too thin and the person-written fallback has become the common case."
+  label_coverage_mismatches: "Per quarter: items the learning store found at write or at retrieval whose recorded outsider labels did not cover the labels recomputed from their input ids, and derived fix briefs the builder refused for the same reason. Any mismatch means labels are being dropped between parts; the untagged-item share cannot show this."
+remediation_metrics: 
+  escape_rate: "Security weaknesses that reached production, per deployment (the denominator DORA's change fail rate uses), by weakness class, read against the organization's own starting point, naming the version of the frozen baseline it read (the freeze at phase 2 entry, or a later dated amendment). An escape is an accepted finding whose demonstrated path runs through the running system; one a kept or pipeline test stopped before it shipped is a catch. Numerator from the finding ledger (accepted findings found in production, by weakness class and path key); denominator from deploy records. The starting point comes from the historical findings and incidents gathered in the current-practice map, because phase 1 handles one weakness."
+  time_to_remediate: "An analogue of DORA's failed deployment recovery time for security: elapsed time from a reproduced finding to a fix verified in the running system, median and spread per weakness class and owning team. Start from the finding ledger (reproduction recorded), the waits in between from the tracker, and the end from deploy records and the closure record of the independent retest."
+  remediation_change_fail_rate: "DORA's change fail rate restricted to deployments of security fixes: the share that cause a failure in production (a rollback, hotfix, incident or failed replay). As discovery slows, remediation may become the main change stream and this may become the main source of new defects."
+  cost_per_validated_novel_finding: "Full cost (agent, model and runner spend plus verification hours) divided by validated findings that are novel, meaning no earlier record in the finding ledger has the same path key (weakness class plus the defined path the ledger records). A rising value with a flat novel count is the signal that discovery is reaching diminishing returns."
+  arrivals_vs_verified_fixes: "Per weakness class and period: validated findings arriving against verified fixes (independently retested and accepted). Arrivals above fixes for a sustained period is the backlog signal; the fix-capacity saturation signal reads the same queues per team."
+  validated_finding_queue_age: "Age of open validated findings, median and oldest, per weakness class and owning team, with the trend; the flow-time view of the remediation queue."
+  novel_vs_recurring_share: "Share of validated findings in a period that are novel against recurring (the same path key as an earlier finding in the finding ledger, or a class a road entry claims to retire). A rising recurring share points at class-level fixes; a falling novel share with steady cost points at saturation of discovery."
+  weakness_classes_retired: "Weakness classes retired per period (by a vetted road entry or a constraint-enforced closure), net of classes reinstated after an escape. Classes that new technology brings start a count of their own."
+  time_to_revoke: "For a finding of kind exposed secret, reported in place of time to remediate: elapsed time from detection to the first revocation check that records the old credential refused, median and spread per owning team, still running while the old credential authenticates. Removing the secret from code, history, logs or tickets does not stop it. From the SecretRevocation record and the closure record; an escape whose finding is an exposed secret reports it as its time to recover."
+  time_to_conform: "For a finding of kind infrastructure misconfiguration, reported in place of time to remediate: elapsed time from detection to the first read of the live configuration that matches the declared intent, median and spread per owning team, still running until a read matches. A merged or applied change to the infrastructure code does not stop it. From the ConformanceRead record; an escape whose finding is of this kind reports it as its time to recover."
+  kept_test_suite_health: "Kept regression tests per lane (blocking, scheduled) and status (active, quarantined, retired); quarantine count and oldest age against the organization's caps; re-proof results, with tests that no longer fail against their reverted fix and whether the verifier confirmed each, and tests not re-provable (the revert conflicts, or the copy no longer builds or starts) by fix age, which never count as no longer failing; retirements by covering check; blocking-lane stage time against the regression time budget."
+  team_time_lost_to_security_debt: "Owning-team time lost to security debt, the interest on that debt, reported beside the counts per owning team and period: the share of the team's engineering time it reports losing to open security findings and to the workarounds, rework and extra testing they cause, from a short periodic survey of the owning team at an interval the organization sets; beside it, what the flow ledger shows of the same team's time on security work (queue waits, hours on the fix path, reopened fixes and failed security fixes). The survey reading leads, because at scale engineers' own reports have proved more tractable than code metrics for measuring debt; the two sources are labeled and never merged. Where the organization surveys the same team's time lost to the rest of its quality debt (reliability, performance, operability and the rest), it is shown beside, since security debt is one share of quality debt and all of it draws on one engineering pool. Read against the team's open findings above its fix cap: findings validated beyond fix capacity that raise this measure without a fall in escapes add interest without reducing risk. No measure carries a target the edition set."
+  contributed_test_survival: "For a named contribution cohort and assessment window, contributed instance tests still enabled and passing at the assessed revision, configuration and scope divided by every contributed test in that cohort. Removed, skipped, failing and retired tests remain in the denominator. Unknown observations are listed separately with observation coverage, so a missing source is never counted as passing. Report numerator, denominator, cohort and window. An empty cohort reads not measured. No edition-set target."
+  instance_to_class_promotion: "For the same named contribution cohort, instance tests linked to an accepted security-owned class guardrail with passing independent class validation divided by all contributed instance tests in that cohort. Record class and guardrail versions and acceptance. Count each instance at most once and report distinct promoted classes separately. Retain retired instances in the cohort and list pending and unknown promotion evidence. An empty cohort reads not measured. No edition-set target."
+dora_metrics: 
+  - change_lead_time
+  - deployment_frequency
+  - failed_deployment_recovery_time
+  - change_fail_rate
+  - deployment_rework_rate
+dials: 
+  covered_sample_share: 
+    default: 0.1
+    bound: 0.05
+    safe: up
+    frame: covered-call-site
+  negative_challenge_sample_share: 
+    default: 0.1
+    bound: 0.05
+    safe: up
+    frame: negative-challenge
+  lead_sample_minimum_per_class: 
+    default: 50
+    bound: 30
+    safe: up
+    frame: lead-yield
+  held_lead_sample_share: 
+    default: 0.05
+    bound: 0.02
+    safe: up
+    frame: held-lead
+  seeded_proposal_rate: 
+    default: 0.02
+    bound: 0.01
+    safe: up
+    frame: seeded-proposal
+  ship_through_renewal_cap: 
+    default: 2
+    bound: 3
+    safe: down
+  approver_wip_limit: 
+    default: 15
+    bound: 30
+    safe: down
+  verifier_wip_limit: 
+    default: 10
+    bound: 20
+    safe: down
+  gate_queue_age_hours: 
+    default: 48
+    bound: 120
+    safe: down
+  handoffs_per_closed_loop_ceiling: 
+    default: 12
+    bound: null
+    safe: down
+  regression_time_budget_minutes: 
+    default: 10
+    bound: null
+    safe: down
+  confidence_bar_default: 
+    default: 0.3
+    bound: null
+    safe: up
+  posture_review_interval_months: 
+    default: 6
+    bound: 12
+    safe: down
+  early_stop_min_closed_cases: 
+    default: 5
+    bound: null
+    safe: down
+    owner: organization
+  approver_drift_threshold_pp: 
+    default: 10
+    bound: 20
+    safe: down
+  failover_drill_interval_days: 
+    default: 30
+    bound: 90
+    safe: down
+  typed_route_max_calibration_error: 
+    default: 0.05
+    bound: 0.1
+    safe: down
+    frame: typed-route-calibration
+    labels_needed: 
+      "0.05": 1000
+      "0.1": 250
+  posture_expiry_hours: 
+    default: 168
+    bound: 72
+    safe: up
+  window_bundle_lead_hours: 
+    default: 4
+    bound: 1
+    safe: up
+  window_bundle_max_hours: 
+    default: null
+    bound: null
+    safe: down
+  module_alignment_max_days: 
+    default: null
+    bound: null
+    safe: down
+  kept_test_quiet_days: 
+    default: null
+    bound: null
+    safe: up
+  kept_test_scheduled_lane_days: 
+    default: null
+    bound: null
+    safe: down
+  kept_test_quarantine_max: 
+    default: null
+    bound: null
+    safe: down
+  kept_test_quarantine_max_days: 
+    default: null
+    bound: null
+    safe: down
+  kept_test_reprove_days: 
+    default: null
+    bound: null
+    safe: down
+  negative_recheck_floor_above_line: 
+    default: null
+    bound: null
+    safe: up
+    frame: negative-challenge
+  in_tier_max_wait_days: 
+    default: null
+    bound: null
+    safe: down
+    frame: negative-challenge
+  approval_requests_per_approver_hour: 
+    default: null
+    bound: null
+    safe: down
+critical_paths: 
+  external: 
+    ext.identity-provider: 
+      availability: 0.9995
+      note: "assumed: enterprise identity provider; set in the profile's infrastructure_dependencies"
+  paths: 
+    approve-and-run: 
+      name: Approve and run one test
+      target_tier: T0
+      must_answer: 
+        - ext.identity-provider
+        - s3.approval-console
+        - s3.approval-service
+        - s3.policy-decision-point
+        - s1.live-precondition-resolver
+        - s3.grant-approval-store
+        - s3.credential-lease-broker
+        - s3.local-enforcement-point
+        - s3.bounded-runner
+        - s3.local-audit-buffer
+      co_deploy: 
+        control: 
+          - s3.approval-console
+          - s3.approval-service
+          - s3.policy-decision-point
+          - s1.live-precondition-resolver
+          - s3.grant-approval-store
+          - s3.credential-lease-broker
+        cell: 
+          - s3.local-enforcement-point
+          - s3.bounded-runner
+          - s3.local-audit-buffer
+      off_path: "Snapshot index (prefetched, r074), oracle references (cached, r095), postures (cached, and protected audit (drained from the local buffer) no longer gate a run."
+    record-and-verify: 
+      name: Record and verify evidence
+      target_tier: T1
+      must_answer: 
+        - s3.observation-receipt
+        - s5.evidence-intake-validator
+      off_path: "Verification, disposition and the ledger work from durable queues; the outbox holds each receipt until intake acknowledges it."
+    deploy-gate: 
+      name: "Regression gate in the deploy path, blocking mode"
+      target: deploy_gate
+      condition: "Given the owning pipeline reached the stage: its CI runner is up and the candidate is deployed to staging. The stage runs inside the CI job."
+      must_answer: 
+        - s3.local-enforcement-point
+        - s3.bounded-runner
+        - s3.local-audit-buffer
+        - s3.replay-verdict
+      co_deploy: 
+        cell: 
+          - s3.local-enforcement-point
+          - s3.bounded-runner
+          - s3.local-audit-buffer
+          - s3.replay-verdict
+      required_hops: 
+        - - s6.enterprise-adapters
+          - s6.retest-regression-planner
+          - the stage requests the replay
+        - - s6.enterprise-adapters
+          - s3.local-enforcement-point
+          - the stage presents the window bundle
+        - - s3.replay-verdict
+          - s6.enterprise-adapters
+          - the verdict returns to the stage
+      off_path: "The window bundle is minted at least window_bundle_lead_hours before the window; posture and tier defaults are held offline in the stage; the planner, lease broker, gate failure policy, protected audit and S5 intake are off the deploy-time path."
+ratchet_slos: 
+  approval_latency: 
+    objective: "95% of approval requests reach an approver's queue within 5 minutes"
+    on_call: control-plane operator
+  grant_success: 
+    objective: 99.5% of approved actions receive their grant on the first request
+    on_call: control-plane operator
+  intake_to_verified: 
+    objective: 90% of receipts verified or rejected within 2 business days
+    on_call: evaluation engineer
+  evidence_durability: 
+    objective: 100% of acknowledged evidence readable with an intact hash chain in each restore drill
+    on_call: control-plane operator
+  posture_freshness: 
+    objective: "99.9% of regression-stage runs hold current, signed outage instructions and replay-window permissions"
+    on_call: control-plane operator
+  injection_restore: 
+    objective: "100% of attack injections restored at or before their grant's expiry, including while the control plane is down"
+    on_call: platform operator
+  canary_freshness: 
+    objective: The loop canary passed within the last 24 hours; the dead-man alarm fires at 26 hours
+    on_call: platform operator
+  clearing_decision_time: 
+    objective: Clearing requests decided within the time the organization sets; the edition ships no default
+    on_call: evaluation engineer
+  fix_brief_age: 
+    objective: No reproduced finding waits for its fix brief longer than the gate queue-age limit; each one past it pages
+    on_call: evaluation engineer
+  fix_path_wait: 
+    objective: "No finding waits for a fix path the security side cannot complete longer than the gate queue-age limit without reaching the security risk owner's report"
+    on_call: evaluation engineer
+  revocation_unknown: 
+    objective: No exposed-secret revocation check stays unknown for more than one day; each one past it pages
+    on_call: control-plane operator
+operability: 
+  on_call: 
+    control_plane: control-plane operator
+    orchestration_and_cells: platform operator
+    evaluation: evaluation engineer
+  runbooks: "Every failure scenario has a runbook RB-<scenario id>, owned by the on-call role of its first part; the model check refuses a scenario without one."
+  game_days: Every game-day scenario runs at least twice a year; control-plane region loss and key compromise at least once a year.
+  change_freeze: "A burned error budget freezes Ratchet's own policy and software releases until the budget recovers or the security risk owner records an exception; product deploys are never frozen by Ratchet's budget. Two kinds of change still release during a freeze, each recorded with its direction and still through the deny-diff, the policy unit tests and the staged rollout: a change whose deny-diff newly allows nothing (a narrowed limit, a revoked policy, a removed allowlist entry) and a security fix to Ratchet's own parts."
+  postmortems: "Each of these triggers opens a postmortem, decided before any incident: an effect outside an approved scope or with no approval; a closure contradicted by a later confirmed escape on its path key; evidence lost or unreadable; one incident using more than 20% of an objective's error budget over its rolling window; the loop canary's dead-man alarm; a seeded proposal or seeded change that reached execution or merged; and a request from any role. The on-call role of the first failing part owns it. The review is blameless: it states contributing causes as conditions of the system, never as a person, and turns each action item into a design change, a profile change or a work unit with an owner. The security risk owner reads and signs each one, and an open postmortem stays on the status report until every action item has landed or been declined with a reason."
+tiers: 
+  T0: 
+    name: Control safety
+    intent: "Authorization, grants, credentials, audit and live prerequisite checks. Wrong answers are worse than no answer."
+    failure_mode: fail-closed
+    defaults: 
+      availability: "99.9% monthly (unavailability blocks actions, never permits them)"
+      rpo: 0 from acknowledgment (synchronous replication)
+      rto: 1 hour
+      consistency: linearizable for grant issue and consume; strongly consistent reads
+      durability: audit records replicated across 3 failure domains before acknowledgment
+      retention: 7 years for audit and grants (profile overrides per jurisdiction)
+  T1: 
+    name: Evidence integrity
+    intent: "Intake, verification, disposition, ledger, evidence and closure. Losing or altering evidence is the failure that matters."
+    failure_mode: queue-and-retry
+    defaults: 
+      availability: 99.5% monthly
+      rpo: 0 from acknowledgment for ledger and evidence stores (the outbox holds work until the ack)
+      rto: 4 hours
+      consistency: strong for ledger and closure writes; immutable once written
+      durability: object lock or WORM; 3 failure domains
+      retention: 7 years for accepted evidence and dispositions; rejected and unresolved kept as long as accepted
+  T2: 
+    name: Orchestration
+    intent: "Requests, workflow, dispatch, producers, context build and model access. Delays are acceptable; duplicate or phantom effects are not."
+    failure_mode: queue-and-retry
+    defaults: 
+      availability: 99.5% monthly
+      rpo: 5 minutes (workflow history is event-sourced)
+      rto: 4 hours
+      consistency: strong per workflow; at-least-once delivery with idempotency keys between services
+      durability: replicated across 2 failure domains
+      retention: 13 months for run records and model usage
+  T3: 
+    name: Best effort and analytics
+    intent: "Evaluation, telemetry, sampling and dashboards. Gaps reduce what can be claimed; they never change what can be done."
+    failure_mode: continue-without
+    defaults: 
+      availability: 99% monthly
+      rpo: 24 hours
+      rto: 2 business days
+      consistency: eventual
+      durability: "single region, daily backup"
+      retention: 25 months (two annual cycles for comparison)
+failure_modes: 
+  fail-closed: The request is denied or the action does not start. No effect occurs. Callers see an explicit denial.
+  queue-and-retry: Work waits durably and resumes on recovery. Nothing is lost; elapsed time grows.
+  mark-unknown: "Missing or stale data is labeled unknown, never current. Consumers that need it refuse to proceed."
+  degrade-to-manual: The step falls back to the recorded manual procedure for its fidelity rung.
+  continue-without: "The loop continues; the gap is recorded (telemetry, sampling). Never used for a control."
+  posture-from-policy: "Behavior when unavailable is the pre-decided, signed posture from s3.gate-failure-policy."

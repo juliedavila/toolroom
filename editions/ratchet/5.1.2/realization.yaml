@@ -1,0 +1,1228 @@
+# Ratchet edition 5.1.2. Generated; do not edit.
+version: 1
+planes: 
+  context: "Facts, intent, consequence and snapshots the reasoning side may read (S1)."
+  orchestration: "Requests, durable workflow, dispatch and producers (S2). Proposes; never executes."
+  model-access: "The single path to models, with data gates and route qualification (S4)."
+  control: "Exact-action authorization, grants, credentials, audit, gate failure policy, keys, privileged access, policy release and the model-boundary gates (S3 control zone)."
+  execution: Isolated cells where granted actions run (S3 execution zone).
+  evidence: "Intake, independent verification, disposition, ledger and evidence stores (S5, S6 closure)."
+  evaluation: "Cohorts, matched evaluation, promotion and cost telemetry (S7)."
+  road: "The shared platform paved road engineers build on (portal templates, base images, libraries, gateway policies, secure defaults)."
+  shared:integration: "Adapters to the organization's tracker, CI/CD, IAM, change management, SIEM, and external systems."
+elements: 
+  s1.context-service: 
+    plane: context
+    class: "Context API service (stateless, read-mostly)"
+    examples: 
+      - service on Kubernetes behind Envoy
+    swap_point: false
+    existing_tool_default: false
+  s1.source-adapters: 
+    plane: shared:integration
+    class: Connector and change-data-capture adapters
+    examples: 
+      - Debezium
+      - Apache Camel
+      - Airbyte
+    swap_point: true
+    swap_kind: free
+    existing_tool_default: false
+  s1.identity-validity-resolver: 
+    plane: context
+    class: Entity resolution service
+    examples: 
+      - Splink
+      - Zingg
+    swap_point: false
+    existing_tool_default: false
+  s1.context-compiler: 
+    plane: context
+    class: "Snapshot build job (deterministic, content-addressed output)"
+    examples: 
+      - Dagster
+      - Apache Airflow
+    swap_point: false
+    existing_tool_default: false
+  s1.live-precondition-resolver: 
+    plane: control
+    class: Low-latency fact recheck service with short-TTL cache
+    examples: 
+      - service plus Valkey
+    swap_point: false
+    existing_tool_default: false
+  s1.source-facts: 
+    plane: context
+    class: Provenance-carrying fact store (temporal relational or property graph)
+    examples: 
+      - PostgreSQL with temporal tables
+      - Apache AGE
+      - Neo4j Community
+    swap_point: false
+    existing_tool_default: false
+  s1.criterion-registry: 
+    plane: context
+    class: Versioned registry in source control with schema validation
+    examples: 
+      - Git with branch protection
+      - Apicurio Registry
+    swap_point: false
+    existing_tool_default: true
+  s1.normative-store: 
+    plane: context
+    class: Versioned policy and invariant repository
+    examples: 
+      - Git with branch protection
+      - Open Policy Agent bundles
+    swap_point: false
+    existing_tool_default: true
+  s1.snapshot-index: 
+    plane: context
+    class: Content-addressed artifact store
+    examples: 
+      - OCI registry via ORAS and Harbor
+      - MinIO
+    swap_point: false
+    existing_tool_default: false
+  s1.consequence-register: 
+    plane: context
+    class: Versioned relational register with attestation and expiry
+    examples: 
+      - PostgreSQL with temporal tables
+      - Backstage software catalog for ownership
+    swap_point: false
+    existing_tool_default: true
+  s1.tool-signal-intake: 
+    plane: shared:integration
+    class: Findings import and normalization pipeline (SARIF and vendor exports to a lead schema)
+    examples: 
+      - DefectDojo importers
+      - SARIF tooling
+      - Apache Camel
+    swap_point: true
+    swap_kind: requalify
+    existing_tool_default: true
+  s1.tool-lead-store: 
+    plane: context
+    class: "Relational lead store with provenance, separate from the fact store"
+    examples: 
+      - PostgreSQL
+      - DefectDojo as existing-tool rung
+    swap_point: false
+    existing_tool_default: true
+  s2.operator-interface: 
+    plane: orchestration
+    class: Intake and status UI or CLI
+    examples: 
+      - Backstage plugin
+    swap_point: false
+    existing_tool_default: true
+  s2.workflow-worker-app: 
+    plane: orchestration
+    class: Durable workflow workers
+    examples: 
+      - Temporal workers
+      - Cadence workers
+    swap_point: false
+    existing_tool_default: false
+  s2.request-dispatcher: 
+    plane: orchestration
+    class: Request API behind an API gateway
+    examples: 
+      - Envoy
+      - Apache APISIX
+    swap_point: false
+    existing_tool_default: false
+  s2.workflow-engine: 
+    plane: orchestration
+    class: "Durable workflow engine (event-sourced, replay-safe)"
+    examples: 
+      - Temporal
+      - Cadence
+      - Argo Workflows
+    swap_point: true
+    swap_kind: free
+    existing_tool_default: false
+  s2.approved-producers: 
+    plane: orchestration
+    class: Signed producer image registry
+    examples: 
+      - Harbor with Sigstore cosign
+    swap_point: false
+    existing_tool_default: false
+  s2.producer-adapters: 
+    plane: orchestration
+    class: "Producer adapter SDK (typed contracts in, proposals out)"
+    examples: 
+      - LangGraph
+      - AutoGen
+    swap_point: true
+    swap_kind: requalify
+    existing_tool_default: false
+  s2.hybrid-source-producer: 
+    plane: orchestration
+    class: Source-assisted analysis and harness producer
+    examples: 
+      - Semgrep CE
+      - libFuzzer via OSS-Fuzz tooling
+    swap_point: true
+    swap_kind: requalify
+    existing_tool_default: false
+  s2.runtime-assessment-producer: 
+    plane: orchestration
+    class: Runtime (black-box) application assessment producer
+    examples: 
+      - ZAP
+      - Nuclei
+    swap_point: true
+    swap_kind: requalify
+    existing_tool_default: true
+  s2.workflow-state-store: 
+    plane: orchestration
+    class: "Workflow persistence (relational, strongly consistent)"
+    examples: 
+      - PostgreSQL
+      - Cassandra as Temporal persistence
+    swap_point: false
+    existing_tool_default: false
+  s2.artifact-exchange: 
+    plane: orchestration
+    class: Scoped object storage with per-run prefixes and short-lived URLs
+    examples: 
+      - MinIO
+      - Ceph RGW
+    swap_point: false
+    existing_tool_default: false
+  s2.dispatch-queue: 
+    plane: orchestration
+    class: Message broker with transactional outbox
+    examples: 
+      - Apache Kafka with Debezium outbox
+      - RabbitMQ
+      - NATS JetStream
+    swap_point: true
+    swap_kind: free
+    existing_tool_default: false
+  s2.quarantined-lead-reader: 
+    plane: orchestration
+    class: "Quarantined, tool-less model worker (dual-LLM pattern) with schema-constrained output"
+    examples: 
+      - worker behind the AI gateway with no tool bindings
+      - Pydantic output validation
+    swap_point: false
+    existing_tool_default: false
+  s2.proof-condition-drafter: 
+    plane: orchestration
+    class: "Tool-less drafting model worker on its own route, output shown only to a person"
+    examples: 
+      - worker behind the AI gateway with no tool bindings and no shared memory store
+    swap_point: false
+    existing_tool_default: false
+  s2.typed-decision-worker: 
+    plane: orchestration
+    class: "Typed decision worker calling typed model routes through the AI gateway, with a declared fallback per decision type"
+    examples: 
+      - worker behind the AI gateway with typed-output routes
+      - scikit-learn classifier as the baseline arm
+    swap_point: true
+    swap_kind: requalify
+    existing_tool_default: false
+  s3.action-control-service: 
+    plane: control
+    class: Authorization front door (external authorization API)
+    examples: 
+      - Envoy ext_authz service
+    swap_point: false
+    existing_tool_default: false
+  s3.action-broker: 
+    plane: control
+    class: ActionSpec normalizer and broker
+    examples: 
+      - service behind Envoy
+    swap_point: false
+    existing_tool_default: false
+  s3.policy-decision-point: 
+    plane: control
+    class: Policy engine
+    examples: 
+      - Open Policy Agent
+      - Cedar
+      - Cerbos
+    swap_point: true
+    swap_kind: requalify
+    existing_tool_default: false
+  s3.approval-service: 
+    plane: control
+    class: Approval workflow bound to action hashes
+    examples: 
+      - approval workflow on Temporal
+      - Flowable
+    swap_point: false
+    existing_tool_default: true
+  s3.approval-console: 
+    plane: control
+    class: Approver UI outside producer networks and identities
+    examples: 
+      - Backstage plugin on a separate identity realm
+    swap_point: false
+    existing_tool_default: true
+  s3.grant-approval-store: 
+    plane: control
+    class: Strongly consistent grant store with atomic single-use consume
+    examples: 
+      - PostgreSQL serializable transactions
+      - etcd
+    swap_point: false
+    existing_tool_default: false
+  s3.protected-audit: 
+    plane: control
+    class: "Append-only, tamper-evident audit log"
+    examples: 
+      - Trillian
+      - immudb
+      - Kafka to object-locked storage
+    swap_point: false
+    existing_tool_default: true
+  s3.credential-lease-broker: 
+    plane: control
+    class: Secrets and workload identity broker issuing short-lived scoped credentials
+    examples: 
+      - OpenBao
+      - SPIFFE/SPIRE
+    swap_point: true
+    swap_kind: requalify
+    existing_tool_default: true
+  s3.gate-failure-policy: 
+    plane: control
+    class: Signed policy registry with offline-verifiable postures
+    examples: 
+      - Open Policy Agent bundles signed with cosign
+      - The Update Framework (TUF)
+    swap_point: false
+    existing_tool_default: false
+  s3.key-management: 
+    plane: control
+    class: HSM- or KMS-backed signing and key service with versioned key references
+    examples: 
+      - OpenBao transit engine
+      - "SoftHSM via PKCS#11"
+      - Sigstore cosign for artifacts
+    swap_point: true
+    swap_kind: requalify
+    existing_tool_default: true
+  s3.privileged-access-broker: 
+    plane: control
+    class: Just-in-time privileged access broker with dual control and session recording
+    examples: 
+      - Teleport Community Edition
+      - JumpServer
+    swap_point: true
+    swap_kind: requalify
+    existing_tool_default: true
+  s3.policy-release-pipeline: 
+    plane: control
+    class: "Policy-as-code pipeline with unit tests, deny-diff, staged rollout and expand-and-contract migrations"
+    examples: 
+      - Open Policy Agent test with Conftest
+      - Argo Rollouts
+      - Liquibase
+    swap_point: false
+    existing_tool_default: true
+  s3.local-enforcement-point: 
+    plane: execution
+    class: Local egress and action enforcement (sidecar or network policy)
+    examples: 
+      - Envoy sidecar
+      - Cilium network policy
+    swap_point: false
+    existing_tool_default: false
+  s3.bounded-runner: 
+    plane: execution
+    class: MicroVM or sandboxed runner
+    examples: 
+      - Firecracker
+      - gVisor
+      - Kata Containers
+    swap_point: true
+    swap_kind: requalify
+    existing_tool_default: false
+  s3.source-build-cell: 
+    plane: execution
+    class: Hermetic build sandbox with no runtime internet
+    examples: 
+      - BuildKit in Firecracker
+      - Bazel remote execution
+    swap_point: false
+    existing_tool_default: false
+  s3.staging-cell: 
+    plane: execution
+    class: "Isolated test environment whose targets under test run in a sandboxed runtime or behind a separate VM, cluster or account boundary"
+    examples: 
+      - Kata Containers runtime class
+      - gVisor runtime class
+      - separate cluster or cloud account per cell
+    swap_point: false
+    existing_tool_default: true
+  s3.production-cell: 
+    plane: execution
+    class: Change-managed production action profile (reversible actions only)
+    examples: 
+      - same runner class with production policy profile
+    swap_point: false
+    existing_tool_default: false
+  s3.observation-receipt: 
+    plane: execution
+    class: Signed execution receipt and attestation
+    examples: 
+      - in-toto attestations
+      - Sigstore
+    swap_point: false
+    existing_tool_default: false
+  s3.local-audit-buffer: 
+    plane: execution
+    class: Append-only local audit buffer with hash chain and forward shipping
+    examples: 
+      - Fluent Bit filesystem buffer
+      - Vector disk buffer
+    swap_point: false
+    existing_tool_default: false
+  s3.replay-verdict: 
+    plane: execution
+    class: Deterministic verdict check against registered expected-outcome hashes
+    examples: 
+      - in-toto verification
+      - Open Policy Agent evaluation
+    swap_point: false
+    existing_tool_default: false
+  s4.model-data-gateway: 
+    plane: model-access
+    class: AI gateway (single egress to models)
+    examples: 
+      - LiteLLM proxy
+      - Envoy AI Gateway
+    swap_point: true
+    swap_kind: free
+    existing_tool_default: true
+  s4.request-data-gate: 
+    plane: control
+    class: Outbound data classification and redaction filter
+    examples: 
+      - Microsoft Presidio
+      - Open Policy Agent
+    swap_point: false
+    existing_tool_default: false
+  s4.route-budget-broker: 
+    plane: model-access
+    class: "Route, fallback and budget broker"
+    examples: 
+      - LiteLLM router and budgets
+    swap_point: false
+    existing_tool_default: false
+  s4.response-proposal-gate: 
+    plane: control
+    class: Response schema validator (output treated as untrusted data)
+    examples: 
+      - JSON Schema validation with Ajv
+      - Guardrails AI
+    swap_point: false
+    existing_tool_default: false
+  s4.qualification-route-registry: 
+    plane: model-access
+    class: Versioned route and model registry with an attestation check before each pin
+    examples: 
+      - MLflow model registry
+      - Git-backed registry
+      - Sigstore cosign for the attestation check
+    swap_point: false
+    existing_tool_default: false
+  s4.inference-endpoints: 
+    plane: model-access
+    class: Model serving (self-hosted open-weight or hosted)
+    examples: 
+      - vLLM
+      - Text Generation Inference
+      - Ollama
+    swap_point: true
+    swap_kind: requalify
+    existing_tool_default: true
+  s4.route-usage-receipts: 
+    plane: model-access
+    class: Usage telemetry store
+    examples: 
+      - OpenTelemetry into ClickHouse
+    swap_point: false
+    existing_tool_default: false
+  s5.proof-evidence-service: 
+    plane: evidence
+    class: Evidence API service (sole writer to evidence stores)
+    examples: 
+      - service on Kubernetes
+    swap_point: false
+    existing_tool_default: false
+  s5.evidence-intake-validator: 
+    plane: evidence
+    class: Schema and provenance validator
+    examples: 
+      - JSON Schema
+      - in-toto verification
+    swap_point: false
+    existing_tool_default: false
+  s5.exposed-secret-intake: 
+    plane: evidence
+    class: Deterministic redaction and fingerprinting service with a sealing client
+    examples: 
+      - "a secret scanner's own redaction"
+      - OpenBao transit engine
+    swap_point: false
+    existing_tool_default: false
+  s5.independent-verifier: 
+    plane: evidence
+    class: Independent reproduction harness on its own credential path
+    examples: 
+      - workflow on Temporal running pytest or Go test harnesses
+    swap_point: false
+    existing_tool_default: false
+  s5.repair-checks: 
+    plane: evidence
+    class: CI test execution against unmodified harness
+    examples: 
+      - Tekton
+      - Jenkins
+    swap_point: false
+    existing_tool_default: true
+  s5.disposition-review: 
+    plane: evidence
+    class: Disposition workflow with attribution and expiry
+    examples: 
+      - workflow on Temporal with review UI
+    swap_point: false
+    existing_tool_default: true
+  s5.review-console: 
+    plane: evidence
+    class: Reviewer UI outside producer identities
+    examples: 
+      - Backstage plugin on a separate identity realm
+      - DefectDojo
+    swap_point: false
+    existing_tool_default: true
+  s5.fixture-oracle-registry: 
+    plane: evidence
+    class: Restricted repository plus secret store for hidden assertions
+    examples: 
+      - Git with branch protection
+      - OpenBao
+    swap_point: false
+    existing_tool_default: false
+  s5.protected-evidence-store: 
+    plane: evidence
+    class: "Immutable object store (object lock, write-once)"
+    examples: 
+      - MinIO object locking
+      - Ceph RGW object lock
+    swap_point: false
+    existing_tool_default: false
+  s5.finding-ledger: 
+    plane: evidence
+    class: Relational append-only ledger
+    examples: 
+      - PostgreSQL append-only tables
+      - DefectDojo as existing-tool rung
+    swap_point: false
+    existing_tool_default: true
+  s5.path-impact-graph: 
+    plane: evidence
+    class: Graph store of demonstrated paths to assets
+    examples: 
+      - Apache AGE on PostgreSQL
+      - Neo4j Community
+      - JanusGraph
+    swap_point: false
+    existing_tool_default: false
+  s5.failure-class-registry: 
+    plane: evidence
+    class: Relational class registry linked to the ledger (append-only versions)
+    examples: 
+      - PostgreSQL
+      - DefectDojo finding groups as existing-tool rung
+    swap_point: false
+    existing_tool_default: false
+  s5.fix-brief-builder: 
+    plane: evidence
+    class: "Rule-based brief generator over the proof-condition and reproduction records, with a form for person-written briefs"
+    examples: 
+      - workflow on Temporal with templates
+      - "the tracker's issue form under the evidence identity"
+    swap_point: false
+    existing_tool_default: false
+  s5.learning-store: 
+    plane: evidence
+    class: "Relational append-only store of learned items with provenance, read through a rule-based retrieval check"
+    examples: 
+      - PostgreSQL append-only tables
+      - Open Policy Agent for the retrieval rule
+    swap_point: false
+    existing_tool_default: false
+  s6.release-state-correlator: 
+    plane: evidence
+    class: Build and deploy provenance correlator
+    examples: 
+      - GUAC
+      - SLSA provenance with in-toto
+    swap_point: false
+    existing_tool_default: false
+  s6.change-closure-records: 
+    plane: evidence
+    class: Relational closure records (append-only)
+    examples: 
+      - PostgreSQL
+    swap_point: false
+    existing_tool_default: true
+  s6.retest-regression-planner: 
+    plane: evidence
+    class: Scheduler on the durable workflow engine
+    examples: 
+      - Temporal schedules
+    swap_point: false
+    existing_tool_default: false
+  s6.regression-catalog: 
+    plane: evidence
+    class: Test repository plus catalog index
+    examples: 
+      - Git repository per service
+      - Backstage catalog
+    swap_point: false
+    existing_tool_default: true
+  s6.fix-cap-refusal-log: 
+    plane: evidence
+    class: "Append-only refusal records with a review field, often a tracker label and saved view at first"
+    examples: 
+      - PostgreSQL append-only table
+      - DefectDojo or the issue tracker as existing-tool rung
+    swap_point: false
+    existing_tool_default: true
+  s6.fix-cap-gate: 
+    plane: control
+    class: "Rule-based admission check over the findings pipeline, reading signed cap values and the consequence line"
+    examples: 
+      - Open Policy Agent
+      - "a policy rule in the tracker's automation run under the control-zone identity"
+    swap_point: true
+    swap_kind: free
+    existing_tool_default: false
+  s6.hardening-service: 
+    plane: shared:integration
+    class: "Fix-path drafting through the organization's PR and review workflow"
+    examples: 
+      - Forgejo
+      - Gitea
+    swap_point: false
+    existing_tool_default: true
+  s6.owner-change-connector: 
+    plane: shared:integration
+    class: Tracker and SCM connector
+    examples: 
+      - Apache Camel
+      - custom webhook service
+    swap_point: true
+    swap_kind: free
+    existing_tool_default: true
+  s6.enterprise-adapters: 
+    plane: shared:integration
+    class: "Adapter set for tracker, CI/CD, IAM, change management and SIEM"
+    examples: 
+      - Apache Camel
+      - CloudEvents adapters
+    swap_point: true
+    swap_kind: free
+    existing_tool_default: true
+  s6.developer-queue-filter: 
+    plane: shared:integration
+    class: Rule-based routing policy over the findings pipeline
+    examples: 
+      - Open Policy Agent
+      - DefectDojo SLA and push rules
+    swap_point: true
+    swap_kind: free
+    existing_tool_default: false
+  s6.paved-road-catalog: 
+    plane: road
+    class: Developer portal software catalog with templates and scorecards
+    examples: 
+      - Backstage software templates and Tech Insights
+      - Chainguard-style minimal base images
+      - Envoy Gateway policies
+    swap_point: true
+    swap_kind: free
+    existing_tool_default: true
+  s6.road-conformance-check: 
+    plane: road
+    class: Policy-as-code conformance over deployed state and SBOMs
+    examples: 
+      - Kyverno
+      - Conftest with Open Policy Agent
+      - Syft SBOMs
+    swap_point: true
+    swap_kind: requalify
+    existing_tool_default: false
+  s5.road-assurance-record: 
+    plane: evidence
+    class: "Versioned, signed assurance record per road entry version"
+    examples: 
+      - in-toto attestations with Sigstore
+      - PostgreSQL append-only table
+    swap_point: false
+    existing_tool_default: false
+  s7.evaluation-operations: 
+    plane: evaluation
+    class: Evaluation operations service
+    examples: 
+      - service on Kubernetes
+    swap_point: false
+    existing_tool_default: false
+  s7.snapshot-cohort-manager: 
+    plane: evaluation
+    class: Versioned dataset and cohort manager
+    examples: 
+      - lakeFS
+      - DVC
+    swap_point: false
+    existing_tool_default: false
+  s7.matched-evaluation-executor: 
+    plane: evaluation
+    class: Evaluation harness with repeats and intervals
+    examples: 
+      - Inspect
+      - promptfoo
+    swap_point: true
+    swap_kind: requalify
+    existing_tool_default: false
+  s7.dial-register: 
+    plane: control
+    class: Versioned settings register with signed changes and an approval workflow
+    examples: 
+      - Git with branch protection and signed commits
+      - Open Policy Agent bundles
+    swap_point: false
+    existing_tool_default: true
+  s7.sampling-service: 
+    plane: evaluation
+    class: "Sampling and seeding job with pre-registered frames (seeded draws, frozen manifests)"
+    examples: 
+      - Dagster
+      - Apache Airflow
+    swap_point: false
+    existing_tool_default: false
+  s7.failover-drill: 
+    plane: evaluation
+    class: Scheduled drill job that replays seeded cases on the fallback route and files the comparison for promotion review
+    examples: 
+      - Apache Airflow
+      - Dagster
+    swap_point: false
+    existing_tool_default: false
+  s7.reliability-monitor: 
+    plane: evaluation
+    class: Service-level objective and error-budget monitor with an external dead-man alarm
+    examples: 
+      - Prometheus with Sloth
+      - Alertmanager
+      - Healthchecks.io self-hosted
+    swap_point: false
+    existing_tool_default: true
+  s7.value-ledger: 
+    plane: evaluation
+    class: Analytical store and report per line of business
+    examples: 
+      - PostgreSQL
+      - DuckDB
+      - Apache Superset
+    swap_point: false
+    existing_tool_default: false
+  s7.promotion-review: 
+    plane: evaluation
+    class: Promotion decision workflow (separate authority)
+    examples: 
+      - approval workflow on Temporal
+    swap_point: false
+    existing_tool_default: true
+  s7.evaluation-artifacts: 
+    plane: evaluation
+    class: Experiment and artifact store
+    examples: 
+      - MLflow tracking
+      - MinIO
+    swap_point: false
+    existing_tool_default: false
+  s7.qualification-assurance-record: 
+    plane: evaluation
+    class: Relational append-only assurance record
+    examples: 
+      - PostgreSQL
+    swap_point: false
+    existing_tool_default: false
+  s7.flow-cost-telemetry: 
+    plane: evaluation
+    class: Flow and cost metrics store
+    examples: 
+      - Apache DevLake
+      - OpenTelemetry into ClickHouse
+    swap_point: false
+    existing_tool_default: true
+  s7.road-adoption-telemetry: 
+    plane: evaluation
+    class: Adoption and outcome metrics over the flow store
+    examples: 
+      - Apache DevLake
+      - Backstage scorecards export
+    swap_point: false
+    existing_tool_default: false
+  s7.assurance-incident-integration: 
+    plane: shared:integration
+    class: SIEM and case-management integration
+    examples: 
+      - TheHive
+      - Shuffle
+    swap_point: true
+    swap_kind: free
+    existing_tool_default: true
+  s7.tool-yield-evaluator: 
+    plane: evaluation
+    class: Sampling and estimation job over the lead store and path graph
+    examples: 
+      - Dagster job with DuckDB
+      - Jupyter for review
+    swap_point: false
+    existing_tool_default: false
+  s7.tool-delivery-impact: 
+    plane: evaluation
+    class: Delivery metrics job over pipeline and tracker data
+    examples: 
+      - Apache DevLake DORA metrics
+      - Four Keys
+      - OpenTelemetry CI/CD spans
+    swap_point: false
+    existing_tool_default: true
+  s7.tool-portfolio-decisions: 
+    plane: evaluation
+    class: Versioned decision register with attestation
+    examples: 
+      - Git with branch protection
+      - PostgreSQL
+    swap_point: false
+    existing_tool_default: true
+  ext.estate: 
+    plane: shared:integration
+    class: "The organization's systems under validation"
+    examples: 
+      []
+    swap_point: false
+    existing_tool_default: true
+  ext.soc-incident-response: 
+    plane: shared:integration
+    class: "The organization's SOC, SIEM and incident response"
+    examples: 
+      - Wazuh
+      - OpenSearch Security Analytics
+    swap_point: false
+    existing_tool_default: true
+  ext.hosted-frontier-endpoint: 
+    plane: model-access
+    class: Third-party hosted model API
+    examples: 
+      []
+    swap_point: true
+    swap_kind: requalify
+    existing_tool_default: true
+  ext.threat-intelligence: 
+    plane: shared:integration
+    class: Threat intelligence platform and exploitation feeds
+    examples: 
+      - MISP
+      - OpenCTI
+    swap_point: true
+    swap_kind: free
+    existing_tool_default: true
+  ext.known-exploited-catalog: 
+    plane: shared:integration
+    class: "A public known exploited vulnerabilities catalog, fetched as structured data"
+    examples: 
+      - CISA Known Exploited Vulnerabilities Catalog
+    swap_point: true
+    swap_kind: free
+    existing_tool_default: true
+  ext.appsec-tooling: 
+    plane: shared:integration
+    class: "The organization's existing AppSec scanners and external finding sources"
+    examples: 
+      - Semgrep
+      - CodeQL
+      - OWASP ZAP
+    swap_point: true
+    swap_kind: requalify
+    existing_tool_default: true
+  ext.security-review-practice: 
+    plane: shared:integration
+    class: "The organization's threat-modeling and security review records"
+    examples: 
+      - OWASP Threat Dragon
+      - pytm
+    swap_point: false
+    existing_tool_default: true
+  people.accountable-authorities: 
+    plane: shared:integration
+    class: Identity-provider role
+    examples: 
+      - Keycloak groups
+    swap_point: false
+    existing_tool_default: true
+  people.engineering-owners: 
+    plane: shared:integration
+    class: Identity-provider role
+    examples: 
+      - Keycloak groups
+    swap_point: false
+    existing_tool_default: true
+  people.independent-security-staff: 
+    plane: shared:integration
+    class: Identity-provider role (separate from producer identities)
+    examples: 
+      - Keycloak groups
+    swap_point: false
+    existing_tool_default: true
+  people.risk-board-reporting: 
+    plane: shared:integration
+    class: Identity-provider role
+    examples: 
+      - Keycloak groups
+    swap_point: false
+    existing_tool_default: true
+  people.risk-acceptance-owner: 
+    plane: shared:integration
+    class: Identity-provider role
+    examples: 
+      - Keycloak groups
+    swap_point: false
+    existing_tool_default: true
+  people.line-of-business-owner: 
+    plane: shared:integration
+    class: Identity-provider role mapped from the line-of-business hierarchy
+    examples: 
+      - Keycloak groups
+    swap_point: false
+    existing_tool_default: true
+  people.security-risk-owner: 
+    plane: shared:integration
+    class: Identity-provider role (separate from producer and proposer identities)
+    examples: 
+      - Keycloak groups
+    swap_point: false
+    existing_tool_default: true
+  people.control-plane-operator: 
+    plane: shared:integration
+    class: "Identity-provider role in the assurance unit (separate from producer, platform-operator and verifier identities)"
+    examples: 
+      - Keycloak groups
+    swap_point: false
+    existing_tool_default: true
+  people.scenario-owner: 
+    plane: shared:integration
+    class: Identity-provider role allowed to sign proof conditions (separate from test-drafting identities)
+    examples: 
+      - Keycloak groups
+    swap_point: false
+    existing_tool_default: true
+  people.purple-team: 
+    plane: shared:integration
+    class: Identity-provider role (separate from verifier and risk-owner identities)
+    examples: 
+      - Keycloak groups
+    swap_point: false
+    existing_tool_default: true
+  people.held-out-assessors: 
+    plane: shared:integration
+    class: "Identity-provider role outside the program (separate from producer, verifier and control-plane operator identities)"
+    examples: 
+      - Keycloak groups
+    swap_point: false
+    existing_tool_default: true
+  s6.team-regression-suite: 
+    plane: shared:integration
+    class: Existing owning-team repository and CI suite
+    examples: 
+      - The owning team repository and CI runner
+    swap_point: false
+    existing_tool_default: true
+  s6.kept-test-mirror: 
+    plane: evidence
+    class: Append-only read-only inventory of test sources and run observations
+    examples: 
+      - Security-owned metadata index with read-only source credentials
+    swap_point: false
+    existing_tool_default: true
+  jig:secure-creation: 
+    plane: shared:integration
+    class: "The organization's secure-creation loop for developers and coding agents (agent edit hooks, Stop gate, commit, push and pull-request checks)"
+    examples: 
+      - pre-commit
+      - Semgrep
+      - in-toto attestations
+    swap_point: true
+    swap_kind: free
+    existing_tool_default: true
+  jig:context-plane: 
+    plane: shared:integration
+    class: "Paved-road references, skills and instruction files under code ownership, validated in CI"
+    examples: 
+      - CODEOWNERS
+      - Backstage TechDocs
+    swap_point: false
+    existing_tool_default: true
+  jig:check-suite: 
+    plane: shared:integration
+    class: "One versioned policy source compiled into harness configuration, git hooks and required checks"
+    examples: 
+      - pre-commit
+      - Semgrep
+      - Gitleaks
+    swap_point: true
+    swap_kind: requalify
+    existing_tool_default: true
+  jig:inner-loop: 
+    plane: shared:integration
+    class: "The developer's coding session with its agent harness"
+    examples: 
+      []
+    swap_point: false
+    existing_tool_default: true
+  jig:coding-agent: 
+    plane: shared:integration
+    class: Coding agent session in an approved harness
+    examples: 
+      []
+    swap_point: true
+    swap_kind: requalify
+    existing_tool_default: true
+  jig:harness-full-parity: 
+    plane: shared:integration
+    class: "Coding harness with locked managed policy, blocking hooks, stop gate, telemetry export and version pinning"
+    examples: 
+      []
+    swap_point: true
+    swap_kind: requalify
+    existing_tool_default: true
+  jig:harness-no-pinning: 
+    plane: shared:integration
+    class: "Coding harness with locked requirements, hooks and stop gate, partial telemetry and no version pinning"
+    examples: 
+      []
+    swap_point: true
+    swap_kind: requalify
+    existing_tool_default: true
+  jig:harness-no-stop-gate: 
+    plane: shared:integration
+    class: Coding harness with blocking hooks and no stop gate or telemetry export
+    examples: 
+      []
+    swap_point: true
+    swap_kind: requalify
+    existing_tool_default: true
+  jig:edit-checks: 
+    plane: shared:integration
+    class: "Fast deterministic checks invoked by the harness's edit hooks"
+    examples: 
+      - Semgrep
+      - Ruff
+      - ESLint
+    swap_point: true
+    swap_kind: requalify
+    existing_tool_default: true
+  jig:stop-gate: 
+    plane: shared:integration
+    class: "Harness stop hook that runs the deterministic suite on the turn's diff"
+    examples: 
+      []
+    swap_point: false
+    existing_tool_default: true
+  jig:quarantined-reader: 
+    plane: shared:integration
+    class: Tool-less model session with a fixed output schema per question
+    examples: 
+      []
+    swap_point: true
+    swap_kind: requalify
+    existing_tool_default: false
+  jig:reader-schema-gate: 
+    plane: shared:integration
+    class: Schema validator with no model call
+    examples: 
+      - JSON Schema validator
+      - Ajv
+    swap_point: true
+    swap_kind: free
+    existing_tool_default: false
+  jig:model-routes: 
+    plane: shared:integration
+    class: Approved hosted or local model endpoints for coding tools
+    examples: 
+      []
+    swap_point: true
+    swap_kind: requalify
+    existing_tool_default: true
+  jig:reader-model-route: 
+    plane: shared:integration
+    class: "A separate model endpoint, credentials and sessions for reading outside text"
+    examples: 
+      []
+    swap_point: true
+    swap_kind: requalify
+    existing_tool_default: true
+  jig:repository: 
+    plane: shared:integration
+    class: "Source control with protected branches, and a dependency mirror"
+    examples: 
+      - Gitea
+      - Forgejo
+      - Sonatype Nexus Repository
+    swap_point: false
+    existing_tool_default: true
+  jig:change-boundary: 
+    plane: shared:integration
+    class: "Commit, push and merge controls in source control"
+    examples: 
+      []
+    swap_point: false
+    existing_tool_default: true
+  jig:precommit-gate: 
+    plane: shared:integration
+    class: Pre-commit hook runner on a hook path locked by endpoint management
+    examples: 
+      - pre-commit
+      - Lefthook
+    swap_point: true
+    swap_kind: free
+    existing_tool_default: true
+  jig:provenance-stamper: 
+    plane: shared:integration
+    class: Signed commit trailer or attestation from session telemetry
+    examples: 
+      - in-toto attestations
+      - Sigstore gitsign
+    swap_point: true
+    swap_kind: free
+    existing_tool_default: true
+  jig:protected-branch: 
+    plane: shared:integration
+    class: Branch protection with server-side required checks and required independent review
+    examples: 
+      - Gitea branch protection
+      - Forgejo Actions
+    swap_point: false
+    existing_tool_default: true
+  jig:pr-plane: 
+    plane: shared:integration
+    class: Pull-request checks and review routing
+    examples: 
+      []
+    swap_point: false
+    existing_tool_default: true
+  jig:pr-analysis: 
+    plane: shared:integration
+    class: Diff-scoped data-flow static analysis
+    examples: 
+      - CodeQL
+      - Semgrep
+    swap_point: true
+    swap_kind: requalify
+    existing_tool_default: true
+  jig:pr-triage: 
+    plane: shared:integration
+    class: "Model triage of static-analysis findings, as labels"
+    examples: 
+      []
+    swap_point: true
+    swap_kind: requalify
+    existing_tool_default: true
+  jig:ai-reviewer: 
+    plane: shared:integration
+    class: Model code review from a second model family
+    examples: 
+      []
+    swap_point: true
+    swap_kind: requalify
+    existing_tool_default: true
+  jig:hunk-router: 
+    plane: shared:integration
+    class: "Rule-based review routing by path, owner and rule match"
+    examples: 
+      - CODEOWNERS
+      - Danger JS
+    swap_point: true
+    swap_kind: free
+    existing_tool_default: true
+  jig:hunk-risk-advisor: 
+    plane: shared:integration
+    class: "Model that flags hunks for human review, add-only"
+    examples: 
+      []
+    swap_point: true
+    swap_kind: requalify
+    existing_tool_default: false
+  jig:autofix: 
+    plane: shared:integration
+    class: Model patch suggestions validated by the suite before they are shown
+    examples: 
+      []
+    swap_point: true
+    swap_kind: requalify
+    existing_tool_default: true
+  jig:measurement-plane: 
+    plane: shared:integration
+    class: Layer log and outcome reporting over the shared record
+    examples: 
+      - Apache Superset
+      - Metabase
+    swap_point: true
+    swap_kind: free
+    existing_tool_default: false
+  jig:outside-text: 
+    plane: shared:integration
+    class: "Public web content, issue threads and dependency documentation"
+    examples: 
+      []
+    swap_point: false
+    existing_tool_default: true
+  jig:people.creation-developer: 
+    plane: shared:integration
+    class: Identity-provider role
+    examples: 
+      - Keycloak groups
+    swap_point: false
+    existing_tool_default: true
+  jig:people.change-reviewer: 
+    plane: shared:integration
+    class: "Identity-provider role (separate from the authoring developer's identity for each change)"
+    examples: 
+      - Keycloak groups
+    swap_point: false
+    existing_tool_default: true
+  jig:people.high-risk-reviewer: 
+    plane: shared:integration
+    class: "Identity-provider role outside the authoring team, qualified per area"
+    examples: 
+      - Keycloak groups
+    swap_point: false
+    existing_tool_default: true
+  jig:people.creation-policy-owner: 
+    plane: shared:integration
+    class: Identity-provider role
+    examples: 
+      - Keycloak groups
+    swap_point: false
+    existing_tool_default: true
+  shared:ext.engineering-workflows: 
+    plane: shared:integration
+    class: "The organization's tracker, SCM, CI/CD and change management"
+    examples: 
+      []
+    swap_point: false
+    existing_tool_default: true
