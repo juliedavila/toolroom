@@ -11,23 +11,29 @@ Each edition is a folder of Markdown, YAML and runnable checks. The folder is ge
 
 | Design | Edition | Folder | Notes |
 |---|---|---|---|
-| Ratchet | 5.1.2 | [`editions/ratchet/5.1.2`](editions/ratchet/5.1.2) | Pins Jig 0.1.3 by the SHA-256 of its `edition.yaml` |
-| Jig | 0.1.3 | [`editions/jig/0.1.3`](editions/jig/0.1.3) | Pins nothing, so it ships first |
+| Ratchet | 5.1.3 | [`editions/ratchet/5.1.3`](editions/ratchet/5.1.3) | Current. Pins Jig 0.2.0 by the SHA-256 of its `edition.yaml` |
+| Jig | 0.2.0 | [`editions/jig/0.2.0`](editions/jig/0.2.0) | Current. Pins nothing, so it ships first |
+| Ratchet | 5.1.2 | [`editions/ratchet/5.1.2`](editions/ratchet/5.1.2) | Earlier edition, kept as released. Pins Jig 0.1.3 |
+| Jig | 0.1.3 | [`editions/jig/0.1.3`](editions/jig/0.1.3) | Earlier edition, kept as released |
 
-Both editions carry the same shared layer (0.1.1, `seams.yaml`), which defines what may cross between the two designs.
+The current editions carry the same shared layer (0.1.2, `seams.yaml`), which defines what may cross between the two designs.
 
 ## Where to start reading
 
-- An executive deciding whether to fund a first phase: [`strategy-brief.md`](editions/ratchet/5.1.2/strategy-brief.md), then [`six-pager.md`](editions/ratchet/5.1.2/six-pager.md).
-- Anyone else: [`00-start-here.md`](editions/ratchet/5.1.2/00-start-here.md), which says which file each kind of reader should open first.
-- Jig: [`README.md`](editions/jig/0.1.3/README.md) in its folder.
+- An executive deciding whether to fund a first phase: [`strategy-brief.md`](editions/ratchet/5.1.3/strategy-brief.md), then [`six-pager.md`](editions/ratchet/5.1.3/six-pager.md).
+- Anyone else: [`00-start-here.md`](editions/ratchet/5.1.3/00-start-here.md), which says which file each kind of reader should open first.
+- Jig: [`README.md`](editions/jig/0.2.0/README.md) in its folder.
+
+## Adopt a design with your own agent
+
+Each current edition ships an adopter skill for an organization's AI coding agent: [`SKILL.md`](editions/ratchet/5.1.3/SKILL.md) for Ratchet and [`SKILL.md`](editions/jig/0.2.0/SKILL.md) for Jig. Point the agent at the skill and it sets up a workspace, seeds the design from what the organization already has, and keeps the organization's changes in its own files beside the read-only edition. One workspace holds both designs.
 
 ## Verify an edition
 
 `edition.yaml` lists every other file in its folder with a SHA-256, and a digest over that list. Ratchet's edition also ships its checking tools, which run on [Bun](https://bun.sh) with no npm packages:
 
 ```sh
-cd editions/ratchet/5.1.2
+cd editions/ratchet/5.1.3
 bun ratchet-tools-verify.ts
 ```
 
@@ -38,10 +44,10 @@ The verifier checks the manifest, then runs every bundled tool against the editi
 [Plumb](https://github.com/juliedavila/plumb) tracks a system as designed against the system as built. Each edition here ships the files Plumb reads (its `plumb/` folder), so you can add a design to a Plumb workspace directly:
 
 ```sh
-plumb design add ratchet@5.1.2 --from github:juliedavila/toolroom --with-pins
+plumb design add ratchet@5.1.3 --from github:juliedavila/toolroom --with-pins
 ```
 
-Plumb fetches the edition at the tag `ratchet-v5.1.2`, checks every file against the manifest, and with `--with-pins` adds Jig 0.1.3 from the tag `jig-v0.1.3`. From a local clone, pass the clone's path to `--from` instead.
+Plumb fetches the edition at the tag `ratchet-v5.1.3`, checks every file against the manifest, and with `--with-pins` adds Jig 0.2.0 from the tag `jig-v0.2.0`. From a local clone, pass the clone's path to `--from` instead.
 
 ## What the hashes prove
 
