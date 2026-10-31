@@ -1,0 +1,246 @@
+phases:
+  - id: PH-1
+    name: Attribute
+    exit_test: "A baseline rate of escaped defects by origin exists, with the measured share of changes the harnesses can stamp and closed-cohort self-fix and catch-rate measurement."
+    order: 1
+    rests_on:
+      - JC-30
+  - id: PH-2
+    name: "One check, many places"
+    exit_test: "The same findings at agent and pull-request time, with effective false positives under 10% at pull request, and the replay-miss gaming watch with owner retirement in place."
+    order: 2
+    rests_on:
+      - JC-13
+  - id: PH-3
+    name: Agent fixes first
+    exit_test: "Findings per AI hunk at pull request fall at least 50%, and the self-fix hold rate is measured."
+    order: 3
+    rests_on:
+      - JC-06
+  - id: PH-4
+    name: Focus the humans
+    exit_test: Escaped defects fall while review time per pull request holds flat.
+    order: 4
+    rests_on:
+      - JC-22
+      - JC-24
+  - id: PH-5
+    name: Pave the road
+    exit_test: Targeted classes trend toward zero.
+    order: 5
+    rests_on:
+      - JC-17
+units:
+  - id: U-430
+    title: Creation premise declared for the jig
+    kind: agreement
+    phase: PH-1
+    check: "The organization's compiled model declares each premise its secure-creation loop relies on (managed endpoints, mirrored dependencies, code only from its own engineers, locked policy, or its own list), with the parts and relationships that rely on it and a fallback carried by parts that do not; its harnesses are declared with their four parity fields; the model checks' assumption and harness rules report no error, including on the organization's own items."
+    elements:
+      - id: secure-creation
+        from: existing-tool
+        to: existing-tool
+    requires:
+      - shared:cap.creation-loop-targets
+    provides:
+      - cap.creation-premise-declared
+    feedback: minutes
+    status: todo
+    attrs:
+      seam: STEP-12
+      module: secure-creation
+      contract: shared:ProvenanceStamp
+      flow_item: risk
+      independence_sensitive: false
+  - id: U-431
+    title: Harness parity compensated in the locked pre-commit gate and the protected branch and server-side required checks
+    kind: code
+    phase: PH-2
+    check: "For each harness without a stop gate, a session that ends its turn on a failing suite is caught at commit by the locked pre-commit gate, and a commit that bypassed the hook fails the server-side required checks; each harness's changes show the same suite at the same versions as the others, or the server-side run as the version of record where the harness cannot pin (pipeline test F128); with the agent's own credentials, a planted change that skips the hook and posts a passing status for each required check still fails to merge, and the engineering system owner's branch-settings test (F133) keeps that true."
+    elements:
+      - id: precommit-gate
+        from: existing-tool
+        to: existing-tool
+      - id: protected-branch
+        from: existing-tool
+        to: existing-tool
+    requires:
+      - cap.creation-premise-declared
+      - shared:cap.derived-checks
+      - cap.creation-outcomes-delivered
+      - cap.derived-check-gaming-watched
+    provides:
+      - cap.harness-parity-compensated
+    feedback: minutes
+    status: todo
+    attrs:
+      seam: STEP-12
+      module: secure-creation
+      contract: shared:DerivedCheck
+      flow_item: risk
+      independence_sensitive: false
+    rests_on:
+      - JC-27
+      - JC-28
+  - id: U-432
+    title: Creation quarantine in the quarantined reader for outside text and the reader schema gate
+    kind: code
+    phase: PH-3
+    check: "Issue text, web pages and dependency documentation reach a coding session only as the reader's typed answers: a marker string planted in an issue and in a web page never appears in the agent's context, its prompts or its diff across a seeded run, and an answer carrying prose is cut to its typed fields by the schema gate; the model checks' trifecta, agent-reach and outsider-label rules report no error on the compiled loop, including on the organization's own items."
+    elements:
+      - id: quarantined-reader
+        from: none
+        to: built
+      - id: reader-schema-gate
+        from: none
+        to: built
+    requires:
+      - cap.creation-premise-declared
+    provides:
+      - cap.creation-quarantine
+    feedback: minutes
+    status: todo
+    attrs:
+      seam: STEP-12
+      module: secure-creation
+      contract: shared:TrackerText
+      flow_item: risk
+      independence_sensitive: true
+  - id: U-433
+    title: Hunk-routing rule-first in the hunk router and the hunk-risk advisor
+    kind: code
+    phase: PH-4
+    check: "Every hunk whose paths, owners or rule matches touch authorization, cryptography, data access or money reaches a qualified reviewer outside the authoring team; a seeded advisor output that names a rule-routed hunk as low risk leaves its route unchanged, and one that names a lighter-pass hunk as high risk moves it to a person; the model checks' rule-first routing rule reports no error, including on the organization's own items (pipeline test F130)."
+    elements:
+      - id: hunk-router
+        from: existing-tool
+        to: built
+      - id: hunk-risk-advisor
+        from: none
+        to: built
+    requires:
+      - cap.creation-premise-declared
+    provides:
+      - cap.hunk-routing-rule-first
+    feedback: next-run
+    status: todo
+    attrs:
+      seam: STEP-12
+      module: secure-creation
+      contract: HunkRouteAdvice
+      flow_item: risk
+      independence_sensitive: true
+      separates:
+        - - proposer
+          - approver
+  - id: U-436
+    title: "Creation outcomes delivered, measured from the measurement plane and layer log"
+    kind: measurement
+    phase: PH-1
+    check: "Each window each developer receives the escaped defects per merged change from their own sessions, on the reproduced tier with the check-confirmed tier beside it, and the share of the agent's own fixes that held; the policy-owning team receives catch rate per layer and per rule against the layers the evaluation group assigned, and only pass or fail per class-rule version, with per-class totals received directly from the regression catalog and kept out of agent-reachable parts and the model route; every figure is on closed cohorts and reads too few to call below its sample floor."
+    elements:
+      - id: measurement-plane
+        from: none
+        to: built
+    requires:
+      - shared:cap.catch-layer
+      - shared:cap.lagged-cohort-reporting
+      - cap.class-to-rule
+    provides:
+      - cap.creation-outcomes-delivered
+    feedback: weeks
+    status: todo
+    attrs:
+      seam: STEP-11
+      module: secure-creation
+      contract: LayerCatchRate
+      flow_item: risk
+      independence_sensitive: true
+  - id: U-437
+    title: "Reviewer drift delivered, measured from the measurement plane and layer log"
+    kind: measurement
+    phase: PH-4
+    check: "Each window every reviewer of agent-written changes and every reviewer of high-risk hunks receives their own approval and comment rates against their own baseline and, where seeds run, the seeded known-bad changes they caught over those received, from a team other than the reviewers' own; a seeded change reaches the engineering system and the reviewers as the change alone, with no fixture binding or expected outcome, and a planted change that looks like a real one is listed for 5.1."
+    elements:
+      - id: measurement-plane
+        from: none
+        to: built
+    requires:
+      - shared:cap.lagged-cohort-reporting
+    provides:
+      - cap.reviewer-drift-delivered
+    feedback: weeks
+    status: todo
+    attrs:
+      seam: STEP-11
+      module: secure-creation
+      contract: ReviewerDrift
+      flow_item: risk
+      independence_sensitive: true
+  - id: U-438
+    title: "Derived check gaming watched, measured from the measurement plane and layer log"
+    kind: measurement
+    phase: PH-2
+    check: "Each window the policy-owning team receives, for each derived check, its misses against its floor as Ratchet counted them, beside the loop's own log of checks dropped or disabled and the catch rates per layer and per rule; a check over its floor is listed for the policy-owning team, who can retire it from the check suite, and nothing that names which changes missed or what a replay found reaches the loop (pipeline test F129)."
+    elements:
+      - id: measurement-plane
+        from: none
+        to: built
+    requires:
+      - shared:cap.derived-check-misses-counted
+      - cap.creation-outcomes-delivered
+    provides:
+      - cap.derived-check-gaming-watched
+    feedback: several-runs
+    status: todo
+    attrs:
+      seam: STEP-10
+      module: secure-creation
+      contract: shared:DerivedCheckMisses
+      flow_item: risk
+      independence_sensitive: true
+    rests_on:
+      - JC-35
+  - id: JU-01
+    title: Class-to-rule in the shared check suite and policy source
+    kind: code
+    phase: PH-1
+    check: "Each proven class has a rule its named owner published, or is listed as waiting with the owner's reason; a rule with no passing class test steers and never gates."
+    elements:
+      - id: check-suite
+        from: existing-tool
+        to: existing-tool
+    requires:
+      - shared:cap.class-test-count-published
+      - cap.creation-premise-declared
+    provides:
+      - cap.class-to-rule
+    feedback: several-runs
+    status: todo
+    attrs:
+      seam: STEP-12
+      module: secure-creation
+      contract: shared:CreationRule
+      flow_item: risk
+      independence_sensitive: true
+  - id: JU-02
+    title: "Handoff schema enforced in the context plane: paved-road guidance and skills"
+    kind: code
+    phase: PH-2
+    check: "Every incoming record validates against its contract's typed fields in the kit's contract schema at the receiving end; a planted proven class carrying a field the schema does not list (a verdict reference) is refused at the boundary and logged."
+    elements:
+      - id: context-plane
+        from: existing-tool
+        to: existing-tool
+    requires:
+      - shared:cap.typed-handoff-published
+    provides:
+      - cap.handoff-schema-enforced
+    feedback: minutes
+    status: todo
+    attrs:
+      seam: STEP-12
+      module: secure-creation
+      contract: shared:ProvenClass
+      flow_item: risk
+      independence_sensitive: false

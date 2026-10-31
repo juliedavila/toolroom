@@ -1,0 +1,1084 @@
+# Jig edition 0.3.1. Generated; do not edit.
+edition: 0.3.1
+premise_groups: 
+  - AI capability
+  - Delivery and system
+  - People and organization
+  - Environment
+  - Measurement
+  - Interface with Ratchet
+claims: 
+  - id: JC-01
+    statement: Coding agents working on real repository tasks often write code that passes its functional tests and is still insecure.
+    type: empirical
+    premise_group: AI capability
+    verdict: holds
+    strength: moderate
+    strength_reason: "Three benchmarks from different groups, two peer-reviewed, agree in direction for repository-level and whole-application tasks; absolute rates differ by benchmark and paper version, and none measures an organization's own code."
+    untested: false
+    load: "Jig's objective and its inner loop: deterministic findings go back to the agent during its turn, and the stop gate holds the turn open until the suite passes, because passing tests alone does not catch what the agent gets wrong. The 'agent fixes first' stage and the plausibility target start from this baseline."
+    falsifier: "In the organization's own agent sessions, diffs that pass their functional tests seldom carry a security finding the suite confirms, so the inner loop's security checks catch little."
+    if_it_flips: "The inner loop's security checks shrink to secrets and the dependency policy, and Jig moves its effort to the pull-request plane and to paved roads."
+    extrapolation: "From open-source benchmark tasks, chosen where people once introduced a vulnerability, to an organization's repositories and its current agents and models."
+    settled_by: measurement
+    measured_by: 
+      - U-436
+    evidence: 
+      - source: Peer reviewed study
+        url: https://proceedings.mlr.press/v306/zhao26ax.html
+      - source: Preprint
+        url: https://arxiv.org/abs/2502.11844
+    rests_on: 
+      parts: 
+        - inner-loop
+        - coding-agent
+        - edit-checks
+        - stop-gate
+        - check-suite
+      relationships: 
+        - p55-r14
+        - p55-r15
+        - p55-r16
+        - p55-r17
+        - p55-r22
+  - id: JC-02
+    statement: "Whether agent-written changes carry more defects than human-written ones is unsettled: the reported excess of about 1.7 times the issues per pull request is vendor-measured, and independent studies find differences that vary by agent and by measure, including fewer security smells in agent code."
+    type: empirical
+    premise_group: AI capability
+    verdict: "weak, reword"
+    strength: weak
+    strength_reason: "The only figure for the size of the excess is vendor-measured, with the vendor's own reviewer as the instrument. Independent studies point both ways: static-analysis warnings rise after agent adoption in one peer-reviewed causal design, while a large preprint finds fewer security smells in agent code; results differ by agent and by measure."
+    untested: true
+    load: "The plausibility target (AI-authored code back to about human parity, or a bit better), the baseline by origin that the attribute stage sets, and the split of every defect measure by origin (agent and tool against person)."
+    falsifier: "The attribute stage's baseline by origin shows agent-written changes with escaped defects per change at or below the rate of human-written changes."
+    if_it_flips: "No control changes, since every control applies to every change. The plausibility target stops being 'back to human parity' and becomes an absolute rate per change; the split by origin stays as the way to tell."
+    extrapolation: "From open-source pull requests and function-level samples, with co-author signals standing in for authorship, to an organization's own repositories."
+    settled_by: measurement
+    measured_by: 
+      - ratchet:U-198
+      - U-436
+    evidence: 
+      - source: Vendor report
+        url: https://www.coderabbit.ai/blog/state-of-ai-vs-human-code-generation-report
+      - source: Preprint
+        url: https://arxiv.org/abs/2609.17598
+      - source: Peer reviewed study
+        url: https://doi.org/10.1145/3793302.3793570
+    rests_on: 
+      parts: 
+        - measurement-plane
+        - provenance-stamper
+      relationships: 
+        - p55-r35
+        - p55-r36
+        - p55-r71
+  - id: JC-03
+    statement: "Code-generating models name packages that do not exist, about 5 to 6% of the packages named by 2026 frontier models, and attackers can register those names, so dependencies come only from the organization's mirror, with the check run again before merge."
+    type: empirical
+    premise_group: AI capability
+    verdict: holds
+    strength: moderate
+    strength_reason: "The exposure is established by peer-reviewed studies and a 2026 replication, and a live registry experiment shows developers install registered hallucinated names. Rates depend on measurement method. No study measures how often a mirror check blocks such a dependency, and a hallucinated name that is already registered as a lookalike passes any mirror that proxies public registries without review."
+    untested: false
+    load: "The mirrored-dependencies assumption declared on Jig's container, the dependency policy in the stop gate, and its second run in the server-side required checks against the mirror's admission record (the assumption's fallback)."
+    falsifier: "In the organization's own sessions the dependency check against the mirror almost never fires on a nonexistent or newly registered package, or a hallucinated name an attacker registered is admitted to the mirror and passes."
+    if_it_flips: "If the rate falls toward zero the check stays as cheap hygiene. If a registered hallucinated name passes the mirror, admission needs its own review rule, which the organization adds in its own patches."
+    extrapolation: "From benchmark prompts to agent sessions that install dependencies while working; from public registries to an organization's mirror and its admission rule."
+    settled_by: measurement
+    measured_by: 
+      - U-436
+    evidence: 
+      - source: Peer reviewed study
+        url: https://arxiv.org/abs/2406.10279
+      - source: Preprint
+        url: https://arxiv.org/abs/2605.17062
+    rests_on: 
+      parts: 
+        - secure-creation
+        - repository
+        - stop-gate
+        - protected-branch
+        - check-suite
+      relationships: 
+        - p55-r8
+        - p55-r22
+        - p55-r24
+  - id: JC-04
+    statement: "Security instructions in prompts and rules files give at best modest, unreliable gains in the security of agent output and enforce nothing, so they are hygiene and not a control."
+    type: empirical
+    premise_group: AI capability
+    verdict: holds
+    strength: moderate
+    strength_reason: "Repository-level agent benchmarks, one peer-reviewed, find that security hints and guidelines do not fix agent output, while a peer-reviewed function-level study finds a reduction with one prompting technique. A measurement of public rules files shows most written rules have no enforcing control. Consistent with 'hygiene, not a control'; the size of any gain is unsettled."
+    untested: false
+    load: "The context plane treats short instruction files under code ownership as hygiene, never as a control; the enforced checks of the inner loop and the paved roads carry the security load instead."
+    falsifier: "In the organization's own sessions, adding or removing the security sections of instruction files moves the rate of findings at the stop gate as much as an enforced check does."
+    if_it_flips: "Instruction files and skills would earn a place as a control, with versions, tests and a catch rate of their own, reported beside the checks."
+    extrapolation: "From benchmarks and public rules files to an organization's centrally distributed instruction files and skills."
+    settled_by: measurement
+    measured_by: 
+      []
+    evidence: 
+      - source: Peer reviewed study
+        url: https://proceedings.mlr.press/v306/zhao26ax.html
+      - source: Preprint
+        url: https://arxiv.org/abs/2601.22706
+    rests_on: 
+      parts: 
+        - context-plane
+        - check-suite
+        - people.creation-policy-owner
+      relationships: 
+        - p55-r7
+        - p55-r29
+  - id: JC-05
+    statement: "What a coding model reads in its context, surrounding code included, moves the security of what it writes in both directions, so secure patterns in the codebase steer agents; that they steer more strongly than instruction files is untested."
+    type: empirical
+    premise_group: AI capability
+    verdict: "weak, reword"
+    strength: moderate (context steers) / none (more than instructions)
+    strength_reason: "Several studies, two peer-reviewed, show context moving security both ways: vulnerable context and planted comments raise insecure output, and secure demonstrations or retrieved security knowledge lower it. None compares codebase patterns with instruction files, and none tests an agent working across a whole repository."
+    untested: true
+    load: "The context plane's paved-road references in the codebase (a central authorization library, safe query builders, hardened templates, reference implementations) and the skill per paved road; the 'pave the road' stage counts on agents copying the road."
+    falsifier: "Within the organization, agent changes in repositories with a paved road for a class show findings of that class at the same rate as agent changes in repositories without one."
+    if_it_flips: "The codebase stops counting as a steering signal. Paved roads still retire classes by construction (the secure-defaults premise), and steering moves to enforced checks."
+    extrapolation: From completion and single-task generation to agents that read many files of a repository; from demonstrations a retriever picked to the paved-road code an agent happens to read.
+    settled_by: measurement
+    measured_by: 
+      - ratchet:U-198
+    evidence: 
+      - source: Peer reviewed study
+        url: https://doi.org/10.1007/s10664-023-10380-1
+      - source: Preprint
+        url: https://arxiv.org/abs/2610.05139
+    rests_on: 
+      parts: 
+        - context-plane
+        - repository
+        - coding-agent
+      relationships: 
+        - p55-r7
+        - p55-r8
+  - id: JC-06
+    statement: "A model given concrete findings from deterministic checks while it is still working fixes most of them, so fewer reach the pull request; whether those fixes hold, without new findings, is untested for agents in real repositories."
+    type: empirical
+    premise_group: AI capability
+    verdict: honest bet
+    strength: moderate (findings fixed in the loop) / none (fixes hold)
+    strength_reason: "Several studies, three peer-reviewed, agree that tool findings fed back to a model get fixed at high rates on function-level benchmarks. None runs an agent harness on real repositories, and none measures whether the fixes stay fixed; one finds models weakest at repairing their own code."
+    untested: true
+    load: "Design principle 1 (findings go to the agent; gates sit at boundaries), the per-edit checks and the stop gate, thesis item 1, and the exit metric of the 'agent fixes first' stage (findings per agent-written hunk at the pull request fall by at least half, with the self-fix hold rate measured)."
+    falsifier: "Once the inner loop is closed, findings per agent-written hunk at the pull request fall by much less than half, or the agent's own fixes fail to hold."
+    if_it_flips: "Findings stay at the pull request, where people read them; the stop gate keeps only fast blocking checks, and the exit metric of the 'agent fixes first' stage is revised."
+    extrapolation: "From single-file benchmark tasks and research prototypes to agent harnesses in an organization's repositories, and from Python and C analyzers to the organization's suite."
+    settled_by: measurement
+    measured_by: 
+      - U-436
+    evidence: 
+      - source: Peer reviewed study
+        url: https://doi.org/10.1109/SCAM67354.2025.00017
+    rests_on: 
+      parts: 
+        - inner-loop
+        - coding-agent
+        - edit-checks
+        - stop-gate
+      relationships: 
+        - p55-r14
+        - p55-r15
+        - p55-r16
+        - p55-r17
+  - id: JC-07
+    statement: "A model asked to fix findings changes code even where no defect exists and can break correct code, so the checks in the agent's loop need a precision bar of their own."
+    type: empirical
+    premise_group: AI capability
+    verdict: honest bet
+    strength: weak
+    strength_reason: "One preprint shows blind iterative fixing damaging correct programs faster than it repairs buggy ones, and one peer-reviewed study finds that whether an AI patch fixed its target says nothing about whether it regressed; an agent behind build, warning and test checks reached high correct-fix rates. No study measures agents in a stop-gate loop with a known false-positive rate."
+    untested: true
+    load: "The precision budget for the inner loop (looser than for people, but bounded) and the self-fix hold rate the measurement plane reports to each developer."
+    falsifier: Findings planted as false positives in the inner loop lead the agent to edits that add no new findings and break no tests.
+    if_it_flips: "The loop's precision bar can relax toward the bar people get at the pull request, and more checks can run at the agent's turn."
+    extrapolation: "From blind iterative bug-fixing and patch studies to an agent that receives a checker's findings with a fixed message inside a harness."
+    settled_by: measurement
+    measured_by: 
+      - U-436
+    evidence: 
+      - source: Preprint
+        url: https://arxiv.org/abs/2609.10123
+      - source: Peer reviewed study
+        url: https://doi.org/10.1109/AITest70988.2026.00029
+    rests_on: 
+      parts: 
+        - edit-checks
+        - stop-gate
+        - check-suite
+        - measurement-plane
+      relationships: 
+        - p55-r15
+        - p55-r17
+        - p55-r61
+        - p55-r62
+        - p55-r71
+  - id: JC-08
+    statement: "Coding agents optimize for the checks they can see, up to editing tests or the checker; locking checks out of the agent's edit reach stops the tampering, and tests held outside its loop expose gaming that the visible checks miss."
+    type: empirical
+    premise_group: AI capability
+    verdict: holds
+    strength: moderate
+    strength_reason: "Independent benchmarks agree that current coding agents game visible tests and tamper with evaluators, and a peer-reviewed workshop paper finds that locking the evaluator stops the tampering. Mostly preprints; held-out tests exposed gaming in one benchmark and added little over a model judge in another."
+    untested: false
+    load: "Rule 2 as Jig applies it (checks out of the agent's edit reach; the agent sees pass or fail and a fixed message, never an expected outcome), the derived-check contract with no field for an expected answer, and the watch on derived-check gaming through Ratchet's kept tests. Also the draft's known weakness that running the same checks everywhere may teach the agent to satisfy the analyzer."
+    falsifier: "Changes that pass a derived check and later fail the kept test's replay (the misses U-438 counts) stay near zero, and the lock never blocks an attempted edit to a check."
+    if_it_flips: "The derived-check gaming watch can thin to a sample, and the agent may see more of a check's logic; the lock stays, since it costs little."
+    extrapolation: From benchmarks built to invite cheating to everyday sessions where the suite is not adversarial; from ML-engineering evaluators to code checks.
+    settled_by: measurement
+    measured_by: 
+      - U-438
+      - U-431
+    evidence: 
+      - source: Preprint
+        url: https://arxiv.org/abs/2510.20270
+      - source: Peer reviewed study
+        url: https://doi.org/10.1109/ICDEW71238.2026.00009
+    rests_on: 
+      parts: 
+        - check-suite
+        - edit-checks
+        - stop-gate
+        - precommit-gate
+        - protected-branch
+        - shared:ext.engineering-workflows
+      relationships: 
+        - p55-r15
+        - p55-r21
+        - p55-r22
+        - p55-r24
+        - p55-r25
+  - id: JC-09
+    statement: "AI code reviewers and model triage are noisy: on real pull requests they catch a minority of the defects and most of their comments are not acted on, so their output is a lead and never the acceptance."
+    type: empirical
+    premise_group: AI capability
+    verdict: holds
+    strength: moderate
+    strength_reason: "A peer-reviewed benchmark of real pull requests and two live deployments, one peer-reviewed and one first-party, agree that most AI review comments are not acted on and that reviewers miss much on real changes; a small preprint finds scores on real pull requests far below synthetic ones. No study measures catch rate on security defects specifically."
+    untested: false
+    load: "Rule 3 as Jig applies it: AI review, model triage and scanner output are leads; a deterministic check puts a defect only in the check-confirmed tier, and the reproduced tier needs a reproduction. The AI reviewer's comments reach the merging reviewer as leads, triage labels order the view and never remove a finding from a hunk routed to a person, and every lead goes to Ratchet before triage."
+    falsifier: "On closed cohorts, the AI reviewer's comments on agent-written changes are confirmed as defects at a precision near that of the deterministic checks, and its misses are rare."
+    if_it_flips: "AI review could carry more weight at the pull request, for example clearing low-risk hunks for the lighter pass, but rule 3 still keeps it out of the reproduced tier."
+    extrapolation: "From open-source benchmarks and two organizations' review data to an organization's own pull requests, and from defects in general to security defects."
+    settled_by: measurement
+    measured_by: 
+      - ratchet:U-200
+      - U-436
+    evidence: 
+      - source: Peer reviewed study
+        url: https://doi.org/10.1145/3808144
+      - source: Published source
+        url: https://doi.org/10.1145/3786583.3786851
+      - source: Preprint
+        url: https://arxiv.org/abs/2606.15689
+    rests_on: 
+      parts: 
+        - ai-reviewer
+        - pr-triage
+        - pr-analysis
+        - measurement-plane
+        - people.change-reviewer
+      relationships: 
+        - p55-r45
+        - p55-r49
+        - p55-r65
+        - p55-r66
+  - id: JC-10
+    statement: "A reviewer model from a family other than the author's avoids the author model's self-preference, though errors stay correlated across families, so cross-family review narrows shared blind spots without removing them."
+    type: empirical
+    premise_group: AI capability
+    verdict: honest bet
+    strength: weak
+    strength_reason: "Judging studies show models favor their own and their family's outputs, including on code with objective rubrics, which supports a reviewer from another family; a large study finds errors correlated across providers as well. No study measures cross-family code review."
+    untested: true
+    load: "The AI reviewer from a second model family at the pull-request plane, and rule 4's clause that a second family's review is a lead and never the independent review."
+    falsifier: "On the organization's own changes, a same-family reviewer's comments point at later-confirmed defects as often as a cross-family reviewer's."
+    if_it_flips: "The reviewer's family stops mattering and the cheapest capable model reviews; its comments stay leads either way."
+    extrapolation: "From model-as-judge benchmarks to a model reviewing another model's diff."
+    settled_by: measurement
+    measured_by: 
+      []
+    evidence: 
+      - source: Preprint
+        url: https://arxiv.org/abs/2604.06996
+    rests_on: 
+      parts: 
+        - ai-reviewer
+        - model-routes
+      relationships: 
+        - p55-r46
+        - p55-r47
+        - p55-r48
+        - p55-r49
+  - id: JC-11
+    statement: "A coding agent that reads untrusted text while it holds repository write and an outbound path can be steered by that text into running commands or sending data out, and detection does not stop it; structural separation does: untrusted text read only by a quarantined reader that passes typed fields, and every outbound path through a gate."
+    type: empirical
+    premise_group: AI capability
+    verdict: holds
+    strength: strong (the threat) / moderate (the structural remedy)
+    strength_reason: "Independent studies, one peer-reviewed, hijack every tested commercial coding agent through planted text, a scan of real workflows confirms hundreds of exploitable paths from issue text into agent prompts, and detection defenses fail. The remedy rests on one benchmarked design in which untrusted data cannot change control flow; no study tests a coding harness built this way."
+    untested: false
+    load: "Rule 1's second half as Jig applies it: the quarantined reader on a model route of its own, the reader schema gate that passes typed fields and drops prose, the coding agent's egress limited to approved model routes and the organization's mirrors, and the model checks' trifecta, agent-reach and outsider-label rules on Jig's parts. The code-from-engineers assumption's fallback (outside contributors' text reaches the agent only through the reader) rests here too."
+    falsifier: "A marker planted in an issue or a web page appears in the coding agent's context, prompts or diff in a seeded run (the U-432 test), or a seeded injection reaches an outbound path that no gate checks."
+    if_it_flips: "If coding agents became reliably resistant to planted text, the quarantined reader could retire for low-risk sources; the gates on outbound paths stay, since they cost little."
+    extrapolation: "From benchmark agents and open-source workflows to an organization's harnesses, with a schema gate on typed answers standing in for a capability-tracking interpreter."
+    settled_by: measurement
+    measured_by: 
+      - U-432
+    evidence: 
+      - source: Peer reviewed study
+        url: https://doi.org/10.1145/3832267
+      - source: Preprint
+        url: https://arxiv.org/abs/2509.22040
+      - source: Published source
+        url: https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/
+    rests_on: 
+      parts: 
+        - coding-agent
+        - quarantined-reader
+        - reader-schema-gate
+        - reader-model-route
+        - model-routes
+        - outside-text
+      relationships: 
+        - p55-r5
+        - p55-r9
+        - p55-r11
+        - p55-r12
+        - p55-r13
+        - p55-r75
+        - p55-r76
+  - id: JC-12
+    statement: "Where a check's findings land decides whether they get fixed: findings shown in the change workflow, while the author still holds the change, get fixed far more often than the same findings delivered as batch reports."
+    type: empirical
+    premise_group: Delivery and system
+    verdict: holds
+    strength: moderate
+    strength_reason: "Two large first-party reports and a peer-reviewed user study agree that findings delivered inside the change workflow get acted on far more, and sooner, than batch reports. The starkest figure rests on a batch arm of 20 to 30 issues, and all of it concerns people, not agents."
+    untested: false
+    load: "Design principle 1 (findings go to the agent; gates sit at boundaries), the per-edit checks and the stop gate inside the agent's turn, the pull-request plane's diff-scoped analysis delivered as review comments, and the per-layer catch rates. The draft's notes prefer this placement effect to cost-of-defect multipliers as the quantitative anchor."
+    falsifier: "Within the organization, findings shown at the agent's turn or in review are resolved no more often than the same rule's findings delivered as batch reports."
+    if_it_flips: "Placement stops mattering, and checks can move to wherever they are cheapest to run, such as nightly runs, without losing fixes."
+    extrapolation: "From human developers at two large companies and a lab study to a coding agent that receives findings during its turn; agents fix at little marginal cost, so the effect may be larger there, which is untested."
+    settled_by: measurement
+    measured_by: 
+      - ratchet:U-200
+      - U-436
+    evidence: 
+      - source: Published source
+        url: https://doi.org/10.1145/3338112
+      - source: Peer reviewed study
+        url: https://doi.org/10.1145/3092703.3092705
+    rests_on: 
+      parts: 
+        - inner-loop
+        - edit-checks
+        - stop-gate
+        - pr-plane
+        - pr-analysis
+      relationships: 
+        - p55-r15
+        - p55-r17
+        - p55-r41
+        - p55-r45
+  - id: JC-13
+    statement: "A check keeps its users only while its effective false-positive rate stays low, about 10% in review at the most studied deployment, so precision is the currency that buys trust in a finding."
+    type: empirical
+    premise_group: Delivery and system
+    verdict: holds
+    strength: moderate
+    strength_reason: "One company's long-run, enforced practice sets the 10% bar, and an interview study names false positives as the first barrier to use; no controlled study fixes the threshold, and the bar was set for human readers."
+    untested: false
+    load: "The pull-request plane's diff-scoped analysis held to an effective false-positive bar the organization sets, the exit metric of the 'one check, many places' stage (effective false positives under 10% at the pull request), model triage that orders findings and never drops them, and the effective false-positive rate per surface that the measurement plane reports to the policy-owning team."
+    falsifier: Checks above the bar show the same fix rate and keep their users as long as checks below it.
+    if_it_flips: "Noisier checks could run at the pull request, and the exit metric of the 'one check, many places' stage loosens."
+    extrapolation: "From human developers to the people who read pull-request findings in an organization where agents write much of the code; the agent loop's own bar is a separate premise (JC-07)."
+    settled_by: measurement
+    measured_by: 
+      - U-436
+    evidence: 
+      - source: Published source
+        url: https://doi.org/10.1145/3188720
+      - source: Peer reviewed study
+        url: https://doi.org/10.1109/ICSE.2013.6606613
+    rests_on: 
+      parts: 
+        - pr-analysis
+        - pr-triage
+        - check-suite
+        - measurement-plane
+        - people.creation-policy-owner
+      relationships: 
+        - p55-r42
+        - p55-r64
+        - p55-r74
+  - id: JC-14
+    statement: "Compiling one policy source into every harness, the git hooks and the server-side checks, at the same versions, gives the same findings at every point from the agent's turn to the pull request; checks configured differently at each point lose developers' trust."
+    type: engineering-practice
+    premise_group: Delivery and system
+    verdict: holds
+    strength: weak
+    strength_reason: "The first half is close to definitional for deterministic checks at pinned versions; the evidence that inconsistency erodes trust is one company's report and a survey showing that context changes which warnings developers heed. No study tests a single compiled policy against per-point configuration."
+    untested: false
+    load: "Design principle 2 (one policy source, compiled into the harness configurations, git hooks and CI), the shared check suite, the 'one check, many places' stage and its exit metric (the same findings at agent and pull-request time), and thesis item 2."
+    falsifier: "Changes that passed the agent's stop gate meet findings from the same rules at the pull request (version or configuration drift), or a per-point configuration shows the same fix rates and trust as the single source."
+    if_it_flips: "Each point could tune its own checks, and the exit metric of the 'one check, many places' stage changes from the same findings everywhere to findings that rise with depth."
+    extrapolation: "From human developers' tools to agent harnesses, hooks and server-side checks fed from one source."
+    settled_by: measurement
+    measured_by: 
+      - U-431
+    evidence: 
+      - source: Published source
+        url: https://doi.org/10.1145/3188720
+      - source: Peer reviewed study
+        url: https://doi.org/10.1007/s10664-019-09750-5
+    rests_on: 
+      parts: 
+        - check-suite
+        - edit-checks
+        - stop-gate
+        - precommit-gate
+        - protected-branch
+        - people.creation-policy-owner
+      relationships: 
+        - p55-r21
+        - p55-r22
+        - p55-r23
+        - p55-r24
+        - p55-r25
+        - p55-r26
+        - p55-r27
+        - p55-r28
+  - id: JC-15
+    statement: "The checks fit the latency each point allows (about 1 to 2 seconds per agent edit, under a minute at the stop gate, 10 to 30 seconds before push, minutes at the pull request), and their cost per agent loop stays bearable as it repeats on every iteration."
+    type: engineering-practice
+    premise_group: Delivery and system
+    verdict: honest bet
+    strength: weak
+    strength_reason: "Tool timings come from a vendor and one first-party report, and a peer-reviewed study shows layered analysis can stay out of the developer's way. No study sets seconds-level budgets for agent loops or measures how agent task success or cost changes with check latency."
+    untested: true
+    load: "Which checks run per edit, at the stop gate, before push and at the pull request; the expected-runtime field derived checks carry so they fit the per-edit budget; and the harness hooks that block while a check runs."
+    falsifier: "Agent sessions in the organization's harnesses show task success or cost degrading measurably at the planned per-edit budget, or the planned checks cannot run within it on the organization's code."
+    if_it_flips: "Slow checks move from the agent's turn to the stop gate or the pull request, and the per-edit set shrinks to what fits."
+    extrapolation: From human editing and review workflows to agent turns that call checks many times per task.
+    settled_by: measurement
+    measured_by: 
+      []
+    evidence: 
+      - source: Vendor report
+        url: https://semgrep.dev/blog/2023/semgrep-speed/
+      - source: Published source
+        url: https://doi.org/10.1145/3338112
+      - source: Peer reviewed study
+        url: https://doi.org/10.1145/3092703.3092705
+    rests_on: 
+      parts: 
+        - edit-checks
+        - stop-gate
+        - precommit-gate
+        - pr-analysis
+        - check-suite
+      relationships: 
+        - p55-r15
+        - p55-r17
+        - p55-r21
+        - p55-r22
+  - id: JC-16
+    statement: "Defects and review misses grow with change size, so a diff-size budget per agent task keeps each change reviewable; that the budget lowers the defects reaching merge, rather than spreading them over more changes, is untested."
+    type: empirical
+    premise_group: Delivery and system
+    verdict: "weak, reword"
+    strength: moderate (size tracks defects and review misses) / none (budget as a control)
+    strength_reason: "Peer-reviewed studies agree that change size predicts defect-inducing changes and issue counts in agent pull requests, and review quality falls with diff size; all are correlational. Issue counts that scale with churn mean a budget may only spread the same defects over more changes, and no study tests a budget as an intervention."
+    untested: true
+    load: "The diff-size budget per agent task in the context plane, the 'agent fixes first' stage, which enforces diff budgets, and the risk router's assumption that a person can review a routed hunk with its spec and findings attached."
+    falsifier: "After the budget is enforced, escaped defects per thousand changed lines from agent sessions stay the same, and review catch rates on routed hunks do not rise."
+    if_it_flips: "The diff-size budget becomes a reviewability convenience rather than a control, and the 'agent fixes first' stage drops it from its capabilities."
+    extrapolation: "From open-source repositories and correlational models to an enforced per-task budget in an organization's harnesses."
+    settled_by: measurement
+    measured_by: 
+      []
+    evidence: 
+      - source: Peer reviewed study
+        url: https://doi.org/10.1145/3793302.3793615
+      - source: Preprint
+        url: https://arxiv.org/abs/2606.15689
+    rests_on: 
+      parts: 
+        - context-plane
+        - coding-agent
+        - hunk-router
+      relationships: 
+        - p55-r7
+        - p55-r50
+        - p55-r51
+  - id: JC-17
+    statement: "Secure defaults (hardened frameworks, memory-safe languages, safe APIs) cut the classes they target by an order of magnitude for code that uses them, far more than detection layers do, and the gain arrives at the rate new code's share grows, over years."
+    type: empirical
+    premise_group: Delivery and system
+    verdict: "weak, reword"
+    strength: moderate
+    strength_reason: "A peer-reviewed study and large first-party records agree on order-of-magnitude reductions for targeted classes, with the Android curve showing the gain arriving as new code's share grows. Most of the data is one company's, without published denominators, and none measures agent-written code; 'far more than detection' compares across different studies."
+    untested: false
+    load: "The 'pave the road' stage and its exit metric (targeted classes trend toward zero), the durable path where a class Ratchet proved and saw recur becomes a paved-road default plus a skill, and the plausibility read that order-of-magnitude reductions come only from classes made impossible by construction."
+    falsifier: "On-road and off-road code show the same reintroduction rate and findings per change for a targeted class (Ratchet's measure), or the class's findings stop falling as the road's share of new code rises."
+    if_it_flips: "The 'pave the road' stage loses its order-of-magnitude case, and Jig's effort shifts to detection and review, with smaller targets."
+    extrapolation: "From one company's frameworks and languages, and one open-source project, to an organization's paved roads and agent-written code."
+    settled_by: measurement
+    measured_by: 
+      - ratchet:U-198
+    evidence: 
+      - source: Peer reviewed study
+        url: https://doi.org/10.1109/SecDev56634.2023.00016
+      - source: Published source
+        url: https://security.googleblog.com/2024/09/eliminating-memory-safety-vulnerabilities-Android.html
+    rests_on: 
+      parts: 
+        - context-plane
+        - people.creation-policy-owner
+      relationships: 
+        - p55-r7
+        - p55-r29
+        - p55-r30
+      claims: 
+        - ratchet:CL-09
+  - id: JC-18
+    statement: "Scanning for secrets at the agent's hooks and again at push, with bypass restricted and a server-side second check, cuts the secrets that reach the remote; that it brings them close to zero is untested, because detectors miss some secret types and developers bypass warnings."
+    type: empirical
+    premise_group: Delivery and system
+    verdict: "weak, reword"
+    strength: moderate (the exposure and the bypass) / none (close to zero)
+    strength_reason: "A vendor report gives agent-assisted commits about twice the baseline leak rate; peer-reviewed studies show leakage is pervasive, the best detector's recall reaches 88% on a benchmark, and developers at an industrial site bypass warnings. No study measures how many secrets still reach the remote under layered scanning with restricted bypass."
+    untested: true
+    load: "Secret scanning in the stop gate and in the locked pre-commit gate, the same scan in the server-side required checks, and the plausibility read that secrets reaching the remote fall close to zero."
+    falsifier: "Valid secrets later found in the remote (by the server-side scan, a history sweep or an incident) keep appearing at a rate that does not fall once the layered scanning is in place."
+    if_it_flips: "Secrets join the classes Jig treats as detection residue, and the organization leans on rotation and short-lived credentials, which sit outside Jig."
+    extrapolation: "From public repositories and one industrial case to an organization's private repositories and its harnesses."
+    settled_by: measurement
+    measured_by: 
+      - U-431
+      - U-436
+    evidence: 
+      - source: Vendor report
+        url: https://gitguardian.com/state-of-secrets-sprawl-report-2026
+      - source: Peer reviewed study
+        url: https://doi.org/10.14722/ndss.2019.23418
+    rests_on: 
+      parts: 
+        - stop-gate
+        - precommit-gate
+        - protected-branch
+        - check-suite
+      relationships: 
+        - p55-r22
+        - p55-r23
+        - p55-r24
+  - id: JC-19
+    statement: "Autofix that abstains when unsure and shows a patch only after it passes the suite gives reviewers fixes they land at useful rates without flooding them; reviewers still have to judge each patch, since they over-trust patches labeled as coming from a security tool."
+    type: empirical
+    premise_group: Delivery and system
+    verdict: honest bet
+    strength: weak
+    strength_reason: "Two first-party industrial reports show validation and abstention raising the share of useful patches and a production agent landing about a quarter of its fixes; a lab experiment shows a 'security tool' label swaying reviewers whatever the patch's correctness, and a benchmark shows models rarely abstain unaided. None measures security autofix at the pull request."
+    untested: true
+    load: "The pull-request plane's autofix: it proposes patches for analysis findings, abstains when unsure, shows only patches that passed the suite on the patched diff, and leaves the decision to apply each one to the reviewer."
+    falsifier: "Validated autofix patches are rarely landed, or landed patches are reverted or reopened more often than people's fixes for the same rules."
+    if_it_flips: "Autofix leaves the pull-request plane or shows its patches only on request, and findings go to the reviewer with guidance alone."
+    extrapolation: "From bug fixes for test failures and human reports at two companies to fixes for security findings at the pull request, and from students to professional reviewers."
+    settled_by: measurement
+    measured_by: 
+      []
+    evidence: 
+      - source: Published source
+        url: https://doi.org/10.1145/3786583.3786858
+      - source: Peer reviewed study
+        url: https://doi.org/10.1007/s10664-024-10506-z
+      - source: Preprint
+        url: https://arxiv.org/abs/2506.17812
+    rests_on: 
+      parts: 
+        - autofix
+        - pr-analysis
+        - people.change-reviewer
+      relationships: 
+        - p55-r57
+        - p55-r58
+        - p55-r59
+        - p55-r60
+  - id: JC-20
+    statement: "Tests an agent writes for its own code encode what the code does rather than what was intended, so they pass its defects; for high-risk work, acceptance tests derived from a spec a person wrote or signed reduce this, though spec-derived oracles are imperfect too."
+    type: empirical
+    premise_group: Delivery and system
+    verdict: honest bet
+    strength: moderate (self-written tests encode the code) / weak (spec-derived tests fix it)
+    strength_reason: "Several studies, one peer-reviewed, show model-written tests asserting the code's actual behavior, bugs included, and those tests persisting; generating tests from a specification reduces misguided tests in one peer-reviewed study and a small pilot. None tests a person-written spec for security acceptance."
+    untested: true
+    load: "Rule 2's high-risk clause (acceptance tests derive from a spec a person wrote or signed), spec-first for high-risk changes in the context plane, the developer's duty to write or sign that spec, and the draft's known weakness that agent-written tests grade the agent's own work."
+    falsifier: "For high-risk changes, agent-written tests catch the security defects later confirmed as often as the spec-derived acceptance tests do."
+    if_it_flips: "Spec-first stops earning its cost for high-risk work, and acceptance there rests on the qualified reviewer and Ratchet's kept tests."
+    extrapolation: "From unit and regression tests for functional bugs to acceptance tests for security constraints in high-risk changes, and from model-written specifications to a spec a person wrote or signed."
+    settled_by: measurement
+    measured_by: 
+      []
+    evidence: 
+      - source: Preprint
+        url: https://arxiv.org/abs/2410.21136
+      - source: Peer reviewed study
+        url: https://doi.org/10.1145/3832204
+    rests_on: 
+      parts: 
+        - people.creation-developer
+        - context-plane
+        - coding-agent
+      relationships: 
+        - p55-r1
+        - p55-r7
+  - id: JC-21
+    statement: "Rules on a hunk's paths, owners and rule matches pick out most hunks that touch authorization, cryptography, data access or money, so a qualified person sees them; a model that may only add hunks catches some of what the rules miss."
+    type: engineering-practice
+    premise_group: People and organization
+    verdict: honest bet
+    strength: weak
+    strength_reason: "Studies show risky changes can be picked out for added review, one with high precision on one very large project, but by classifiers trained on change features, not by rules on paths and owners. No study measures what rule-based routing misses."
+    untested: true
+    load: "The hunk router (by rule, with no model call), the hunk-risk advisor that may only add hunks to the human route, the qualified reviewer of high-risk hunks, and the 'focus the humans' stage."
+    falsifier: "Escaped defects in authorization, cryptography, data access or money arrive mostly through hunks the rules sent to the lighter pass."
+    if_it_flips: "Routing moves toward a trained model with the rules as a floor, or every hunk in the named areas goes to a person regardless of rules."
+    extrapolation: "From classifiers trained on one codebase's history to rules each organization writes for its own paths and owners."
+    settled_by: measurement
+    measured_by: 
+      - U-433
+    evidence: 
+      - source: Published source
+        url: https://arxiv.org/abs/2405.16655
+      - source: Peer reviewed study
+        url: https://doi.org/10.1109/TSE.2012.70
+    rests_on: 
+      parts: 
+        - hunk-router
+        - hunk-risk-advisor
+        - people.high-risk-reviewer
+        - people.change-reviewer
+      relationships: 
+        - p55-r50
+        - p55-r51
+        - p55-r52
+        - p55-r53
+        - p55-r56
+  - id: JC-22
+    statement: "Coding agents raise the volume of changes faster than review capacity grows, so review is the bottleneck, and each control must hold or lower the human review load it adds."
+    type: empirical
+    premise_group: People and organization
+    verdict: holds
+    strength: moderate
+    strength_reason: "A long enterprise panel and a large first-party rollout study agree that agent adoption raises merged changes per engineer, and in the panel per-reviewer load roughly doubled; an open-source panel shows review queues lengthening while inspection thins. Mostly preprints and observational designs."
+    untested: false
+    load: "Design principle 4 (never add net human review load; spend human attention by risk), the exit metric of the 'focus the humans' stage (escaped defects fall while review time per pull request holds flat), the lighter pass for low-risk hunks, AI review and triage as leads that order the reviewer's view, and the developer-facing cost measures (review time per pull request, rework, cycle time)."
+    falsifier: "As agent adoption grows in the organization, review time per pull request and per-reviewer load stay flat without Jig's routing and triage."
+    if_it_flips: "Review capacity stops being the constraint, and the design could route more hunks to people and require fuller review of agent-written changes."
+    extrapolation: "From one mid-sized company, one very large company and open-source repositories to the adopting organization."
+    settled_by: measurement
+    measured_by: 
+      []
+    evidence: 
+      - source: Preprint
+        url: https://arxiv.org/abs/2607.01904
+      - source: Published source
+        url: https://arxiv.org/abs/2607.01418
+    rests_on: 
+      parts: 
+        - people.change-reviewer
+        - people.high-risk-reviewer
+        - hunk-router
+        - pr-triage
+        - measurement-plane
+      relationships: 
+        - p55-r45
+        - p55-r52
+        - p55-r67
+  - id: JC-23
+    statement: "Analyzers miss most real vulnerabilities and nearly all authorization flaws, the class that concentrates in agent-built applications; people asked to focus on security find far more than people who are not, yet still miss many, so a qualified person's attention on those hunks catches some of what machines miss."
+    type: empirical
+    premise_group: People and organization
+    verdict: honest bet
+    strength: moderate (machines miss them) / weak (focused people catch them)
+    strength_reason: "Peer-reviewed benchmarks find analyzers detect a small share of real vulnerabilities, a 2026 preprint finds two standard analyzers recall none of 30 recent authorization flaws, and an audit of deployed agent-built apps finds flaws concentrated in access control. For people, an online experiment finds an eightfold detection gain from a security focus and a lab study finds no reviewer catching all flaws; none measures qualified reviewers on routed hunks."
+    untested: true
+    load: "Thesis item 3 (human review attention only where machines are weak: authorization, business logic, intent), the qualified reviewer of high-risk hunks with the spec and findings attached, the 'focus the humans' stage, and Jig's fallback without Ratchet: reproduction by someone outside the authoring team for the classes analysis misses."
+    falsifier: "Escaped authorization and logic defects come as often from hunks a qualified person reviewed as from hunks on the lighter pass, or seeded known-bad high-risk hunks are caught rarely."
+    if_it_flips: "If analyzers come to catch authorization flaws reliably, fewer hunks go to people; if focused people do not catch them either, Jig leans on spec-derived tests and Ratchet's reproduction for these classes."
+    extrapolation: "From benchmarks and lab studies to an organization's qualified reviewers reading routed hunks with a spec and findings attached."
+    settled_by: measurement
+    measured_by: 
+      - U-433
+      - U-437
+    evidence: 
+      - source: Peer reviewed study
+        url: https://doi.org/10.1145/3611643.3616262
+      - source: Preprint
+        url: https://arxiv.org/abs/2610.00977
+    rests_on: 
+      parts: 
+        - people.high-risk-reviewer
+        - hunk-router
+        - pr-analysis
+      relationships: 
+        - p55-r39
+        - p55-r51
+  - id: JC-24
+    statement: "Reviewers of agent-written changes approve more and inspect less as they gain experience with them, so each reviewer's drift is measured, against seeded known-bad changes where seeds run."
+    type: empirical
+    premise_group: People and organization
+    verdict: holds
+    strength: moderate
+    strength_reason: "One within-reviewer panel shows approval rising and inline comments falling with experience, specific to agent changes; Ratchet's CL-09 adds security-operations and lab evidence for the same erosion. Observational and open source, and rising approval may partly reflect better agent output."
+    untested: false
+    load: "Rule 4's drift clause, the reviewer-drift measure reported per reviewer by a team other than the reviewers' own, seeded known-bad agent-written changes in each reviewer's baseline, and the separation that keeps the drift reporter apart from the reviewers."
+    falsifier: "Seeded known-bad agent-written changes are caught at a steady high rate as each reviewer's volume and tenure grow."
+    if_it_flips: "Drift measurement thins out, and the organization lowers the rate of seeded changes in its own profile (CL-09's flip)."
+    extrapolation: "From open-source review of agent pull requests to an organization's reviewers of agent-written changes. Seeded changes may look planted and inflate measured catches."
+    settled_by: measurement
+    measured_by: 
+      - ratchet:U-199
+      - U-437
+    evidence: 
+      - source: Preprint
+        url: https://arxiv.org/abs/2606.22721
+    rests_on: 
+      parts: 
+        - measurement-plane
+        - people.change-reviewer
+        - people.high-risk-reviewer
+      relationships: 
+        - p55-r67
+        - p55-r72
+        - p55-r73
+      claims: 
+        - ratchet:CL-22
+  - id: JC-25
+    statement: "The author of a change is the agent together with the developer whose session produced it, so whoever merges must be neither; changes reviewed by someone other than their authors carry fewer post-release and security defects."
+    type: organizational
+    premise_group: People and organization
+    verdict: holds
+    strength: moderate
+    strength_reason: "Peer-reviewed repository studies, one across 3,126 projects, associate review coverage and participation with fewer post-release and security defects; an industrial replication finds the generic measures unrelated there. All are correlational, and none separates an independent merger from review in general; Ratchet's CL-28 carries the separation argument."
+    untested: false
+    load: "Rule 4 as Jig applies it: the merging reviewer is neither the agent nor its session's developer, a second model family's review is never the independent review, high-risk hunks need a qualified person outside the authoring team, and the profile's should-never code that refuses an author who merges."
+    falsifier: "Changes merged by their own session's developer show escaped defects at the same rate as changes merged by an independent reviewer."
+    if_it_flips: "Small organizations could let a session's developer merge low-risk changes through the exception path, with less to justify; the protected branch and its required checks stay."
+    extrapolation: "From open-source and one industrial codebase, mostly human-authored, to agent-written changes that a developer co-authors."
+    settled_by: measurement
+    measured_by: 
+      []
+    evidence: 
+      - source: Peer reviewed study
+        url: https://doi.org/10.1145/2597073.2597076
+    rests_on: 
+      parts: 
+        - protected-branch
+        - people.change-reviewer
+        - people.creation-developer
+        - people.high-risk-reviewer
+        - shared:ext.engineering-workflows
+      relationships: 
+        - p55-r34
+        - p55-r38
+        - p55-r39
+  - id: JC-26
+    statement: "The adopting organization establishes and keeps a controlled environment: managed endpoints, dependencies only through its mirrors, code only from its own engineers, and policy files and hook configuration delivered and locked centrally."
+    type: organizational
+    premise_group: Environment
+    verdict: honest bet
+    strength: none
+    strength_reason: "Vendor documentation shows the locking mechanisms exist in current harnesses, and where they stop (a vendor-hosted session does not read a device's policy); nothing measures how often organizations establish and keep these conditions. The premise is assumed rather than designed, and Jig declares a fallback for each part of it."
+    untested: true
+    load: "The four assumptions declared on Jig's container (managed endpoints, mirrored dependencies, code from the organization's own engineers, locked policy), the parts that rely on them (the harnesses, the per-edit checks, the stop gate and the locked pre-commit gate), and rule 2's local half. Each assumption names a fallback carried by the protected branch's server-side checks, so a failed premise narrows Jig to server-side enforcement rather than breaking it."
+    falsifier: "An audit finds unmanaged endpoints running coding agents, dependencies installed from outside the mirror, outside contributions merged without passing through the reader, or policy files a developer can edit."
+    if_it_flips: "Rule 2 falls back to the server-side checks only and rule 1 holds at the protected branch; rules 3 and 4 do not depend on the premise (the draft's own fallback, declared per assumption in the model)."
+    extrapolation: "From documented mechanisms to their deployment and upkeep across an organization's endpoints, build jobs and repositories."
+    settled_by: local-files
+    measured_by: 
+      []
+    evidence: 
+      - source: Published source
+        url: https://code.claude.com/docs/en/managed-settings
+    rests_on: 
+      parts: 
+        - secure-creation
+        - harness-full-parity
+        - harness-no-pinning
+        - harness-no-stop-gate
+        - edit-checks
+        - stop-gate
+        - precommit-gate
+      relationships: 
+        - p55-r8
+        - p55-r25
+        - p55-r26
+        - p55-r27
+  - id: JC-27
+    statement: "Local hooks and harness settings can be skipped, so required checks run server-side on a protected branch are the backstop for every local control and the fallback for every environment assumption; they hold only when nothing acting with the agent's credentials can bypass the branch rule or set a check's status."
+    type: engineering-practice
+    premise_group: Environment
+    verdict: holds
+    strength: strong (local hooks can be skipped) / moderate (the server-side backstop holds as configured)
+    strength_reason: "Git's documentation states the bypass and an industrial study shows developers bypassing local warnings. The platform's documentation states that required checks gate the merge, and also that by default they do not bind administrators and that anyone with write permission can set a check's status unless the check is bound to its source app; the backstop holds by construction only with those settings, and no study measures how often it fails."
+    untested: false
+    load: "Rule 1 as Jig applies it (a change merges only through the protected branch, with required checks run server-side that the agent cannot skip or reconfigure), the fallback of all four environment assumptions, the locked pre-commit gate treated as fast feedback rather than the control, and U-431's test that a commit which bypassed the hook fails the server-side checks."
+    falsifier: "A seeded change made with the agent's own credentials, with the hook bypassed or a check's status set by the agent, merges without the server-side suite passing."
+    if_it_flips: "Jig's rule 1 needs a stronger merge authority than branch protection, such as a merge service the agent's credentials cannot reach."
+    extrapolation: "From one code platform's documented behavior to the organization's platform and the permissions its agents' credentials carry."
+    settled_by: measurement
+    measured_by: 
+      - U-431
+    evidence: 
+      - source: Published source
+        url: https://github.com/git/git/blob/master/Documentation/githooks.adoc
+      - source: Peer reviewed study
+        url: https://doi.org/10.1007/s10664-021-10109-y
+    rests_on: 
+      parts: 
+        - protected-branch
+        - check-suite
+        - precommit-gate
+        - coding-agent
+        - shared:ext.engineering-workflows
+      relationships: 
+        - p55-r24
+        - p55-r34
+        - p55-r40
+  - id: JC-28
+    statement: "Current coding harnesses expose the controls the inner loop needs, a centrally managed policy and managed hooks a user cannot remove, and most offer a stop gate; where one lacks a stop gate, a locked pre-commit gate and the server-side checks run the same suite in its place."
+    type: engineering-practice
+    premise_group: Environment
+    verdict: holds
+    strength: moderate
+    strength_reason: "Each vendor's current documentation shows managed hooks users cannot remove; two harnesses document a stop event that can hold the turn and the third lists none, which the locked pre-commit gate compensates. Documentation states capability, not behavior under load, and it changes with each release."
+    untested: false
+    load: "The three example harnesses and their four parity fields (stop gate, telemetry export, version pinning, blocking hooks), MC-99's rule that a harness without a stop gate names the gate that runs the suite in its place, the locked pre-commit gate, and U-431."
+    falsifier: "A harness the organization uses lacks managed hooks a user cannot remove, or a session ends its turn on a failing suite and the change reaches the remote with neither the pre-commit gate nor the server-side checks catching it (U-431)."
+    if_it_flips: "A harness without managed hooks is compensated entirely at commit and on the server, and its sessions lose per-edit findings."
+    extrapolation: "From documented capability on a capture date to the versions an organization runs, release by release."
+    settled_by: local-files
+    measured_by: 
+      - U-431
+    evidence: 
+      - source: Published source
+        url: https://code.claude.com/docs/en/hooks
+    rests_on: 
+      parts: 
+        - harness-full-parity
+        - harness-no-pinning
+        - harness-no-stop-gate
+        - stop-gate
+        - precommit-gate
+        - edit-checks
+      relationships: 
+        - p55-r2
+        - p55-r3
+        - p55-r4
+        - p55-r18
+        - p55-r19
+        - p55-r20
+  - id: JC-29
+    statement: "A model or harness update can change what the agent does and what the checks find without notice, so the suite runs at pinned versions everywhere and, where a harness cannot pin its own version, the server-side run is the version of record."
+    type: empirical
+    premise_group: Environment
+    verdict: holds
+    strength: moderate
+    strength_reason: "A widely cited study shows the same hosted model's behavior, code generation included, changing within months, and Ratchet's CL-30 adds model-dependent control behavior across backbones. No study measures harness updates changing check results."
+    untested: false
+    load: "Version pinning as a harness parity field, the same suite at the same versions from one policy source, the server-side run as the version of record for a harness that cannot pin, and the tool and model versions in each provenance stamp."
+    falsifier: "Requalification after harness and model updates almost never changes the suite's findings or the agent's fixes on a fixed set of seeded changes."
+    if_it_flips: "Pinning relaxes to a schedule, and the server-side run stops being singled out as the version of record (CL-30's flip)."
+    extrapolation: "From a hosted chat model's drift to coding harnesses and their models, and from model drift to check-version drift."
+    settled_by: measurement
+    measured_by: 
+      - U-431
+    evidence: 
+      - source: Preprint
+        url: https://arxiv.org/abs/2307.09009
+    rests_on: 
+      parts: 
+        - harness-no-pinning
+        - harness-full-parity
+        - check-suite
+        - protected-branch
+        - provenance-stamper
+      relationships: 
+        - p55-r3
+        - p55-r24
+        - p55-r35
+        - p55-r36
+      claims: 
+        - ratchet:CL-30
+  - id: JC-30
+    statement: "Signals outside the harness, such as co-author trailers, bot accounts and writing style, attribute agent-written changes poorly, so attribution must come from harness telemetry, and only sessions in harnesses that export it can be counted; whether at least 95% of commits can be attributed this way is untested."
+    type: engineering-practice
+    premise_group: Measurement
+    verdict: "weak, reword"
+    strength: weak
+    strength_reason: "A census of 180 million repositories shows single signals recover a small fraction of one agent's commits, and a behavioral classifier reaches F1 0.89, short of 95%; one harness documents commit-to-session linkage in its telemetry. Nothing measures the attributable share in an organization that stamps from telemetry."
+    untested: true
+    load: "The attribute stage and its exit metric (a baseline exists, and at least 95% of commits are attributable), the provenance stamper, ChangeProvenance at interface point I4, the module's switch-on test (the share of merged changes carrying a stamp), and every measure split by origin."
+    falsifier: "After the attribute stage, the share of merged changes carrying a verified stamp stays well below the level the organization set, with the unlabeled share concentrated in harnesses that export no telemetry."
+    if_it_flips: "The attribute stage's exit metric drops to the share the harnesses can stamp, and the split by origin reports a large unlabeled row; the design already keeps unlabeled changes in every denominator."
+    extrapolation: From public repositories and outside detection to an organization that controls its harnesses and stamps at commit.
+    settled_by: measurement
+    measured_by: 
+      - ratchet:U-198
+    evidence: 
+      - source: Preprint
+        url: https://arxiv.org/abs/2606.24429
+      - source: Published source
+        url: https://code.claude.com/docs/en/monitoring-usage
+    rests_on: 
+      parts: 
+        - provenance-stamper
+        - harness-full-parity
+        - harness-no-pinning
+        - harness-no-stop-gate
+        - measurement-plane
+      relationships: 
+        - p55-r35
+        - p55-r36
+        - p55-r37
+  - id: JC-31
+    statement: "Security defects surface long after merge, so defect measures are read only on cohorts whose reproduction window has closed, with the count still pending beside them."
+    type: empirical
+    premise_group: Measurement
+    verdict: holds
+    strength: moderate
+    strength_reason: "Two large peer-reviewed studies agree that vulnerabilities live for years and that many known ones stay unfixed past a year, so counts on open cohorts are censored. Neither measures the window between merge and a reproduced finding inside an organization running Jig and Ratchet."
+    untested: false
+    load: "Lagged cohorts in the measurement plane: every defect-based measure (per-change rates, reintroduction, catch layer) reported only on closed cohorts with the pending count beside it, so a slow reproduction cannot make Jig look better."
+    falsifier: "Escapes in the organization are almost all reproduced within weeks of merge, so open cohorts differ little from closed ones."
+    if_it_flips: "Cohorts can be read sooner, and the pending count beside each figure matters less."
+    extrapolation: From open-source vulnerability lifetimes (introduction to fix) to the window between merge and a reproduced finding inside one organization.
+    settled_by: measurement
+    measured_by: 
+      - ratchet:U-199
+    evidence: 
+      - source: Peer reviewed study
+        url: https://www.usenix.org/conference/usenixsecurity22/presentation/alexopoulos
+    rests_on: 
+      parts: 
+        - measurement-plane
+      relationships: 
+        - p55-r71
+        - p55-r72
+        - p55-r73
+        - p55-r74
+  - id: JC-32
+    statement: "People misjudge how AI tools change their own work, sometimes in the wrong direction, so Jig's effect is measured against a control arm rather than taken from reports."
+    type: empirical
+    premise_group: Measurement
+    verdict: holds
+    strength: moderate
+    strength_reason: "A randomized trial finds developers' own estimates of AI's effect pointing the wrong way; it is small (16 developers) and concerns speed, not defects."
+    untested: false
+    load: "The measurement plane's control arm, so the system's effect is measured rather than assumed, and design principle 5 (every control carries an outcome metric, not an activity metric)."
+    falsifier: "Developers' and teams' reported effect of Jig on defects matches the control comparison closely."
+    if_it_flips: "The control arm could give way to before-and-after comparisons and surveys, at lower cost."
+    extrapolation: From speed estimates by experienced open-source developers to estimates of defect reduction in an organization.
+    settled_by: measurement
+    measured_by: 
+      []
+    evidence: 
+      - source: Preprint
+        url: https://arxiv.org/abs/2507.09089
+    rests_on: 
+      parts: 
+        - measurement-plane
+      relationships: 
+        []
+  - id: JC-33
+    statement: "The stacked layers can cut detectable security defects reaching merge by about 50 to 70% within 6 to 12 months; layer effects overlap and do not multiply, and order-of-magnitude cuts come only from classes made impossible by construction, over years."
+    type: empirical
+    premise_group: Measurement
+    verdict: honest bet
+    strength: none
+    strength_reason: "An estimate assembled from single-layer studies (in-loop fixing, placement, review, secure defaults) by the design's own synthesis; no study measures a stacked system, and the overlap between layers is assumed, not measured."
+    untested: true
+    load: "The plausibility read behind the journey's timing (stages from the first weeks to 12 months and beyond), the targets an adopting organization sets, and the exit metric of the 'agent fixes first' stage that findings per agent-written hunk at the pull request fall by at least half."
+    falsifier: Closed cohorts 12 months into the journey show detectable security defects reaching merge down by much less than half against the control arm.
+    if_it_flips: "The journey's timing and targets are re-set from the organization's own first cohorts."
+    extrapolation: From separate layers studied in different settings to their combination in one organization.
+    settled_by: measurement
+    measured_by: 
+      - ratchet:U-198
+      - U-436
+    evidence: 
+      - source: Design record
+        published: false
+    rests_on: 
+      parts: 
+        - measurement-plane
+      relationships: 
+        []
+  - id: JC-35
+    statement: "A static or in-process check can be derived from a kept runtime test for the classes that matter, so derived checks reach the agent's turn; for authorization, where a flaw is a relation rather than a data flow, this is untested and may fail."
+    type: engineering-practice
+    premise_group: Interface with Ratchet
+    verdict: honest bet
+    strength: weak (pattern classes) / none (authorization)
+    strength_reason: "Studies show checkers can be synthesized from known vulnerabilities and their fixes for a third to a half of cases, and one peer-reviewed system found many new kernel bugs; none derives a check from a runtime test, and for authorization a 2026 preprint argues and measures that fixed rules do not carry."
+    untested: true
+    load: "Interface point I2 (derived checks from Ratchet's regression catalog into the shared suite), the fast path where a derived check runs at the agent's turn, the fix handoff that gives the fixing agent the derived check, U-197 and the derived-check gaming watch (U-438)."
+    falsifier: "Over Ratchet's first proven classes, few kept tests yield a derived check that catches the class's reproduced members, and none does for authorization classes."
+    if_it_flips: "I2 stays empty for the classes it cannot serve, and those classes reach the agent only as proven classes, road entries and fix briefs; Ratchet's kept tests stay the only check that holds them."
+    extrapolation: "From checkers synthesized from vulnerability records and patches to checks derived from Ratchet's kept runtime tests. The derived check is restricted to a general pattern, without kept-test inputs or expected behavior; the cited studies do not test that projection limit."
+    settled_by: measurement
+    measured_by: 
+      - ratchet:U-197
+      - U-438
+    evidence: 
+      - source: Preprint
+        url: https://arxiv.org/abs/2511.08462
+      - source: Peer reviewed study
+        url: https://doi.org/10.1145/3731569.3764827
+    rests_on: 
+      parts: 
+        - check-suite
+        - edit-checks
+        - stop-gate
+      relationships: 
+        - p55-r21
+        - p55-r22
+  - id: JC-36
+    statement: "Tracing each escaped defect to the layer that should have caught it, and turning recurring classes into a rule (fast) or a secure default (durable), reduces how often those classes recur."
+    type: organizational
+    premise_group: Interface with Ratchet
+    verdict: honest bet
+    strength: weak
+    strength_reason: "First-party reports, two decades old or more, credit causal analysis with large defect reductions, and one company's practice turns recurring patterns into build-breaking rules; none is controlled, none concerns security classes in agent-written code, and the secure-default half rests on JP-17."
+    untested: true
+    load: "Thesis item 4, catch-layer attribution by Ratchet's evaluation group (never by Jig), the policy-owning team turning proven classes into rules with a class test, the durable path from a proven, recurring class to a paved-road default and skill, and the reintroduction measures per retired class. The policy-owning team reads ClassTestTotals directly as people, never an agent; the suite and measurement plane receive only a binary rule result."
+    falsifier: "Classes turned into rules or defaults recur at the same rate as classes left alone, on and off the road (Ratchet's reintroduction measure)."
+    if_it_flips: "Escapes stop driving rule and road work, and the policy-owning team's effort moves to the classes with the most findings regardless of escapes."
+    extrapolation: "From company-wide defect prevention programs of the 1990s and 2000s to class-by-class rules and defaults fed by an evaluation group's catch-layer assignments."
+    settled_by: measurement
+    measured_by: 
+      - ratchet:U-200
+      - ratchet:U-434
+      - U-436
+    evidence: 
+      - source: Published source
+        url: https://doi.org/10.1109/49.46867
+    rests_on: 
+      parts: 
+        - measurement-plane
+        - people.creation-policy-owner
+        - check-suite
+        - context-plane
+      relationships: 
+        - p55-r28
+        - p55-r30
+        - p55-r74
