@@ -1,0 +1,452 @@
+# Profile checker fixture: evaluation date 2026-12-01, complete mode. Expected result in expected-results.yaml.
+# Ratchet edition 5.1.3. Generated; do not edit.
+profile: 
+  name: example-regulated-enterprise
+  description: "Hundreds of engineering teams, quarterly assessment cycle today, change management with standard-change preapproval, hosted models restricted."
+existing_tools: 
+  STEP-1: issue tracker
+  STEP-2: null
+  STEP-3: approved internal model endpoint
+  STEP-4: change-approval workflow plus enterprise IAM
+  STEP-5: CI runners in an approved test environment
+  STEP-6: null
+  STEP-7: issue tracker
+  STEP-8: SCM and release pipeline
+  STEP-9: deployment records
+  STEP-10: CI pipeline
+  STEP-11: spreadsheet
+jurisdictions: 
+  - id: example-jurisdiction
+    incident_clocks: 
+      - event: notifiable computer-security incident
+        hours: 36
+        authority: "Example: national regulator (overlay only)"
+      - event: cybersecurity event notice
+        hours: 72
+        authority: "Example: regional regulator (overlay only)"
+delivery: 
+  deploy_cadence: release-train
+  starting_cadence_rung: periodic
+  standard_change_preapproval: true
+ownership: 
+  q1_checking_team: sibling
+  q2_runtime_producer: platform
+  q3_promotion_authority: joint-board
+separation: 
+  producer_team: validation platform
+  approver_team: policy and IAM
+  fixture_oracle_owner_team: independent assurance
+  verifier_team: independent assurance
+  fix_author_team: service engineering
+  closure_acceptor_team: security finding quality
+  evaluation_team: evaluation engineering
+  business_risk_owner_role: business-unit risk owner
+  security_risk_owner_role: independent technology risk
+  control_plane_operator_role: security platform operations (assurance unit)
+  platform_operator_role: validation platform
+  team_definition: reporting line up to the director level; two pods under one director are one team
+  internal_audit_role: observer
+ledger_write_path: intake-only
+road: 
+  owner_team: developer platform
+  metrics_owner_team: evaluation engineering
+  assets: 
+    developer_portal: internal developer portal with software templates
+    base_images: approved base image registry
+    container_platform_policy: Kubernetes admission policies
+    api_auth_libraries: internal authentication library
+    gateway: enterprise API gateway
+    secure_defaults_linters: null
+  conformance_basis: deployed-state
+  conformance_granularity: call-site
+  vet_each_version: true
+  covered_sample_share: 0.05
+  escape_hatch_reinstates_regressions: true
+  authorship_labeling: labeled
+  enforced_preferred: true
+  opt_in_coverage_requires_call_site_check: true
+tools: 
+  existing: 
+    sast: 
+      - name: commercial SAST suite
+        mandated: true
+        obligation: secure development policy for regulated systems
+      - name: Semgrep
+        mandated: false
+    dast: 
+      - name: OWASP ZAP
+        mandated: false
+    sca: 
+      - name: commercial SCA
+        mandated: true
+        obligation: third-party software risk standard
+    secrets: 
+      - name: Gitleaks
+        mandated: false
+    iac: 
+      - name: Checkov
+        mandated: false
+    container: 
+      - name: Trivy
+        mandated: false
+    linter: 
+      - name: language linters with security rules
+        mandated: false
+    bug_bounty: 
+      []
+    pentest: 
+      - name: annual external penetration test
+        mandated: true
+        obligation: annual independent testing requirement
+    threat_modeling: 
+      - name: design-time threat models
+        mandated: false
+    security_review: 
+      - name: architecture security review board
+        mandated: true
+        obligation: change risk assessment for material changes
+  tool_owner_team: application security tooling
+  yield_owner_team: evaluation engineering
+  decision_owner_role: independent technology risk
+  confidence_bar_default: 0.5
+  sample_minimum_per_class: 30
+  leads_count_as_coverage: false
+  yield_requires_sampling: true
+  delivery_metrics_collected: 
+    - pipeline_stage_timings
+    - queue_time
+    - blocked_deploys
+    - triage_time
+    - change_lead_time
+    - deployment_frequency
+    - failed_deployment_recovery_time
+    - change_fail_rate
+    - deployment_rework_rate
+modules: 
+  consequence-gates: 
+    enabled: false
+    evidence: 
+      findings_with_reached_assets: 7
+  paved-road: 
+    enabled: false
+    evidence: 
+      classes_with_two_reproduced: 2
+  tool-portfolio: 
+    enabled: true
+    evidence: 
+      closed_cases_with_lead_provenance: 26
+      lead_text_quarantined: true
+  production-effects: 
+    enabled: false
+    evidence: 
+      phase_3_continue_decision: false
+      approved_production_profile: false
+dials: 
+  - id: covered_sample_share
+    current: 0.05
+    turned_by_role: independent technology risk
+    last_turn_evidence: core floor adopted at program start
+    below_bound_acceptance: null
+  - id: negative_challenge_sample_share
+    current: 0.1
+    turned_by_role: independent technology risk
+    last_turn_evidence: core default
+    below_bound_acceptance: null
+  - id: lead_sample_minimum_per_class
+    current: 30
+    turned_by_role: independent technology risk
+    last_turn_evidence: core floor adopted at program start
+    below_bound_acceptance: null
+  - id: held_lead_sample_share
+    current: 0.05
+    turned_by_role: independent technology risk
+    last_turn_evidence: core default
+    below_bound_acceptance: null
+  - id: seeded_proposal_rate
+    current: 0.02
+    turned_by_role: independent technology risk
+    last_turn_evidence: core default
+    below_bound_acceptance: null
+  - id: ship_through_renewal_cap
+    current: 2
+    turned_by_role: independent technology risk
+    last_turn_evidence: core default
+    below_bound_acceptance: null
+  - id: approver_wip_limit
+    current: 15
+    turned_by_role: independent technology risk
+    last_turn_evidence: core default
+    below_bound_acceptance: null
+  - id: verifier_wip_limit
+    current: 10
+    turned_by_role: independent technology risk
+    last_turn_evidence: core default
+    below_bound_acceptance: null
+  - id: gate_queue_age_hours
+    current: 48
+    turned_by_role: independent technology risk
+    last_turn_evidence: core default
+    below_bound_acceptance: null
+  - id: handoffs_per_closed_loop_ceiling
+    current: 14
+    turned_by_role: business-unit risk owner
+    last_turn_evidence: phase 2 baseline of 13 handoffs per closed loop plus margin
+    below_bound_acceptance: null
+  - id: regression_time_budget_minutes
+    current: 8
+    turned_by_role: business-unit risk owner
+    last_turn_evidence: release-train deploy window
+    below_bound_acceptance: null
+  - id: confidence_bar_default
+    current: 0.5
+    turned_by_role: independent technology risk
+    last_turn_evidence: initial bar before measured yield
+    below_bound_acceptance: null
+  - id: posture_review_interval_months
+    current: 6
+    turned_by_role: independent technology risk
+    last_turn_evidence: core default
+    below_bound_acceptance: null
+  - id: early_stop_min_closed_cases
+    current: 5
+    turned_by_role: independent technology risk
+    last_turn_evidence: core default
+    below_bound_acceptance: null
+  - id: approver_drift_threshold_pp
+    current: 10
+    turned_by_role: security risk office
+    last_turn_evidence: core default
+    below_bound_acceptance: null
+  - id: failover_drill_interval_days
+    current: 30
+    turned_by_role: security risk office
+    last_turn_evidence: core default
+    below_bound_acceptance: null
+  - id: typed_route_max_calibration_error
+    current: 0.05
+    turned_by_role: security risk office
+    last_turn_evidence: core default
+    below_bound_acceptance: null
+  - id: posture_expiry_hours
+    current: 168
+    turned_by_role: independent technology risk
+    last_turn_evidence: "core default: above the worst credible recovery time including region loss"
+    below_bound_acceptance: null
+  - id: window_bundle_lead_hours
+    current: 4
+    turned_by_role: independent technology risk
+    last_turn_evidence: core default
+    below_bound_acceptance: null
+models: 
+  eligible_routes: 
+    - id: internal-open-weight
+      kind: self-hosted
+      data_classes_allowed: 
+        - internal
+        - confidential
+    - id: hosted-frontier
+      kind: hosted
+      data_classes_allowed: 
+        - public
+        - internal
+    - id: hosted-typed-decisions
+      kind: hosted
+      output: typed
+      decision_types: 
+        - lead-triage
+        - queue-confidence
+      data_classes_allowed: 
+        - public
+        - internal
+  data_residency: 
+    - us
+cloud_overlay: 
+  provider: aws
+  regions: 
+    - us-east-1
+    - us-west-2
+scale: 
+  services: 1200
+  teams: 180
+  engineers: 900
+risk_appetite: low
+attestation: 
+  drafter_team: validation testing team
+  asset_owner_role: business-unit general manager
+  draft_sources: 
+    - business-impact-analysis
+    - continuity-tier
+    - data-classification
+    - service-catalog
+  retrigger: material-change
+  calendar_max_months: 12
+  owner_minutes_target: 15
+unattested_default: critical
+crown_jewel_register: 
+  - asset: core-ledger
+    line_of_business: core operations
+    tier: crown-jewel
+    impact_score: null
+    drafted_by: validation testing team
+    drafted_from: 
+      - business-impact-analysis
+      - data-classification
+    confirmed_by: core operations general manager
+    confirmed_on: 2026-09-01
+  - asset: customer-identity-store
+    line_of_business: digital channels
+    tier: crown-jewel
+    impact_score: null
+    drafted_by: validation testing team
+    drafted_from: 
+      - business-impact-analysis
+      - data-classification
+    confirmed_by: digital channels general manager
+    confirmed_on: 2026-09-01
+  - asset: regional-reporting-service
+    line_of_business: retail operations
+    tier: critical
+    impact_score: null
+    drafted_by: validation testing team
+    drafted_from: 
+      - continuity-tier
+      - service-catalog
+    confirmed_by: null
+    confirmed_on: null
+  - asset: marketing-site
+    line_of_business: marketing
+    tier: standard
+    impact_score: null
+    drafted_by: validation testing team
+    drafted_from: 
+      - service-catalog
+    confirmed_by: marketing general manager
+    confirmed_on: 2026-09-01
+blocking_cost_register: 
+  - service: core-api
+    blocking_cost_tier: mission-critical
+  - service: marketing-web
+    blocking_cost_tier: standard
+tier_overrides: 
+  T0: 
+    retention: 10 years for audit and grants
+gate_failure_policy: 
+  key: tier
+  by_tier: 
+    crown-jewel: fail-closed
+    critical: fail-closed
+    standard: fail-open-with-record
+  scope_when_unavailable: declared-dependencies
+  score_threshold: null
+  blocking_cost_adjustments: null
+  override: 
+    acceptor_role: business-unit risk owner
+    concurrence_role: independent technology risk
+    max_expiry_hours: 24
+    replay_on_recovery: true
+fix_capacity: 
+  remediation_window_days: 60
+  saturation_window_weeks: 6
+ai_resilience: 
+  providers: 
+    - hosted frontier provider
+    - internal open-weight serving
+  primary_provider_share: 0.8
+  self_hosting_capacity: partial
+  fallback_route_id: internal-open-weight
+  producer_rungs: 
+    - producer: source-assisted reviewer
+      lowest_rung: self-hosted
+    - producer: runtime assessment producer
+      lowest_rung: no-agent
+    - producer: scripted comparator
+      lowest_rung: no-agent
+infrastructure_dependencies: 
+  - name: enterprise identity provider
+    kind: idp
+    failure_posture: fail-closed
+  - name: enterprise CI
+    kind: ci
+    failure_posture: queue-and-retry
+  - name: enterprise tracker
+    kind: tracker
+    failure_posture: queue-and-retry
+  - name: enterprise SIEM
+    kind: siem
+    failure_posture: mark-unknown
+  - name: change management system
+    kind: change-management
+    failure_posture: fail-closed
+data_partitioning: 
+  keys: 
+    - jurisdiction
+    - line_of_business
+  cross_partition_reads: review-console-only
+phase_1_boundary: 
+  status: active
+  source: practice-target
+  confirmed_by_role: independent assurance
+  target_written_by_team: true
+  outsider_text_excluded: true
+  agent_egress_model_route_only: true
+  context_synthetic: true
+agent_limits: 
+  consequence_line: critical
+  consequence_line_set_by_role: business-unit risk owner
+  limits: 
+    - applies_to: producer
+      subject: internal-open-weight
+      max_tier: standard
+      environments: 
+        - isolated test cell
+        - staging
+      action_classes: 
+        - read-only
+        - reversible
+      set_by_role: independent technology risk
+    - applies_to: judgment-type
+      subject: duplicate-of-known-finding
+      max_tier: standard
+      environments: 
+        - isolated test cell
+      action_classes: 
+        - read-only
+      set_by_role: independent technology risk
+  grants: 
+    - id: SP-replay-0042
+      kind: standing-permission
+      applies_to: producer
+      subject: internal-open-weight
+      max_tier: standard
+      environments: 
+        - staging
+      action_classes: 
+        - reversible
+    - id: AG-dedup-01
+      kind: autonomy-grant
+      applies_to: judgment-type
+      subject: duplicate-of-known-finding
+      max_tier: standard
+      environments: 
+        - isolated test cell
+      action_classes: 
+        - read-only
+    - id: BA-nightly-07
+      kind: batch-approval
+      applies_to: producer
+      subject: internal-open-weight
+      max_tier: standard
+      environments: 
+        - isolated test cell
+      action_classes: 
+        - read-only
+  accuracy_window: 
+    unit: actions
+    size: 200
+thresholds: 
+  - value: 20
+    unit: closed cases
+    set_by_role: chief technology officer (program sponsor)
+    set_on: 2026-10-01
+    decides: Phase 3 compares the arms only once this many cases have closed in each
+    gates_phase: 3

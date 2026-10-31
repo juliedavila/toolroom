@@ -1,0 +1,203 @@
+# Profile checker fixture: evaluation date 2026-12-01, complete mode. Expected result in expected-results.yaml.
+# Ratchet edition 5.1.3. Generated; do not edit.
+profile: 
+  name: example-regulated-enterprise
+  description: "Hundreds of engineering teams, quarterly assessment cycle today, change management with standard-change preapproval, hosted models restricted."
+existing_tools: 
+  STEP-1: issue tracker
+  STEP-2: null
+  STEP-3: approved internal model endpoint
+  STEP-4: change-approval workflow plus enterprise IAM
+  STEP-5: CI runners in an approved test environment
+  STEP-6: null
+  STEP-7: issue tracker
+  STEP-8: SCM and release pipeline
+  STEP-9: deployment records
+  STEP-10: CI pipeline
+  STEP-11: spreadsheet
+jurisdictions: 
+  - id: example-jurisdiction
+    incident_clocks: 
+      - event: notifiable computer-security incident
+        hours: 36
+        authority: "Example: national regulator (overlay only)"
+      - event: cybersecurity event notice
+        hours: 72
+        authority: "Example: regional regulator (overlay only)"
+delivery: 
+  deploy_cadence: release-train
+  starting_cadence_rung: periodic
+  standard_change_preapproval: true
+ownership: 
+  q1_checking_team: sibling
+  q2_runtime_producer: platform
+  q3_promotion_authority: joint-board
+separation: 
+  producer_team: validation platform
+  approver_team: policy and IAM
+  fixture_oracle_owner_team: independent assurance
+  verifier_team: independent assurance
+  fix_author_team: service engineering
+  closure_acceptor_team: security finding quality
+  business_risk_owner_role: business-unit risk owner
+  security_risk_owner_role: independent technology risk
+ledger_write_path: intake-only
+road: 
+  owner_team: developer platform
+  metrics_owner_team: evaluation engineering
+  assets: 
+    developer_portal: internal developer portal with software templates
+    base_images: approved base image registry
+    container_platform_policy: Kubernetes admission policies
+    api_auth_libraries: internal authentication library
+    gateway: enterprise API gateway
+    secure_defaults_linters: null
+  conformance_basis: deployed-state
+  escape_hatch_reinstates_regressions: true
+  authorship_labeling: labeled
+tools: 
+  existing: 
+    sast: 
+      - name: commercial SAST suite
+        mandated: true
+        obligation: secure development policy for regulated systems
+      - name: Semgrep
+        mandated: false
+    dast: 
+      - name: OWASP ZAP
+        mandated: false
+    sca: 
+      - name: commercial SCA
+        mandated: true
+    secrets: 
+      - name: Gitleaks
+        mandated: false
+    iac: 
+      - name: Checkov
+        mandated: false
+    container: 
+      - name: Trivy
+        mandated: false
+    linter: 
+      - name: language linters with security rules
+        mandated: false
+    bug_bounty: 
+      []
+    pentest: 
+      - name: annual external penetration test
+        mandated: true
+        obligation: annual independent testing requirement
+    threat_modeling: 
+      - name: design-time threat models
+        mandated: false
+    security_review: 
+      - name: architecture security review board
+        mandated: true
+        obligation: change risk assessment for material changes
+  tool_owner_team: application security tooling
+  yield_owner_team: application security tooling
+  decision_owner_role: validation platform
+  confidence_bar_default: 0.5
+  sample_minimum_per_class: 30
+  leads_count_as_coverage: true
+  yield_requires_sampling: false
+models: 
+  eligible_routes: 
+    - id: internal-open-weight
+      kind: self-hosted
+      data_classes_allowed: 
+        - internal
+        - confidential
+    - id: hosted-frontier
+      kind: hosted
+      data_classes_allowed: 
+        - public
+        - internal
+  data_residency: 
+    - us
+scale: 
+  services: 1200
+  teams: 180
+  engineers: 900
+risk_appetite: low
+attestation: 
+  drafter_team: validation testing team
+  asset_owner_role: business-unit general manager
+  draft_sources: 
+    - business-impact-analysis
+    - continuity-tier
+    - data-classification
+    - service-catalog
+  retrigger: material-change
+  calendar_max_months: 12
+  owner_minutes_target: 15
+unattested_default: critical
+crown_jewel_register: 
+  - asset: core-ledger
+    line_of_business: core operations
+    tier: crown-jewel
+    impact_score: null
+    drafted_by: validation testing team
+    drafted_from: 
+      - business-impact-analysis
+      - data-classification
+    confirmed_by: core operations general manager
+    confirmed_on: 2026-09-01
+  - asset: customer-identity-store
+    line_of_business: digital channels
+    tier: crown-jewel
+    impact_score: null
+    drafted_by: validation testing team
+    drafted_from: 
+      - business-impact-analysis
+      - data-classification
+    confirmed_by: digital channels general manager
+    confirmed_on: 2026-09-01
+  - asset: regional-reporting-service
+    line_of_business: retail operations
+    tier: critical
+    impact_score: null
+    drafted_by: validation testing team
+    drafted_from: 
+      - continuity-tier
+      - service-catalog
+    confirmed_by: null
+    confirmed_on: null
+  - asset: marketing-site
+    line_of_business: marketing
+    tier: standard
+    impact_score: null
+    drafted_by: validation testing team
+    drafted_from: 
+      - service-catalog
+    confirmed_by: marketing general manager
+    confirmed_on: 2026-09-01
+blocking_cost_register: 
+  - service: core-api
+    blocking_cost_tier: mission-critical
+  - service: marketing-web
+    blocking_cost_tier: standard
+tier_overrides: 
+  T0: 
+    retention: 10 years for audit and grants
+gate_failure_policy: 
+  key: tier
+  by_tier: 
+    crown-jewel: fail-closed
+    critical: fail-closed
+    standard: fail-open-with-record
+  scope_when_unavailable: declared-dependencies
+  score_threshold: null
+  blocking_cost_adjustments: null
+  override: 
+    acceptor_role: business-unit risk owner
+    concurrence_role: independent technology risk
+    max_expiry_hours: 24
+    replay_on_recovery: true
+phase_1_boundary: 
+  status: active
+  confirmed_by_role: independent assurance
+  target_written_by_team: true
+  outsider_text_excluded: true
+  agent_egress_model_route_only: true
+  context_synthetic: true

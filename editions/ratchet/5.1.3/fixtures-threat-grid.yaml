@@ -1,0 +1,811 @@
+# Acceptance fixtures for the threat grid (specification: spec-threat-grid.md).
+# base "shipped" runs on the edition folder's model.yaml, failures.yaml and threat-closures.yaml byte for byte;
+# base "toy" runs on the toy documents below. "edits" change the base documents in order; an edited or toy document
+# is written to a scratch folder and passed with its own option. "org_closures" and "org_sign_offs", when either is
+# present, are written as the `closures` and `sign_offs` of one organization closure file, each as given;
+# "org_document" is that whole file as given, in place of the two. "omit" leaves base files out of the run. Expected
+# results were written from the specification. Toy ids and hashes that a YAML 1.1 reader could take for a boolean or
+# a number are quoted.
+# expect.exit, expect.errors and expect.warnings are in every fixture. errors and warnings list every message of that
+# level, as a code or {code, location}, order ignored. expect.written lists what the run writes: register, summary or
+# both; left out, it is [register, summary] when exit is 0 and [register] when exit is 1. counts, cells, controllers and
+# closures are partial matches: cells by id (stride or stpa), controllers by id, closures by contract and letter; a list
+# inside them matches a list of the same length item by item. absent lists ids no cell has. summary_contains lists
+# whole lines of the summary.
+# A sign-off's expects holds the hash of the rule's field and why: SHA-256 over the text written as a JSON string,
+# first 12 lowercase hex digits. "Signed digest" 7cc07f6b964b; "The digest is signed." 6f942cc9cc15; "Signed by its
+# sender." 24a3ed8a7a7e; "single use" f46bd45fd75c; "Plain record" b2b19d4dd565; "Recorded." 8a5cb3b8d84e; the escapes
+# fixture's why d7a267f0bcdc (its JSON string escapes the quotes, the backslash, the tab and U+001B as \u001b); the
+# shipped model-output rule's field "Never authority" 49c6c7344007 and its why dc6ce3241338.
+
+toy:
+  model:
+    edition: toy
+    elements:
+      - { id: p, kind: person }
+      - { id: q, kind: person }
+      - { id: x, kind: service, trust_zone: a }
+      - { id: z, kind: service, trust_zone: a }
+      - { id: "y", kind: service, trust_zone: b }
+      - { id: w, kind: store, trust_zone: b }
+    contracts:
+      - { name: K, description: "Signed digest and single use." }
+      - { name: L, description: "Plain record." }
+    relationships:
+      - { id: r1, from: x, to: "y", kind: data, carries: [K] }
+      - { id: r2, from: x, to: z, kind: data, carries: [K] }
+      - { id: r3, from: p, to: x, kind: authorization, carries: [] }
+      - { id: r4, from: "y", to: x, kind: feedback, carries: [L] }
+      - { id: r5, from: x, to: "y", kind: control, carries: [K, L] }
+      - { id: r6, from: x, to: w, kind: control }
+      - { id: r7, from: q, to: p, kind: data, carries: [] }
+  failures:
+    scenarios:
+      - { id: F1, elements: [x, "y"], invariant: I2 }
+      - { id: F2, elements: [z], invariant: I5 }
+      - { id: F3, elements: [x], invariant: I10 }
+  closures:
+    closures:
+      - { contract: K, field: "Signed digest", letter: T, why: "The digest is signed.", reviewed: { by: "security reviewer", date: "2025-01-31" } }
+      - { contract: K, field: "single use", letter: E, why: "It is used once.", reviewed: { by: "security reviewer", date: "2025-01-31" } }
+
+fixtures:
+  - name: "fixture-tg-shipped.yaml"
+    description: "The shipped files byte for byte: rules cover cells only where every carried contract states the field, a covered cell closes only when its rules are reviewed, and a reviewed rule whose only crossing also carries a contract with no rule for that letter covers no cell and warns (TG-1 to TG-6, TG-8, TG-9)."
+    base: shipped
+    expect:
+      exit: 0
+      errors: []
+      warnings:
+        - { code: TG-W-closure-unused, location: "edition closure RestoreGrant T" }
+        - { code: TG-W-closure-unused, location: "edition closure AdminSession R" }
+      written: [register, summary]
+      counts:
+        stride: { closed: 12, proposed: 6, by_letter: { S: { closed: 0, proposed: 0 }, E: { closed: 4, proposed: 2 }, T: { closed: 0, proposed: 2 }, R: { closed: 2, proposed: 0 }, I: { closed: 6, proposed: 2 } } }
+        closure_rules: 11
+        closure_rules_reviewed: 7
+        closure_rules_used: 9
+      cells:
+        - { id: "r005:S", status: open, closed_by: [] }
+        - { id: "r005:T", status: open, closed_by: [] }
+        - { id: "r086:S", status: open, carries: [CandidateFinding, ActionSpec, PatchCandidate] }
+        - { id: "r017:E", status: open, closed_by: [] }
+        - { id: "p27-r4:E", status: closed, closed_by: [{ contract: TypedDecision, field: "it may rank, route or flag, never authorize", reviewed: true }] }
+        - { id: "r036:E", status: proposed, closed_by: [{ contract: ModelResponse, field: "Never authority", reviewed: false }] }
+        - id: p23-r1:R
+          status: closed
+          carries: 
+            - AdminSessionRequest
+          closed_by: 
+            - contract: AdminSessionRequest
+              field: "Before acting on this input, the broker durably appends its request reference, authenticated sender identity, received time, target and scope, payload hash and acceptance or refusal with its reason to protected audit under custody neither the requester nor the approver can alter. A refusal is recorded even when no session is issued. If the append fails, the broker refuses the input and opens no session."
+              reviewed: true
+        - id: p23-r2:R
+          status: closed
+          carries: 
+            - AdminSessionApproval
+          closed_by: 
+            - contract: AdminSessionApproval
+              field: "Before acting on this input, the broker durably appends its request reference, authenticated sender identity, received time, target and scope, payload hash and acceptance or refusal with its reason to protected audit under custody neither the requester nor the approver can alter. A refusal is recorded even when no session is issued. If the append fails, the broker refuses the input and opens no session."
+              reviewed: true
+        - { id: "r032:T", status: open }
+        - { id: "r032:R", status: open, closed_by: [] }
+        - { id: "r032:D", status: open }
+        - { id: "shared:p30-r2:I", status: proposed, closed_by: [{ contract: shared:DerivedCheck, field: "Its pattern is the body the check suite compiles into configuration coding agents can read, so it holds a general pattern for the weakness class the kept test holds, never the kept test's input, its fixtures or the boundary behavior it expects.", reviewed: false }] }
+        - { id: "shared:p30-r1:I", status: closed, closed_by: [{ contract: shared:ProvenClass, field: "Its definition names no service, component, path or file of the organization's own. While any member finding is open, the projection shows the class's existence, definition and fix rule, with no member count, services or components spanned, or highest consequence tier. A third-party class names the component without its versions until a fix exists. Per-class member counts are never carried in this projection, including after every member closes; they go only to the policy-owning team: people, never an agent, never to an agent-reachable part or the model route. Spans and highest consequence tier are sent only once every member's finding is closed; a class that gains an open member again sends its next version without them, and the loop keeps only the current version of each class. The model provider is a reader through the coding agent's model route, so the same limits apply to what reaches it.", reviewed: true }] }
+        - { id: "jig:p55-r30:I", status: closed, closed_by: [{ contract: shared:ProvenClass, field: "Its definition names no service, component, path or file of the organization's own. While any member finding is open, the projection shows the class's existence, definition and fix rule, with no member count, services or components spanned, or highest consequence tier. A third-party class names the component without its versions until a fix exists. Per-class member counts are never carried in this projection, including after every member closes; they go only to the policy-owning team: people, never an agent, never to an agent-reachable part or the model route. Spans and highest consequence tier are sent only once every member's finding is closed; a class that gains an open member again sends its next version without them, and the loop keeps only the current version of each class. The model provider is a reader through the coding agent's model route, so the same limits apply to what reaches it.", reviewed: true }] }
+        - { id: "shared:p30-r4:I", status: proposed, closed_by: [{ contract: shared:RoadAssuranceStatus, field: "For each entry version its status is current or not current, with no class outcomes and no reason for a status change, including a failed vetting or a withdrawal after a leak. Its vetted scope and known limits use API and configuration identifiers and named pattern classes, never an input shape or sequence. They never hold a test's input, fixture content, expected outcome or a bypass description.", reviewed: false }] }
+        - { id: "p45-r1:T", status: proposed, closed_by: [{ contract: ReleaseAttestation, field: "An artifact with no attestation, a signature that does not verify against a current key reference whose purpose is release, provenance below Build Level 3, or a digest that differs from the attested one is never started or served. The local enforcement point checks this before anything starts in a cell, and the route registry before it pins a weights digest; the model gateway then serves only weights whose loaded digest matches that pin. Each release attestation carries a monotonically increasing release sequence number covered by the release signature. Release signatures and rollback authorizations verify only against a current key reference whose purpose is release. For release admission a cell is a stable logical execution destination, independent of its disposable image or enforcement process. The local enforcement point keeps that cell's highest verified release sequence, last consumed rollback number and sticky refusal ranges in durable storage outside the disposable cell; all survive restart, rebuild and restore. A new or rebuilt cell takes its first mark and rollback state from the release pipeline through authenticated provisioning, never from the first arriving release or an empty local store; unavailable or stale initialization refuses all starts. A rollback authorization is part of the release attestation and is signed by key management for the pipeline with purpose release; it names the cell, its highest verified sequence, the running sequence being rolled away from, the older target sequence and digest, a per-cell rollback number and the highest release sequence issued before this rollback. The enforcement point requires the target to be older than the running release and the rollback number to exceed the last consumed number, and atomically persists its consumption and the new refusal range before starting the target. A rollback never lowers the high-water mark and permanently refuses every previously issued release from its rolled-away-from sequence through its signed issued-through sequence, even with another rollback authorization. These refusal ranges accumulate; reusing that code at or above a rolled-away-from sequence requires the pipeline to issue a fresh release with a new sequence beyond the applicable refusal ranges and the high-water mark. Outside these ranges an older release still requires a matching unused rollback authorization; a missing, invalid, reused or non-increasing authorization is refused before any start.", reviewed: false }] }
+        - { id: "p45-r2:T", status: proposed, closed_by: [{ contract: ReleaseAttestation, field: "An artifact with no attestation, a signature that does not verify against a current key reference whose purpose is release, provenance below Build Level 3, or a digest that differs from the attested one is never started or served. The local enforcement point checks this before anything starts in a cell, and the route registry before it pins a weights digest; the model gateway then serves only weights whose loaded digest matches that pin. Each release attestation carries a monotonically increasing release sequence number covered by the release signature. Release signatures and rollback authorizations verify only against a current key reference whose purpose is release. For release admission a cell is a stable logical execution destination, independent of its disposable image or enforcement process. The local enforcement point keeps that cell's highest verified release sequence, last consumed rollback number and sticky refusal ranges in durable storage outside the disposable cell; all survive restart, rebuild and restore. A new or rebuilt cell takes its first mark and rollback state from the release pipeline through authenticated provisioning, never from the first arriving release or an empty local store; unavailable or stale initialization refuses all starts. A rollback authorization is part of the release attestation and is signed by key management for the pipeline with purpose release; it names the cell, its highest verified sequence, the running sequence being rolled away from, the older target sequence and digest, a per-cell rollback number and the highest release sequence issued before this rollback. The enforcement point requires the target to be older than the running release and the rollback number to exceed the last consumed number, and atomically persists its consumption and the new refusal range before starting the target. A rollback never lowers the high-water mark and permanently refuses every previously issued release from its rolled-away-from sequence through its signed issued-through sequence, even with another rollback authorization. These refusal ranges accumulate; reusing that code at or above a rolled-away-from sequence requires the pipeline to issue a fresh release with a new sequence beyond the applicable refusal ranges and the high-water mark. Outside these ranges an older release still requires a matching unused rollback authorization; a missing, invalid, reused or non-increasing authorization is refused before any start.", reviewed: false }] }
+        - { id: "r003:S", status: open, from_zone: "(no zone)", to_zone: control, carries: [] }
+        - { id: "r003:not-provided", trace: part, controller: people.accountable-authorities, controlled: s3.action-control-service }
+        - { id: "p45-r8:duration", trace: none, invariants: [], scenarios: [] }
+      absent: ["r004:S", "r004:not-provided"]
+      controllers:
+        - { id: people.accountable-authorities, person: true }
+      closures:
+        - { contract: TypedDecision, letter: E, source: edition, reviewed: { by: "independent reviewer", date: "2026-10-23" }, signed_off: null }
+        - { contract: shared:DerivedCheck, letter: I, reviewed: null, signed_off: null, cells_closed: 0, cells_proposed: 1 }
+        - { contract: shared:ProvenClass, letter: I, reviewed: { by: independent reviewer, date: "2026-10-27" }, signed_off: null, hashes: { field: "3003d5ba61f2", why: "88df49eabbf3" }, cells_closed: 2, cells_proposed: 0 }
+        - { contract: shared:RoadAssuranceStatus, letter: I, reviewed: null, signed_off: null, hashes: { field: "bc4e4020e2fd", why: "4a2c0cd83767" }, cells_closed: 0, cells_proposed: 1 }
+        - { contract: ReleaseAttestation, letter: T, reviewed: null, signed_off: null, hashes: { field: "756f5fdf25ac", why: "9293ef9dd286" }, cells_closed: 0, cells_proposed: 2 }
+        - { contract: ModelResponse, letter: E, reviewed: null, signed_off: null, hashes: { field: "49c6c7344007", why: "dc6ce3241338" }, cells_closed: 0, cells_proposed: 2 }
+      summary_contains:
+        - "11 closure rules, 7 of them reviewed, 9 of them covering at least one cell:"
+        - "| ModelResponse | E | Never authority | no | 0 | 2 |"
+
+  - name: "fixture-tg-toy.yaml"
+    description: "The toy design: people outside every zone share the one zone (no zone), so a relationship between two people has no cells; a same-zone relationship; a relationship with no carries; two rules on one contract, each listed with its mark and the hashes of its field and why (TG-1, TG-2, TG-4 to TG-7, TG-9)."
+    base: toy
+    expect:
+      exit: 0
+      errors: []
+      warnings: []
+      written: [register, summary]
+      counts:
+        relationships: 7
+        zone_crossing: 5
+        stride:
+          cells: 30
+          open: 28
+          proposed: 0
+          closed: 2
+          by_letter:
+            S: { cells: 5, open: 5, proposed: 0, closed: 0 }
+            T: { cells: 5, open: 4, proposed: 0, closed: 1 }
+            R: { cells: 5, open: 5, proposed: 0, closed: 0 }
+            I: { cells: 5, open: 5, proposed: 0, closed: 0 }
+            D: { cells: 5, open: 5, proposed: 0, closed: 0 }
+            E: { cells: 5, open: 4, proposed: 0, closed: 1 }
+        closure_rules: 2
+        closure_rules_reviewed: 2
+        closure_rules_used: 2
+        stpa: { controllers: 2, controllers_without_feedback: 1, people_without_feedback: 1, control_actions: 3, cells: 12, traced_by_action: 1, traced_by_part: 1, untraced: 1 }
+      cells:
+        - { id: "r1:T", status: closed, closed_by: [{ contract: K, field: "Signed digest", reviewed: true }], from_zone: a, to_zone: b }
+        - { id: "r1:E", status: closed, closed_by: [{ contract: K, field: "single use", reviewed: true }] }
+        - { id: "r1:S", status: open, closed_by: [] }
+        - { id: "r5:T", status: open, carries: [K, L] }
+        - { id: "r3:E", status: open, from_zone: "(no zone)", to_zone: a }
+        - { id: "r6:D", status: open, carries: [] }
+        - { id: "r3:not-provided", trace: part, invariants: [I2, I10], scenarios: [F1, F3], status: open }
+        - { id: "r5:timing", trace: action, invariants: [I2], scenarios: [F1] }
+        - { id: "r6:duration", trace: none, invariants: [], scenarios: [] }
+      absent: ["r2:S", "r2:T", "r7:S", "r4:not-provided", "r1:provided"]
+      controllers:
+        - { id: p, person: true, actions: [r3], feedback: [] }
+        - { id: x, person: false, actions: [r5, r6], feedback: [r4] }
+      closures:
+        - { contract: K, letter: T, source: edition, reviewed: { by: "security reviewer", date: "2025-01-31" }, signed_off: null, hashes: { field: "7cc07f6b964b", why: "6f942cc9cc15" }, cells_closed: 1, cells_proposed: 0 }
+        - { contract: K, letter: E, source: edition, cells_closed: 1, cells_proposed: 0 }
+      summary_contains:
+        - "| STRIDE per interaction | 5 of 7 relationships cross a trust-zone boundary | 30 | 2 | 0 | 28 |"
+        - "| Unsafe control actions | 3 control actions from 2 controllers | 12 | 0 | 0 | 12 |"
+        - "| T (tampering) | 5 | 1 | 0 | 4 |"
+        - "| D (denial of service) | 5 | 0 | 0 | 5 |"
+        - "2 closure rules, 2 of them reviewed, 2 of them covering at least one cell:"
+        - "| K | T | Signed digest | yes | 1 | 0 |"
+        - "Of the 3 control actions, 1 trace to an invariant through a failure scenario that names both the controller and the part it controls, 1 only through a scenario that names the controlled part, and 1 through none. 1 of the 2 controllers receive no feedback or observation relationship, 1 of the 1 people among them (`p`)."
+
+  - name: "fixture-tg-every-contract.yaml"
+    description: "A rule for the second contract closes the relationship that carries both, listing both rules in carries order (TG-2)."
+    base: toy
+    edits:
+      - { op: add_closure, closure: { contract: L, field: "Plain record", letter: T, why: "Kept plain.", reviewed: { by: "security reviewer", date: "2025-02-01" } } }
+    expect:
+      exit: 0
+      errors: []
+      warnings: []
+      counts: { stride: { closed: 4, proposed: 0, open: 26 }, closure_rules: 3 }
+      cells:
+        - { id: "r5:T", status: closed, closed_by: [{ contract: K, field: "Signed digest", reviewed: true }, { contract: L, field: "Plain record", reviewed: true }] }
+        - { id: "r4:T", status: closed, closed_by: [{ contract: L, field: "Plain record", reviewed: true }] }
+        - { id: "r5:E", status: open }
+      closures:
+        - { contract: K, letter: T, cells_closed: 2 }
+        - { contract: L, letter: T, cells_closed: 2 }
+
+  - name: "fixture-tg-org-closures.yaml"
+    description: "An organization closure file adds a rule for its own contract; the rule is marked organization (TG-2, TG-3)."
+    base: toy
+    org_closures:
+      - { contract: L, field: "Plain record", letter: R, why: "Recorded.", reviewed: { by: "organization reviewer", date: "2025-03-01" } }
+    expect:
+      exit: 0
+      errors: []
+      warnings: []
+      cells:
+        - { id: "r4:R", status: closed, closed_by: [{ contract: L, field: "Plain record", reviewed: true }] }
+        - { id: "r5:R", status: open }
+      closures:
+        - { contract: L, letter: R, source: organization, reviewed: { by: "organization reviewer", date: "2025-03-01" }, cells_closed: 1 }
+      summary_contains:
+        - "3 closure rules, 3 of them reviewed, 3 of them covering at least one cell:"
+
+  - name: "fixture-tg-org-unmarked.yaml"
+    description: "An organization closure file whose rule carries no review mark: its cells read proposed and none counts as closed (TG-9, TG-10)."
+    base: toy
+    org_closures:
+      - { contract: L, field: "Plain record", letter: R, why: "Recorded." }
+    expect:
+      exit: 0
+      errors: []
+      warnings: []
+      counts:
+        stride: { cells: 30, open: 27, proposed: 1, closed: 2, by_letter: { R: { cells: 5, open: 4, proposed: 1, closed: 0 } } }
+        closure_rules: 3
+        closure_rules_reviewed: 2
+        closure_rules_used: 3
+      cells:
+        - { id: "r4:R", status: proposed, closed_by: [{ contract: L, field: "Plain record", reviewed: false }] }
+      closures:
+        - { contract: L, letter: R, source: organization, reviewed: null, cells_closed: 0, cells_proposed: 1 }
+      summary_contains:
+        - "| STRIDE per interaction | 5 of 7 relationships cross a trust-zone boundary | 30 | 2 | 1 | 27 |"
+        - "| R (repudiation) | 5 | 0 | 1 | 4 |"
+        - "3 closure rules, 2 of them reviewed, 3 of them covering at least one cell:"
+        - "| L | R | Plain record | no | 0 | 1 |"
+
+  - name: "fixture-tg-reviewed.yaml"
+    description: "One crossing with a reviewed rule for one letter and an unreviewed rule for another: the first cell closes, the second is proposed, and the counts keep them apart (TG-9, TG-10)."
+    base: toy
+    edits:
+      - { op: add_closure, closure: { contract: K, field: "Signed digest", letter: S, why: "Signed by its sender." } }
+    expect:
+      exit: 0
+      errors: []
+      warnings: []
+      counts:
+        stride:
+          cells: 30
+          open: 27
+          proposed: 1
+          closed: 2
+          by_letter:
+            S: { cells: 5, open: 4, proposed: 1, closed: 0 }
+            T: { cells: 5, open: 4, proposed: 0, closed: 1 }
+        closure_rules: 3
+        closure_rules_reviewed: 2
+        closure_rules_used: 3
+      cells:
+        - { id: "r1:T", status: closed, closed_by: [{ contract: K, field: "Signed digest", reviewed: true }] }
+        - { id: "r1:S", status: proposed, closed_by: [{ contract: K, field: "Signed digest", reviewed: false }] }
+      closures:
+        - { contract: K, letter: S, reviewed: null, cells_closed: 0, cells_proposed: 1 }
+        - { contract: K, letter: T, cells_closed: 1, cells_proposed: 0 }
+      summary_contains:
+        - "| STRIDE per interaction | 5 of 7 relationships cross a trust-zone boundary | 30 | 2 | 1 | 27 |"
+        - "| S (spoofing) | 5 | 0 | 1 | 4 |"
+        - "| T (tampering) | 5 | 1 | 0 | 4 |"
+        - "3 closure rules, 2 of them reviewed, 3 of them covering at least one cell:"
+        - "| K | S | Signed digest | no | 0 | 1 |"
+
+  - name: "fixture-tg-mixed-marks.yaml"
+    description: "A crossing carrying two contracts whose rules for one letter are one reviewed and one not: the cell is proposed and the reviewed rule counts it as proposed (TG-2, TG-9)."
+    base: toy
+    edits:
+      - { op: add_closure, closure: { contract: L, field: "Plain record", letter: T, why: "Kept plain." } }
+    expect:
+      exit: 0
+      errors: []
+      warnings: []
+      counts: { stride: { closed: 2, proposed: 2, open: 26, by_letter: { T: { cells: 5, open: 2, proposed: 2, closed: 1 } } }, closure_rules: 3, closure_rules_reviewed: 2 }
+      cells:
+        - { id: "r5:T", status: proposed, closed_by: [{ contract: K, field: "Signed digest", reviewed: true }, { contract: L, field: "Plain record", reviewed: false }] }
+        - { id: "r4:T", status: proposed, closed_by: [{ contract: L, field: "Plain record", reviewed: false }] }
+        - { id: "r1:T", status: closed }
+      closures:
+        - { contract: K, letter: T, cells_closed: 1, cells_proposed: 1 }
+        - { contract: L, letter: T, cells_closed: 0, cells_proposed: 2 }
+
+  - name: "fixture-tg-mark-malformed.yaml"
+    description: "A mark without a date, a mark whose date is not in the form YYYY-MM-DD, and a mark that writes its date under the key on instead of date are each refused, so a typo cannot pass as reviewed (TG-3, TG-9)."
+    base: toy
+    edits:
+      - { op: add_closure, closure: { contract: L, field: "Plain record", letter: T, why: "Kept plain.", reviewed: { by: "security reviewer" } } }
+      - { op: add_closure, closure: { contract: L, field: "Plain record", letter: R, why: "Recorded.", reviewed: { by: "security reviewer", date: "31 January" } } }
+      - { op: add_closure, closure: { contract: L, field: "Plain record", letter: I, why: "Kept plain.", reviewed: { by: "security reviewer", "on": "2025-01-31" } } }
+    expect:
+      exit: 1
+      errors:
+        - { code: TG-E-closure-mark, location: "edition closure 3 (L T)" }
+        - { code: TG-E-closure-mark, location: "edition closure 4 (L R)" }
+        - { code: TG-E-closure-mark, location: "edition closure 5 (L I)" }
+      warnings: []
+      written: [register]
+
+  - name: "fixture-tg-invariant-order.yaml"
+    description: "A control action whose trace-level scenarios carry I10, I2 and I2 in that order: duplicates are removed and the invariants sort by number (TG-5, behavior step 7)."
+    base: toy
+    edits:
+      - { op: add_scenario, scenario: { id: F4, elements: [x, w], invariant: I10 } }
+      - { op: add_scenario, scenario: { id: F5, elements: [w, x], invariant: I2 } }
+      - { op: add_scenario, scenario: { id: F6, elements: [x, w], invariant: I2 } }
+    expect:
+      exit: 0
+      errors: []
+      warnings: []
+      counts: { stpa: { traced_by_action: 2, traced_by_part: 1, untraced: 0 } }
+      cells:
+        - { id: "r6:not-provided", trace: action, invariants: [I2, I10], scenarios: [F4, F5, F6] }
+        - { id: "r6:duration", trace: action, invariants: [I2, I10], scenarios: [F4, F5, F6] }
+
+  - name: "fixture-tg-field-gone.yaml"
+    description: "The shipped files with a contract no longer stating a shipped rule's field: the rule is refused and no grid is written (TG-3)."
+    base: shipped
+    edits:
+      - { op: set_contract_description, name: TypedDecision, value: "One model judgment of a declared decision type." }
+    expect:
+      exit: 1
+      errors: [TG-E-closure-field]
+      warnings: []
+      written: [register]
+
+  - name: "fixture-tg-unknown-contract.yaml"
+    description: "A rule naming a contract the model lacks (TG-3)."
+    base: toy
+    edits:
+      - { op: add_closure, closure: { contract: Nope, field: "Signed", letter: T, why: "None." } }
+    expect:
+      exit: 1
+      errors: [{ code: TG-E-closure-contract, location: "edition closure 3 (Nope T)" }]
+      warnings: []
+      written: [register]
+
+  - name: "fixture-tg-bad-letter.yaml"
+    description: "A rule whose letter is not a STRIDE letter (TG-3)."
+    base: toy
+    edits:
+      - { op: add_closure, closure: { contract: K, field: "Signed digest", letter: X, why: "None." } }
+    expect:
+      exit: 1
+      errors: [{ code: TG-E-closure-letter, location: "edition closure 3 (K X)" }]
+      warnings: []
+
+  - name: "fixture-tg-duplicate.yaml"
+    description: "A second rule on the same contract and letter is refused, the first stands (TG-3)."
+    base: toy
+    edits:
+      - { op: add_closure, closure: { contract: K, field: "single use", letter: T, why: "Again." } }
+    expect:
+      exit: 1
+      errors: [{ code: TG-E-closure-duplicate, location: "edition closure 3 (K T)" }]
+      warnings: []
+
+  - name: "fixture-tg-shape.yaml"
+    description: "A rule with no why (TG-3)."
+    base: toy
+    edits:
+      - { op: add_closure, closure: { contract: K, field: "Signed digest", letter: S } }
+    expect:
+      exit: 1
+      errors: [{ code: TG-E-closure-shape, location: "edition closure 3 (K S)" }]
+      warnings: []
+
+  - name: "fixture-tg-unused.yaml"
+    description: "A valid rule on a contract no crossing relationship carries closes nothing and warns (TG-8)."
+    base: toy
+    edits:
+      - { op: add_contract, contract: { name: M, description: "Signed." } }
+      - { op: add_closure, closure: { contract: M, field: "Signed", letter: T, why: "Signed." } }
+    expect:
+      exit: 0
+      errors: []
+      warnings: [{ code: TG-W-closure-unused, location: "edition closure M T" }]
+      counts: { closure_rules: 3, closure_rules_used: 2 }
+      summary_contains:
+        - "3 closure rules, 2 of them reviewed, 2 of them covering at least one cell:"
+        - "| M | T | Signed | no | 0 | 0 |"
+
+  - name: "fixture-tg-carries-unknown.yaml"
+    description: "A crossing relationship carrying an unknown name warns and keeps every cell open, so the rules that closed it now close nothing (TG-2, TG-8)."
+    base: toy
+    edits:
+      - { op: set_relationship, id: r1, field: carries, value: [K, Q] }
+    expect:
+      exit: 0
+      errors: []
+      warnings:
+        - { code: TG-W-carries-unknown, location: "relationship r1" }
+        - { code: TG-W-closure-unused, location: "edition closure K T" }
+        - { code: TG-W-closure-unused, location: "edition closure K E" }
+      cells:
+        - { id: "r1:T", status: open, closed_by: [] }
+        - { id: "r1:E", status: open }
+      counts: { stride: { closed: 0, proposed: 0 }, closure_rules_used: 0 }
+
+  - name: "fixture-tg-endpoint.yaml"
+    description: "A relationship to an element the model lacks (TG-8)."
+    base: toy
+    edits:
+      - { op: add_relationship, relationship: { id: r8, from: x, to: ghost, kind: data, carries: [] } }
+    expect:
+      exit: 1
+      errors: [{ code: TG-E-endpoint, location: "relationship r8" }]
+      warnings: []
+      written: [register]
+
+  - name: "fixture-tg-missing-input.yaml"
+    description: "The failure scenarios left out of the run."
+    base: toy
+    omit: [failures]
+    expect:
+      exit: 1
+      errors: [TG-E-input]
+      warnings: []
+      written: [register]
+
+  - name: "fixture-tg-deterministic.yaml"
+    description: "The shipped files, run twice: identical files (TG-7)."
+    base: shipped
+    runs: 2
+    expect:
+      exit: 0
+      errors: []
+      warnings:
+        - { code: TG-W-closure-unused, location: "edition closure RestoreGrant T" }
+        - { code: TG-W-closure-unused, location: "edition closure AdminSession R" }
+      outputs_byte_identical: true
+
+  - name: "fixture-tg-signoff.yaml"
+    description: "An organization closure file signs off an unmarked edition rule and a marked one. The unmarked rule counts as reviewed, so its cell closes, and it reads signed off in the summary; the marked rule keeps its own mark and reads yes (TG-9, TG-11, TG-12)."
+    base: toy
+    edits:
+      - { op: add_closure, closure: { contract: K, field: "Signed digest", letter: S, why: "Signed by its sender." } }
+    org_sign_offs:
+      - { contract: K, letter: S, expects: { field: "7cc07f6b964b", why: "24a3ed8a7a7e" }, reviewed: { by: "organization reviewer", date: "2025-04-01" } }
+      - { contract: K, letter: T, expects: { field: "7cc07f6b964b", why: "6f942cc9cc15" }, reviewed: { by: "organization reviewer", date: "2025-04-01" } }
+    expect:
+      exit: 0
+      errors: []
+      warnings: []
+      counts:
+        stride: { cells: 30, open: 27, proposed: 0, closed: 3, by_letter: { S: { cells: 5, open: 4, proposed: 0, closed: 1 } } }
+        closure_rules: 3
+        closure_rules_reviewed: 3
+        closure_rules_used: 3
+      cells:
+        - { id: "r1:S", status: closed, closed_by: [{ contract: K, field: "Signed digest", reviewed: true }] }
+        - { id: "r5:S", status: open, closed_by: [] }
+      closures:
+        - { contract: K, letter: S, source: edition, reviewed: null, signed_off: { by: "organization reviewer", date: "2025-04-01" }, hashes: { field: "7cc07f6b964b", why: "24a3ed8a7a7e" }, cells_closed: 1, cells_proposed: 0 }
+        - { contract: K, letter: T, reviewed: { by: "security reviewer", date: "2025-01-31" }, signed_off: { by: "organization reviewer", date: "2025-04-01" } }
+        - { contract: K, letter: E, signed_off: null }
+      summary_contains:
+        - "| STRIDE per interaction | 5 of 7 relationships cross a trust-zone boundary | 30 | 3 | 0 | 27 |"
+        - "| S (spoofing) | 5 | 1 | 0 | 4 |"
+        - "3 closure rules, 3 of them reviewed, 3 of them covering at least one cell:"
+        - "| K | T | Signed digest | yes | 1 | 0 |"
+        - "| K | S | Signed digest | signed off | 1 | 0 |"
+
+  - name: "fixture-tg-signoff-shipped.yaml"
+    description: "The shipped files with an organization closure file that signs off the shipped model-output rule, which ships without a mark: its two cells close and the rule reads signed off (TG-11, TG-12)."
+    base: shipped
+    org_sign_offs:
+      - { contract: ModelResponse, letter: E, expects: { field: "49c6c7344007", why: "dc6ce3241338" }, reviewed: { by: "organization security reviewer", date: "2025-04-01" } }
+    expect:
+      exit: 0
+      errors: []
+      warnings:
+        - { code: TG-W-closure-unused, location: "edition closure RestoreGrant T" }
+        - { code: TG-W-closure-unused, location: "edition closure AdminSession R" }
+      counts:
+        stride: { closed: 14, proposed: 4, by_letter: { E: { closed: 6, proposed: 0 }, I: { closed: 6, proposed: 2 } } }
+        closure_rules: 11
+        closure_rules_reviewed: 8
+        closure_rules_used: 9
+      cells:
+        - { id: "r036:E", status: closed, closed_by: [{ contract: ModelResponse, field: "Never authority", reviewed: true }] }
+        - { id: "r085:E", status: closed }
+      closures:
+        - { contract: ModelResponse, letter: E, source: edition, reviewed: null, signed_off: { by: "organization security reviewer", date: "2025-04-01" }, cells_closed: 2, cells_proposed: 0 }
+      summary_contains:
+        - "11 closure rules, 8 of them reviewed, 9 of them covering at least one cell:"
+        - "| ModelResponse | E | Never authority | signed off | 2 | 0 |"
+
+  - name: "fixture-tg-signoff-field-changed.yaml"
+    description: "The same sign-off after an edition rewords the rule's field to a longer phrase the contract still states: the field's hash no longer matches, so the sign-off is void, the run warns, and the rule's two cells read proposed again (TG-12)."
+    base: shipped
+    edits:
+      - { op: set_closure, contract: ModelResponse, letter: E, set: { field: "Never authority; it reaches producers only after the response-proposal gate validates it" } }
+    org_sign_offs:
+      - { contract: ModelResponse, letter: E, expects: { field: "49c6c7344007", why: "dc6ce3241338" }, reviewed: { by: "organization security reviewer", date: "2025-04-01" } }
+    expect:
+      exit: 0
+      errors: []
+      warnings:
+        - { code: TG-W-closure-unused, location: "edition closure RestoreGrant T" }
+        - { code: TG-W-closure-unused, location: "edition closure AdminSession R" }
+        - { code: TG-W-signoff-voided, location: "organization sign-off 1 (ModelResponse E)" }
+      counts:
+        stride: { closed: 12, proposed: 6, by_letter: { E: { closed: 4, proposed: 2 } } }
+        closure_rules_reviewed: 7
+      cells:
+        - { id: "r036:E", status: proposed, closed_by: [{ contract: ModelResponse, field: "Never authority; it reaches producers only after the response-proposal gate validates it", reviewed: false }] }
+        - { id: "r085:E", status: proposed }
+      closures:
+        - { contract: ModelResponse, letter: E, reviewed: null, signed_off: null, hashes: { field: "497a8dd2240c", why: "dc6ce3241338" }, cells_closed: 0, cells_proposed: 2 }
+      summary_contains:
+        - "| ModelResponse | E | Never authority; it reaches producers only after the response-proposal gate validates it | no | 0 | 2 |"
+
+  - name: "fixture-tg-signoff-why-changed.yaml"
+    description: "The same sign-off after an edition rewords only the rule's why: the sign-off is void and the two cells read proposed again, because the why states what the organization signed off (TG-12)."
+    base: shipped
+    edits:
+      - { op: set_closure, contract: ModelResponse, letter: E, set: { why: "Model output reaches producers only through the response-proposal gate and never carries authority." } }
+    org_sign_offs:
+      - { contract: ModelResponse, letter: E, expects: { field: "49c6c7344007", why: "dc6ce3241338" }, reviewed: { by: "organization security reviewer", date: "2025-04-01" } }
+    expect:
+      exit: 0
+      errors: []
+      warnings:
+        - { code: TG-W-closure-unused, location: "edition closure RestoreGrant T" }
+        - { code: TG-W-closure-unused, location: "edition closure AdminSession R" }
+        - { code: TG-W-signoff-voided, location: "organization sign-off 1 (ModelResponse E)" }
+      counts:
+        stride: { closed: 12, proposed: 6 }
+        closure_rules_reviewed: 7
+      cells:
+        - { id: "r036:E", status: proposed }
+        - { id: "r085:E", status: proposed }
+      closures:
+        - { contract: ModelResponse, letter: E, signed_off: null, hashes: { field: "49c6c7344007", why: "7308025409b4" }, cells_proposed: 2 }
+      summary_contains:
+        - "| ModelResponse | E | Never authority | no | 0 | 2 |"
+
+  - name: "fixture-tg-signoff-voided-marked.yaml"
+    description: "A void sign-off of an edition rule that carries its own mark, with both hashes stale: the run warns once for the sign-off, and the rule's cell stays closed by its own mark (TG-12)."
+    base: toy
+    org_sign_offs:
+      - { contract: K, letter: T, expects: { field: "f46bd45fd75c", why: "24a3ed8a7a7e" }, reviewed: { by: "organization reviewer", date: "2025-04-01" } }
+    expect:
+      exit: 0
+      errors: []
+      warnings:
+        - { code: TG-W-signoff-voided, location: "organization sign-off 1 (K T)" }
+      cells:
+        - { id: "r1:T", status: closed, closed_by: [{ contract: K, field: "Signed digest", reviewed: true }] }
+      closures:
+        - { contract: K, letter: T, reviewed: { by: "security reviewer", date: "2025-01-31" }, signed_off: null, cells_closed: 1 }
+      summary_contains:
+        - "| K | T | Signed digest | yes | 1 | 0 |"
+
+  - name: "fixture-tg-signoff-no-rule.yaml"
+    description: "Sign-offs that name no rule of the edition's closure file: one names a contract and letter no rule has, one names the organization's own rule, and a third repeats the first. Each is refused as naming no rule, the third too, since only a sign-off that passed every test counts as an earlier one; no grid is written (TG-11)."
+    base: toy
+    org_closures:
+      - { contract: L, field: "Plain record", letter: R, why: "Recorded.", reviewed: { by: "organization reviewer", date: "2025-03-01" } }
+    org_sign_offs:
+      - { contract: L, letter: T, expects: { field: "b2b19d4dd565", why: "8a5cb3b8d84e" }, reviewed: { by: "organization reviewer", date: "2025-04-01" } }
+      - { contract: L, letter: R, expects: { field: "b2b19d4dd565", why: "8a5cb3b8d84e" }, reviewed: { by: "organization reviewer", date: "2025-04-01" } }
+      - { contract: L, letter: T, expects: { field: "b2b19d4dd565", why: "8a5cb3b8d84e" }, reviewed: { by: "organization reviewer", date: "2025-04-01" } }
+    expect:
+      exit: 1
+      errors:
+        - { code: TG-E-signoff-rule, location: "organization sign-off 1 (L T)" }
+        - { code: TG-E-signoff-rule, location: "organization sign-off 2 (L R)" }
+        - { code: TG-E-signoff-rule, location: "organization sign-off 3 (L T)" }
+      warnings: []
+      written: [register]
+
+  - name: "fixture-tg-signoff-beside-own-rule.yaml"
+    description: "An organization file that signs off an edition rule and also restates it as a rule of its own: the restated rule is still a duplicate of the edition rule, so the run writes no grid. The sign-off is valid and void, and its warning is still raised, because the sign-offs are checked before the run stops on errors (TG-3, TG-11, TG-12)."
+    base: toy
+    edits:
+      - { op: add_closure, closure: { contract: K, field: "Signed digest", letter: S, why: "Signed by its sender." } }
+    org_closures:
+      - { contract: K, field: "Signed digest", letter: S, why: "Signed by its sender.", reviewed: { by: "organization reviewer", date: "2025-04-01" } }
+    org_sign_offs:
+      - { contract: K, letter: S, expects: { field: "7cc07f6b964b", why: "6f942cc9cc15" }, reviewed: { by: "organization reviewer", date: "2025-04-01" } }
+    expect:
+      exit: 1
+      errors:
+        - { code: TG-E-closure-duplicate, location: "organization closure 4 (K S)" }
+      warnings:
+        - { code: TG-W-signoff-voided, location: "organization sign-off 1 (K S)" }
+      written: [register]
+
+  - name: "fixture-tg-signoff-escapes.yaml"
+    description: "A sign-off of an edition rule whose why holds a double quote, a backslash, a tab and an escape character: the hash escapes them as a JSON string does (the escape character as \\u001b, in lowercase hex), so the sign-off is current and the cell closes (TG-11, TG-12)."
+    base: toy
+    edits:
+      - { op: add_closure, closure: { contract: K, field: "single use", letter: R, why: "Recorded once: \"single use\" under key \\k1\tthen checked\x1b." } }
+    org_sign_offs:
+      - { contract: K, letter: R, expects: { field: "f46bd45fd75c", why: "d7a267f0bcdc" }, reviewed: { by: "organization reviewer", date: "2025-04-01" } }
+    expect:
+      exit: 0
+      errors: []
+      warnings: []
+      cells:
+        - { id: "r1:R", status: closed, closed_by: [{ contract: K, field: "single use", reviewed: true }] }
+      closures:
+        - { contract: K, letter: R, reviewed: null, signed_off: { by: "organization reviewer", date: "2025-04-01" }, hashes: { field: "f46bd45fd75c", why: "d7a267f0bcdc" }, cells_closed: 1 }
+
+  - name: "fixture-tg-signoff-duplicate.yaml"
+    description: "Two sign-offs of one rule: the second is refused although the first is void, because a rule has one sign-off, updated in place when the organization reviews new wording (TG-11, TG-12)."
+    base: toy
+    edits:
+      - { op: add_closure, closure: { contract: K, field: "Signed digest", letter: S, why: "Signed by its sender." } }
+    org_sign_offs:
+      - { contract: K, letter: S, expects: { field: "7cc07f6b964b", why: "6f942cc9cc15" }, reviewed: { by: "organization reviewer", date: "2025-04-01" } }
+      - { contract: K, letter: S, expects: { field: "7cc07f6b964b", why: "24a3ed8a7a7e" }, reviewed: { by: "organization reviewer", date: "2025-04-02" } }
+    expect:
+      exit: 1
+      errors:
+        - { code: TG-E-signoff-duplicate, location: "organization sign-off 2 (K S)" }
+      warnings:
+        - { code: TG-W-signoff-voided, location: "organization sign-off 1 (K S)" }
+      written: [register]
+
+  - name: "fixture-tg-signoff-shape.yaml"
+    description: "Malformed sign-offs, each refused: no review mark; expects without why; a hash in capitals; no contract; expects with a third key; no letter; a mark whose date is not in the form YYYY-MM-DD; a null mark on a sign-off that also names no rule, refused for its mark since the mark is tested first (TG-11, TG-9)."
+    base: toy
+    edits:
+      - { op: add_closure, closure: { contract: K, field: "Signed digest", letter: S, why: "Signed by its sender." } }
+    org_sign_offs:
+      - { contract: K, letter: S, expects: { field: "7cc07f6b964b", why: "24a3ed8a7a7e" } }
+      - { contract: K, letter: S, expects: { field: "7cc07f6b964b" }, reviewed: { by: "organization reviewer", date: "2025-04-01" } }
+      - { contract: K, letter: S, expects: { field: "7CC07F6B964B", why: "24a3ed8a7a7e" }, reviewed: { by: "organization reviewer", date: "2025-04-01" } }
+      - { letter: S, expects: { field: "7cc07f6b964b", why: "24a3ed8a7a7e" }, reviewed: { by: "organization reviewer", date: "2025-04-01" } }
+      - { contract: K, letter: S, expects: { field: "7cc07f6b964b", why: "24a3ed8a7a7e", contract: "7cc07f6b964b" }, reviewed: { by: "organization reviewer", date: "2025-04-01" } }
+      - { contract: K, expects: { field: "7cc07f6b964b", why: "24a3ed8a7a7e" }, reviewed: { by: "organization reviewer", date: "2025-04-01" } }
+      - { contract: K, letter: S, expects: { field: "7cc07f6b964b", why: "24a3ed8a7a7e" }, reviewed: { by: "organization reviewer", date: "1 April" } }
+      - { contract: L, letter: T, expects: { field: "b2b19d4dd565", why: "8a5cb3b8d84e" }, reviewed: null }
+    expect:
+      exit: 1
+      errors:
+        - { code: TG-E-signoff-shape, location: "organization sign-off 1 (K S)" }
+        - { code: TG-E-signoff-shape, location: "organization sign-off 2 (K S)" }
+        - { code: TG-E-signoff-shape, location: "organization sign-off 3 (K S)" }
+        - { code: TG-E-signoff-shape, location: "organization sign-off 4 (? S)" }
+        - { code: TG-E-signoff-shape, location: "organization sign-off 5 (K S)" }
+        - { code: TG-E-signoff-shape, location: "organization sign-off 6 (K ?)" }
+        - { code: TG-E-closure-mark, location: "organization sign-off 7 (K S)" }
+        - { code: TG-E-closure-mark, location: "organization sign-off 8 (L T)" }
+      warnings: []
+      written: [register]
+
+  - name: "fixture-tg-signoff-input.yaml"
+    description: "An organization closure file whose sign_offs is a mapping and not a list (TG-E-input)."
+    base: toy
+    org_sign_offs: { contract: K, letter: T }
+    expect:
+      exit: 1
+      errors: [TG-E-input]
+      warnings: []
+      written: [register]
+
+  - name: "fixture-tg-org-file-null.yaml"
+    description: "An organization closure file whose closures is an empty list and whose sign_offs is null: a key that is present and is not a list, null included, is TG-E-input, although the other key is a valid list."
+    base: toy
+    org_document: { closures: [], sign_offs: null }
+    expect:
+      exit: 1
+      errors: [TG-E-input]
+      warnings: []
+
+  - name: "fixture-tg-org-file-neither.yaml"
+    description: "An organization closure file that holds neither closures nor sign_offs, here because sign_offs is misspelled, is TG-E-input, so a misspelled list is never read as empty."
+    base: toy
+    org_document: { sign_off: [] }
+    expect:
+      exit: 1
+      errors: [TG-E-input]
+      warnings: []
+
+  # Stop C regression fixtures: earlier contract promises no longer support the revised rules.
+  - name: fixture-tg-guidance-scenarios.yaml
+    description: "The open-class and road-status scenarios trace the affected controlled parts while the revised closure rules remain proposals."
+    base: shipped
+    expect:
+      exit: 0
+      errors: []
+      warnings:
+        - { code: TG-W-closure-unused, location: "edition closure RestoreGrant T" }
+        - { code: TG-W-closure-unused, location: "edition closure AdminSession R" }
+      cells:
+        - { id: "p45-r27:not-provided", trace: part, scenarios: [F28, F29, F124, shared:F134], invariants: [I2, I4, I5, I7], status: open }
+        - { id: "p45-r28:not-provided", trace: part, scenarios: [F37, shared:F135], invariants: [I2, I4], status: open }
+        - { id: "jig:p55-r29:not-provided", trace: action, scenarios: [shared:F134], invariants: [I2], status: open }
+      closures:
+        - { contract: shared:ProvenClass, letter: I, reviewed: { by: independent reviewer, date: "2026-10-27" }, signed_off: null, cells_closed: 2, cells_proposed: 0 }
+        - { contract: shared:RoadAssuranceStatus, letter: I, reviewed: null, signed_off: null, cells_closed: 0, cells_proposed: 1 }
+        - { contract: ReleaseAttestation, letter: T, reviewed: null, signed_off: null, cells_closed: 0, cells_proposed: 2 }
+  - name: fixture-tg-release-attestation-before-ruling.yaml
+    description: A contract restored to its earlier promise cannot support the revised closure field; the grid refuses the stale contract without adding a review mark.
+    base: shipped
+    edits:
+      - op: set_contract_description
+        name: ReleaseAttestation
+        value: "One release of Ratchet's own software, a runner or cell image, or a self-hosted model weights file: artifact kind, name and version, artifact digest; build provenance at SLSA Build Level 3 (the hosted, isolated build platform's identity, the source repository and revision, the build definition and its parameters, the dependencies resolved with their digests), generated and signed by the build platform and never by the build steps; a software bill of materials; the release signature with its key reference; the security risk owner's approval when the release widens what can run; and rollout stage and rollback reference. Ratchet's built parts follow the organization's own secure development requirements; the attestation records the requirement set each build was checked against. An artifact with no attestation, a signature that does not verify against a current key reference, provenance below Build Level 3, or a digest that differs from the attested one is never started or served. The local enforcement point checks this before anything starts in a cell, and the route registry before it pins a weights digest; the model gateway then serves only weights whose loaded digest matches that pin."
+    expect:
+      exit: 1
+      errors:
+        - code: TG-E-closure-field
+          location: edition closure 2 (ReleaseAttestation T)
+      warnings:
+        []
+      written:
+        - register
+  - name: fixture-tg-proven-class-before-ruling.yaml
+    description: A contract restored to its earlier promise cannot support the revised closure field; the grid refuses the stale contract without adding a review mark.
+    base: shipped
+    edits:
+      - op: set_contract_description
+        name: shared:ProvenClass
+        value: "The projection of a failure class for the secure-creation loop. Only classes with at least one independently reproduced member. It names the class, its definition and how many reproduced members it has, and the road entries and derived checks that answer it, which is what a coding agent needs to steer toward fixes that work. Its definition names no service, component, path or file of the organization's own; a third-party class names only the component and versions it is about, since that is the fix an agent needs. Where the class's findings sit (the services and components it spans) and how severe they are (the highest consequence tier its members reach) are sent only once every member's finding is closed: while any is open they would map open weaknesses in a store coding agents read. A class that gains an open member again sends its next version without them, and the loop keeps only the current version of each class. Carries no verdict reference, fixture-set reference, kept-regression id or finding text; a derived check names the kept test it came from by id, and the test itself never crosses. The policy-owning team turns each into a rule."
+    expect:
+      exit: 1
+      errors:
+        - code: TG-E-closure-field
+          location: edition closure 10 (shared:ProvenClass I)
+      warnings:
+        []
+      written:
+        - register
+  - name: fixture-tg-road-assurance-status-before-ruling.yaml
+    description: A contract restored to its earlier promise cannot support the revised closure field; the grid refuses the stale contract without adding a review mark.
+    base: shipped
+    edits:
+      - op: set_contract_description
+        name: shared:RoadAssuranceStatus
+        value: "The projection of road assurance for the secure-creation loop. Carries no fixture-set or verdict reference and no road-level regression result. Its vetted scope and known limits say only which APIs, configurations and call patterns the entry version covers and which it does not, in the terms a coding agent needs to stay on the road: they never hold a test's input, fixture content or expected outcome, or any detail of a path that got past an entry."
+    expect:
+      exit: 1
+      errors:
+        - code: TG-E-closure-field
+          location: edition closure 11 (shared:RoadAssuranceStatus I)
+      warnings:
+        []
+      written:
+        - register
+
+  - name: fixture-tg-scenario-merge-precedence.yaml
+    description: Duplicate scenarios retain first position and last contents; contracts precede element assumptions.
+    base: toy
+    edits:
+      - op: add_scenario
+        scenario:
+          id: shared:merge
+          elements:
+            - w
+          invariant: I1
+      - op: add_contract
+        contract:
+          name: SharedProbe
+          description: Scenario merge probe.
+          failure_scenarios:
+            - id: shared:merge
+              elements:
+                - x
+                - "y"
+              invariant: I3
+            - id: shared:contract
+              elements:
+                - x
+                - "y"
+              invariant: I4
+      - op: add_element
+        element:
+          id: probe
+          kind: service
+          assumptions:
+            - id: merge-rule
+              failure_scenarios:
+                - id: shared:merge
+                  elements:
+                    - x
+                    - "y"
+                  invariant: I9
+                - id: shared:assumption
+                  elements:
+                    - x
+                    - "y"
+                  invariant: I6
+    expect:
+      exit: 0
+      errors:
+        []
+      warnings:
+        []
+      cells:
+        - id: r5:not-provided
+          trace: action
+          scenarios:
+            - F1
+            - shared:merge
+            - shared:contract
+            - shared:assumption
+          invariants:
+            - I2
+            - I4
+            - I6
+            - I9
+
+namespace_reports:
+  - name: fixture-tg-namespace-composition
+    stride: ['shared:p30-r2:S']
+  - name: fixture-tg-shared-attached-test
+    attached_only: true
+    extra_action: {id: 'shared:o99-action', from: 'jig:people.creation-policy-owner', to: 'jig:check-suite', kind: control, carries: ['shared:CreationRule']}
+    scenarios: ['shared:F129']
