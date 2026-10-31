@@ -1,0 +1,210 @@
+# Jig edition 0.2.0. Generated; do not edit.
+elements: 
+  secure-creation: 
+    services: 
+      - "the organization's secure-creation loop"
+      - AWS CodeBuild for push and pull-request checks
+    fit: shared:existing
+    account: shared:existing
+    portability: open
+  context-plane: 
+    services: 
+      - "the organization's source control and developer portal"
+    fit: shared:existing
+    account: shared:existing
+    portability: open
+  check-suite: 
+    services: 
+      - "the organization's policy repository"
+      - AWS CodeBuild for required checks
+    fit: shared:existing
+    account: shared:existing
+    portability: open
+  inner-loop: 
+    services: 
+      - managed developer endpoints
+    fit: shared:existing
+    account: shared:existing
+    portability: open
+  coding-agent: 
+    services: 
+      - "the organization's approved coding harnesses"
+    fit: shared:existing
+    account: shared:existing
+    portability: open
+  harness-full-parity: 
+    services: 
+      - "the organization's approved coding harness"
+    fit: shared:existing
+    account: shared:existing
+    portability: open
+  harness-no-pinning: 
+    services: 
+      - "the organization's approved coding harness"
+    fit: shared:existing
+    account: shared:existing
+    portability: open
+  harness-no-stop-gate: 
+    services: 
+      - "the organization's approved coding harness"
+    fit: shared:existing
+    account: shared:existing
+    portability: open
+  edit-checks: 
+    services: 
+      - "checks run by the harness's edit hooks on the endpoint"
+    fit: shared:existing
+    account: shared:existing
+    portability: open
+  stop-gate: 
+    services: 
+      - "the harness's stop hook on the endpoint"
+    fit: shared:existing
+    account: shared:existing
+    portability: open
+  quarantined-reader: 
+    services: 
+      - Amazon Bedrock with no tools and no knowledge base
+    fit: managed
+    account: shared:existing
+    portability: proprietary
+  reader-schema-gate: 
+    services: 
+      - AWS Lambda running a schema validator
+    fit: managed-open
+    account: shared:existing
+    portability: open
+  model-routes: 
+    services: 
+      - Amazon Bedrock
+      - a contracted provider outside AWS
+    fit: managed
+    account: shared:existing
+    portability: proprietary
+    residency: true
+  reader-model-route: 
+    services: 
+      - Amazon Bedrock under a separate role with no tools and no knowledge base
+    fit: managed
+    account: shared:existing
+    portability: proprietary
+    residency: true
+  repository: 
+    services: 
+      - "the organization's source control"
+      - AWS CodeArtifact as the dependency mirror
+    fit: shared:existing
+    account: shared:existing
+    portability: open
+  change-boundary: 
+    services: 
+      - "the organization's source control"
+    fit: shared:existing
+    account: shared:existing
+    portability: open
+  precommit-gate: 
+    services: 
+      - pre-commit hooks on a hook path locked by endpoint management
+    fit: shared:existing
+    account: shared:existing
+    portability: open
+  provenance-stamper: 
+    services: 
+      - signed commit trailers
+      - AWS Signer
+    fit: shared:existing
+    account: shared:existing
+    portability: open
+  protected-branch: 
+    services: 
+      - "the organization's source control branch protection"
+      - AWS CodeBuild for required checks
+    fit: shared:existing
+    account: shared:existing
+    portability: open
+  pr-plane: 
+    services: 
+      - "the organization's pull-request checks"
+    fit: shared:existing
+    account: shared:existing
+    portability: open
+  pr-analysis: 
+    services: 
+      - "the organization's static analysis in AWS CodeBuild"
+      - Amazon Inspector code scanning
+    fit: shared:existing
+    account: shared:existing
+    portability: open
+  pr-triage: 
+    services: 
+      - Amazon Bedrock
+    fit: managed
+    account: shared:existing
+    portability: proprietary
+  ai-reviewer: 
+    services: 
+      - Amazon Q Developer code review
+      - a second model family through Amazon Bedrock
+    fit: managed
+    account: shared:existing
+    portability: proprietary
+  hunk-router: 
+    services: 
+      - code owners rules and a routing job in AWS CodeBuild
+    fit: shared:existing
+    account: shared:existing
+    portability: open
+  hunk-risk-advisor: 
+    services: 
+      - Amazon Bedrock
+    fit: managed
+    account: shared:existing
+    portability: proprietary
+  autofix: 
+    services: 
+      - Amazon Q Developer
+      - Amazon Bedrock
+    fit: managed
+    account: shared:existing
+    portability: proprietary
+  measurement-plane: 
+    services: 
+      - Amazon Athena over the layer log
+      - Amazon QuickSight
+    fit: managed
+    account: shared:existing
+    portability: open
+  outside-text: 
+    services: 
+      - the public web
+      - read only through the quarantined reader
+    fit: shared:existing
+    account: shared:existing
+    portability: open
+  people.creation-developer: 
+    services: 
+      - IAM Identity Center group
+    fit: shared:existing
+    account: identity
+    portability: open
+  people.change-reviewer: 
+    services: 
+      - IAM Identity Center group
+      - "with source control rules that bar a change's author from merging it"
+    fit: shared:existing
+    account: identity
+    portability: open
+  people.high-risk-reviewer: 
+    services: 
+      - IAM Identity Center group outside the authoring team
+    fit: shared:existing
+    account: identity
+    portability: open
+  people.creation-policy-owner: 
+    services: 
+      - IAM Identity Center group
+    fit: shared:existing
+    account: identity
+    portability: open
+provider: aws
+version: 1

@@ -1,0 +1,182 @@
+# Jig edition 0.2.0. Generated; do not edit.
+- id: U-430
+  seam: STEP-12
+  module: secure-creation
+  contract: shared:ProvenanceStamp
+  kind: agreement
+  flow_item: risk
+  elements: 
+    - id: secure-creation
+      fidelity_from: existing-tool
+      fidelity_to: existing-tool
+  provides: 
+    - cap.creation-premise-declared
+  requires: 
+    - shared:cap.creation-loop-targets
+  check: "The organization's compiled model declares each premise its secure-creation loop relies on (managed endpoints, mirrored dependencies, code only from its own engineers, locked policy, or its own list), with the parts and relationships that rely on it and a fallback carried by parts that do not; its harnesses are declared with their four parity fields; the model checks' assumption and harness rules report no error, including on the organization's own items."
+  feedback_speed: minutes
+  independence_sensitive: false
+  phase: 1
+- id: U-431
+  seam: STEP-12
+  module: secure-creation
+  contract: shared:DerivedCheck
+  kind: code
+  flow_item: risk
+  elements: 
+    - id: precommit-gate
+      fidelity_from: existing-tool
+      fidelity_to: existing-tool
+    - id: protected-branch
+      fidelity_from: existing-tool
+      fidelity_to: existing-tool
+  provides: 
+    - cap.harness-parity-compensated
+  requires: 
+    - cap.creation-premise-declared
+    - shared:cap.derived-checks
+    - cap.creation-outcomes-delivered
+    - cap.derived-check-gaming-watched
+  check: "For each harness without a stop gate, a session that ends its turn on a failing suite is caught at commit by the locked pre-commit gate, and a commit that bypassed the hook fails the server-side required checks; each harness's changes show the same suite at the same versions as the others, or the server-side run as the version of record where the harness cannot pin (pipeline test F128); with the agent's own credentials, a planted change that skips the hook and posts a passing status for each required check still fails to merge, and the engineering system owner's branch-settings test (F133) keeps that true."
+  feedback_speed: minutes
+  independence_sensitive: false
+  phase: 2
+- id: U-432
+  seam: STEP-12
+  module: secure-creation
+  contract: shared:TrackerText
+  kind: code
+  flow_item: risk
+  elements: 
+    - id: quarantined-reader
+      fidelity_from: none
+      fidelity_to: built
+    - id: reader-schema-gate
+      fidelity_from: none
+      fidelity_to: built
+  provides: 
+    - cap.creation-quarantine
+  requires: 
+    - cap.creation-premise-declared
+  check: "Issue text, web pages and dependency documentation reach a coding session only as the reader's typed answers: a marker string planted in an issue and in a web page never appears in the agent's context, its prompts or its diff across a seeded run, and an answer carrying prose is cut to its typed fields by the schema gate; the model checks' trifecta, agent-reach and outsider-label rules report no error on the compiled loop, including on the organization's own items."
+  feedback_speed: minutes
+  independence_sensitive: true
+  phase: 3
+- id: U-433
+  seam: STEP-12
+  module: secure-creation
+  contract: HunkRouteAdvice
+  kind: code
+  flow_item: risk
+  elements: 
+    - id: hunk-router
+      fidelity_from: existing-tool
+      fidelity_to: built
+    - id: hunk-risk-advisor
+      fidelity_from: none
+      fidelity_to: built
+  provides: 
+    - cap.hunk-routing-rule-first
+  requires: 
+    - cap.creation-premise-declared
+  check: "Every hunk whose paths, owners or rule matches touch authorization, cryptography, data access or money reaches a qualified reviewer outside the authoring team; a seeded advisor output that names a rule-routed hunk as low risk leaves its route unchanged, and one that names a lighter-pass hunk as high risk moves it to a person; the model checks' rule-first routing rule reports no error, including on the organization's own items (pipeline test F130)."
+  feedback_speed: next-loop-run
+  independence_sensitive: true
+  separates: 
+    - - proposer
+      - approver
+  phase: 4
+- id: U-436
+  seam: STEP-11
+  module: secure-creation
+  contract: LayerCatchRate
+  kind: measurement
+  flow_item: risk
+  elements: 
+    - id: measurement-plane
+      fidelity_from: none
+      fidelity_to: built
+  provides: 
+    - cap.creation-outcomes-delivered
+  requires: 
+    - shared:cap.catch-layer
+    - shared:cap.lagged-cohort-reporting
+    - cap.class-to-rule
+  check: "Each window each developer receives the escaped defects per merged change from their own sessions, on the reproduced tier with the check-confirmed tier beside it, and the share of the agent's own fixes that held; the policy-owning team receives catch rate per layer and per rule against the layers the evaluation group assigned, and only pass or fail per class-rule version, with per-class totals received directly from the regression catalog and kept out of agent-reachable parts and the model route; every figure is on closed cohorts and reads too few to call below its sample floor."
+  feedback_speed: weeks
+  independence_sensitive: true
+  phase: 1
+- id: U-437
+  seam: STEP-11
+  module: secure-creation
+  contract: ReviewerDrift
+  kind: measurement
+  flow_item: risk
+  elements: 
+    - id: measurement-plane
+      fidelity_from: none
+      fidelity_to: built
+  provides: 
+    - cap.reviewer-drift-delivered
+  requires: 
+    - shared:cap.lagged-cohort-reporting
+  check: "Each window every reviewer of agent-written changes and every reviewer of high-risk hunks receives their own approval and comment rates against their own baseline and, where seeds run, the seeded known-bad changes they caught over those received, from a team other than the reviewers' own; a seeded change reaches the engineering system and the reviewers as the change alone, with no fixture binding or expected outcome, and a planted change that looks like a real one is listed for 5.1."
+  feedback_speed: weeks
+  independence_sensitive: true
+  phase: 4
+- id: U-438
+  seam: STEP-10
+  module: secure-creation
+  contract: shared:DerivedCheckMisses
+  kind: measurement
+  flow_item: risk
+  elements: 
+    - id: measurement-plane
+      fidelity_from: none
+      fidelity_to: built
+  provides: 
+    - cap.derived-check-gaming-watched
+  requires: 
+    - shared:cap.derived-check-misses-counted
+    - cap.creation-outcomes-delivered
+  check: "Each window the policy-owning team receives, for each derived check, its misses against its floor as Ratchet counted them, beside the loop's own log of checks dropped or disabled and the catch rates per layer and per rule; a check over its floor is listed for the policy-owning team, who can retire it from the check suite, and nothing that names which changes missed or what a replay found reaches the loop (pipeline test F129)."
+  feedback_speed: several-runs
+  independence_sensitive: true
+  phase: 2
+- id: JU-01
+  seam: STEP-12
+  module: secure-creation
+  contract: shared:CreationRule
+  kind: code
+  flow_item: risk
+  elements: 
+    - id: check-suite
+      fidelity_from: existing-tool
+      fidelity_to: existing-tool
+  provides: 
+    - cap.class-to-rule
+  requires: 
+    - shared:cap.class-test-count-published
+    - cap.creation-premise-declared
+  check: "Each proven class has a rule its named owner published, or is listed as waiting with the owner's reason; a rule with no passing class test steers and never gates."
+  feedback_speed: several-runs
+  independence_sensitive: true
+  phase: 1
+- id: JU-02
+  seam: STEP-12
+  module: secure-creation
+  contract: shared:ProvenClass
+  kind: code
+  flow_item: risk
+  elements: 
+    - id: context-plane
+      fidelity_from: existing-tool
+      fidelity_to: existing-tool
+  provides: 
+    - cap.handoff-schema-enforced
+  requires: 
+    - shared:cap.typed-handoff-published
+  check: "Every incoming record validates against its contract's typed fields in the kit's contract schema at the receiving end; a planted proven class carrying a field the schema does not list (a verdict reference) is refused at the boundary and logged."
+  feedback_speed: minutes
+  independence_sensitive: false
+  phase: 2

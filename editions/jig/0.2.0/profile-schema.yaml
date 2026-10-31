@@ -1,0 +1,469 @@
+# Jig edition 0.2.0. Generated; do not edit.
+$schema: https://json-schema.org/draft/2020-12/schema
+description: "An organization's Jig profile: how code is created today, found from local sources and confirmed by people. Each answer an organization can confirm on its own is an answer record with its own value, evidence, confirmation and superseded history, so confirming one answer never confirms another. A null value or an empty list means unanswered; unanswered answers are valid, never errors, and are listed under gaps."
+type: object
+additionalProperties: false
+required: 
+  - profile
+  - governance
+  - creation_surfaces
+  - coding_agents
+  - parts
+  - stages
+  - dependency_admission
+  - secrets
+  - paved_roads
+  - ratchet_waits
+  - gaps
+properties: 
+  profile: 
+    description: "Who keeps this profile and against which edition. Bookkeeping, not answers: nobody confirms them."
+    type: object
+    additionalProperties: false
+    required: 
+      - edition
+      - filled_by
+      - updated
+    properties: 
+      edition: 
+        type: 
+          - string
+          - "null"
+        description: "The bare Jig version this profile was filled against, from the version field of the edition record."
+      filled_by: 
+        type: 
+          - string
+          - "null"
+        description: "The role of the person who keeps this profile. A role, never the agent."
+      updated: 
+        type: 
+          - string
+          - "null"
+        description: "The date of the last change to this profile, as YYYY-MM-DD."
+  governance: 
+    description: "Who decides on design changes when Jig is adopted alone. With Ratchet, Ratchet's profile holds these roles in its separation section; leave these values null and use those."
+    type: object
+    additionalProperties: false
+    required: 
+      - security_risk_owner_role
+      - business_risk_owner_role
+      - patch_acceptor_roles
+      - proposer_may_accept
+    properties: 
+      security_risk_owner_role: 
+        $ref: "#/$defs/answer_text"
+        description: "The role accountable for security risk. It accepts every organization patch that trips no should-never rule, and agrees to any that does."
+      business_risk_owner_role: 
+        $ref: "#/$defs/answer_text"
+        description: "The role that accepts a patch that trips a should-never rule, with the security risk owner's agreement."
+      patch_acceptor_roles: 
+        $ref: "#/$defs/answer_text_list"
+        description: "Every role allowed to accept an organization patch. It holds the two roles above, and any other role the organization authorizes in writing."
+      proposer_may_accept: 
+        const: false
+        description: "Fixed by the design: the person or team that proposed a patch never accepts it."
+  creation_surfaces: 
+    description: Where code is created in scope for Jig. Each entry is its own answer.
+    type: object
+    additionalProperties: false
+    required: 
+      - repository_classes
+      - languages
+      - build_systems
+    properties: 
+      repository_classes: 
+        type: array
+        items: 
+          $ref: "#/$defs/answer_text"
+        description: "The classes of repository in scope, in the organization's words, for example services, libraries or infrastructure code. Empty means unanswered."
+      languages: 
+        type: array
+        items: 
+          $ref: "#/$defs/answer_text"
+        description: "The programming languages written in those repositories, one answer each. Empty means unanswered."
+      build_systems: 
+        type: array
+        items: 
+          $ref: "#/$defs/answer_text"
+        description: "The build and continuous integration systems those repositories use, one answer each. Empty means unanswered."
+  coding_agents: 
+    description: Each coding agent in use. Whether an agent can run a check after each edit and a check when its turn stops decides which per-edit and stop-gate parts it can host.
+    type: array
+    items: 
+      type: object
+      additionalProperties: false
+      required: 
+        - name
+        - runs_where
+        - edit_hooks
+        - turn_stop_hook
+      properties: 
+        name: 
+          type: 
+            - string
+            - "null"
+          description: The agent or harness as the organization names it. It identifies the entry; its facts are the answers below.
+        runs_where: 
+          $ref: "#/$defs/answer_text"
+          description: "Where its sessions run: a developer workstation, a hosted environment, continuous integration, or another place in the organization's words."
+        edit_hooks: 
+          $ref: "#/$defs/answer_hook"
+          description: Whether it can run an organization-supplied check after each edit.
+        turn_stop_hook: 
+          $ref: "#/$defs/answer_hook"
+          description: "Whether it can run an organization-supplied check, able to block, when its turn stops."
+  parts: 
+    description: "One entry per Jig part the organization already has something for, keyed by the part's id in model.yaml. Plumb's current state reads these entries, one record per part."
+    type: array
+    items: 
+      type: object
+      additionalProperties: false
+      required: 
+        - part
+        - today
+        - baseline
+      properties: 
+        part: 
+          type: string
+          description: "The part's id in model.yaml, such as precommit-gate or coding-agent."
+        today: 
+          $ref: "#/$defs/answer_text"
+          description: "What stands in for the part today, in plain words: the tool, the process or the people."
+        baseline: 
+          $ref: "#/$defs/answer_ladder"
+          description: Where the part stands on the ladder today.
+  stages: 
+    description: "One entry per Jig stage, keyed by the stage id in phases.yaml: what the organization does today toward that stage's exit test."
+    type: object
+    additionalProperties: false
+    required: 
+      - PH-1
+      - PH-2
+      - PH-3
+      - PH-4
+      - PH-5
+    properties: 
+      PH-1: 
+        $ref: "#/$defs/stage"
+        description: "Attribute: escaped defects traced to their origin and to the layer that should have caught them."
+      PH-2: 
+        $ref: "#/$defs/stage"
+        description: "One check, many places: the same checks at the edit, before the commit and on the server."
+      PH-3: 
+        $ref: "#/$defs/stage"
+        description: "Agent fixes first: coding agents fix findings before a person sees them, with outside text kept out of their context."
+      PH-4: 
+        $ref: "#/$defs/stage"
+        description: "Focus the humans: review effort routed to the changes that need a person."
+      PH-5: 
+        $ref: "#/$defs/stage"
+        description: "Pave the road: recurring defect classes made impossible by default."
+  dependency_admission: 
+    $ref: "#/$defs/practice"
+    description: "How a new third-party package enters a repository today: where packages come from, what checks a name before it is admitted, and who owns that."
+  secrets: 
+    $ref: "#/$defs/practice"
+    description: "How secrets are kept out of code and agent context today: scanning, where credentials live, and who owns that."
+  paved_roads: 
+    $ref: "#/$defs/practice"
+    description: "The paved roads that exist today: templates, shared libraries, golden paths and agent skills that make the secure way the default, and who owns them."
+  ratchet_waits: 
+    description: "One entry per Ratchet capability Jig's units wait on, keyed by its shared capability id. A value of ratchet or substitute releases nothing until a person confirms it, and a waiting stage still needs its own exit-test evidence."
+    type: object
+    additionalProperties: false
+    required: 
+      - shared:cap.creation-loop-targets
+      - shared:cap.catch-layer
+      - shared:cap.lagged-cohort-reporting
+      - shared:cap.class-test-count-published
+      - shared:cap.derived-checks
+      - shared:cap.derived-check-misses-counted
+      - shared:cap.typed-handoff-published
+    properties: 
+      shared:cap.creation-loop-targets: 
+        $ref: "#/$defs/wait"
+        description: "Creation-loop targets: the target rates the creation loop is measured against."
+      shared:cap.catch-layer: 
+        $ref: "#/$defs/wait"
+        description: "Catch-layer attribution: each escaped defect assigned to the layer that should have caught it, by a group outside Jig."
+      shared:cap.lagged-cohort-reporting: 
+        $ref: "#/$defs/wait"
+        description: "Lagged cohort reporting: outcomes reported for closed cohorts of changes after a set delay."
+      shared:cap.class-test-count-published: 
+        $ref: "#/$defs/wait"
+        description: "Published class-test counts: how many tests exist for each defect class turned into a rule."
+      shared:cap.derived-checks: 
+        $ref: "#/$defs/wait"
+        description: "Derived checks: checks derived from confirmed findings, ready to run at the edit and on the server."
+      shared:cap.derived-check-misses-counted: 
+        $ref: "#/$defs/wait"
+        description: "Derived-check miss counts: how often a derived check missed what it was derived to catch."
+      shared:cap.typed-handoff-published: 
+        $ref: "#/$defs/wait"
+        description: "Published typed handoffs: the typed records Jig's context plane receives."
+  gaps: 
+    description: "Open questions, each with who can answer it. Every unanswered answer the next step needs has a row here."
+    type: array
+    items: 
+      type: object
+      additionalProperties: false
+      required: 
+        - question
+        - field
+        - who_can_answer
+        - raised
+      properties: 
+        question: 
+          type: 
+            - string
+            - "null"
+          description: "The question, in plain words."
+        field: 
+          type: 
+            - string
+            - "null"
+          description: "The answer it would fill, as a dotted path from the top of the profile, for example the owner of one stage."
+        who_can_answer: 
+          type: 
+            - string
+            - "null"
+          description: The role or team that can answer it.
+        raised: 
+          type: 
+            - string
+            - "null"
+          description: "The date the question was raised, as YYYY-MM-DD."
+$defs: 
+  evidence: 
+    description: "What each local source showed for this answer, one entry per reading, oldest first. Entries are history: a later reading is added beside them, never written over them. An empty list means nothing has been found yet."
+    type: array
+    items: 
+      type: object
+      additionalProperties: false
+      required: 
+        - source
+        - date
+        - found
+      properties: 
+        source: 
+          type: string
+          description: "The local source, specific enough to find again: an exported settings file, a configuration file in a named repository, a policy document, a tracker export, or an interview with a named role."
+        date: 
+          type: string
+          description: "The date the source was read, as YYYY-MM-DD."
+        found: 
+          type: string
+          description: "What the source showed for this answer, in plain words."
+  confirmed: 
+    description: "A person's confirmation of this answer's current value. null until a named person confirms it; the agent never fills it."
+    type: 
+      - object
+      - "null"
+    additionalProperties: false
+    required: 
+      - by
+      - at
+    properties: 
+      by: 
+        type: string
+        description: The role or name of the person who confirmed it.
+      at: 
+        type: string
+        description: "The date of the confirmation, as YYYY-MM-DD."
+  superseded: 
+    description: "Earlier confirmed values a person later replaced, oldest first. Kept as history, never removed."
+    type: array
+    items: 
+      type: object
+      additionalProperties: false
+      required: 
+        - value
+        - confirmed
+        - replaced_at
+      properties: 
+        value: 
+          description: "The earlier value, as it stood."
+        confirmed: 
+          $ref: "#/$defs/confirmed"
+          description: "Its confirmation, as it stood."
+        replaced_at: 
+          type: string
+          description: "The date a person replaced it, as YYYY-MM-DD."
+  answer_text: 
+    description: "One answer: its current value, the evidence behind it, its confirmation and its superseded values."
+    type: object
+    additionalProperties: false
+    required: 
+      - value
+      - evidence
+      - confirmed
+      - superseded
+    properties: 
+      value: 
+        type: 
+          - string
+          - "null"
+        description: "The current answer in plain words, or null when unanswered."
+      evidence: 
+        $ref: "#/$defs/evidence"
+      confirmed: 
+        $ref: "#/$defs/confirmed"
+      superseded: 
+        $ref: "#/$defs/superseded"
+  answer_text_list: 
+    description: "One answer whose value is a list, such as the tools in use."
+    type: object
+    additionalProperties: false
+    required: 
+      - value
+      - evidence
+      - confirmed
+      - superseded
+    properties: 
+      value: 
+        type: 
+          - array
+          - "null"
+        items: 
+          type: string
+        description: "The current list, or null when unanswered. An empty list is an answer: none."
+      evidence: 
+        $ref: "#/$defs/evidence"
+      confirmed: 
+        $ref: "#/$defs/confirmed"
+      superseded: 
+        $ref: "#/$defs/superseded"
+  answer_hook: 
+    description: "One yes, no or unknown answer about a coding agent. unknown is an answer: someone looked and could not tell. null means nobody has looked."
+    type: object
+    additionalProperties: false
+    required: 
+      - value
+      - evidence
+      - confirmed
+      - superseded
+    properties: 
+      value: 
+        type: 
+          - string
+          - "null"
+        enum: 
+          - "yes"
+          - "no"
+          - unknown
+          - null
+        description: "yes, no, unknown, or null when unanswered."
+      evidence: 
+        $ref: "#/$defs/evidence"
+      confirmed: 
+        $ref: "#/$defs/confirmed"
+      superseded: 
+        $ref: "#/$defs/superseded"
+  answer_ladder: 
+    description: "One answer on the ladder: none (nothing yet), stand-in (people or a temporary measure do the work), existing-tool (a tool the organization already runs does it), built (the part as the design describes it is in place)."
+    type: object
+    additionalProperties: false
+    required: 
+      - value
+      - evidence
+      - confirmed
+      - superseded
+    properties: 
+      value: 
+        type: 
+          - string
+          - "null"
+        enum: 
+          - none
+          - stand-in
+          - existing-tool
+          - built
+          - null
+        description: "A rung of the ladder, or null when unanswered."
+      evidence: 
+        $ref: "#/$defs/evidence"
+      confirmed: 
+        $ref: "#/$defs/confirmed"
+      superseded: 
+        $ref: "#/$defs/superseded"
+  answer_provider: 
+    description: "Who provides a Ratchet capability here: ratchet (the organization runs Ratchet and its providing work is in place), substitute (something else provides it, named in the substitute answer), absent (nothing provides it yet)."
+    type: object
+    additionalProperties: false
+    required: 
+      - value
+      - evidence
+      - confirmed
+      - superseded
+    properties: 
+      value: 
+        type: 
+          - string
+          - "null"
+        enum: 
+          - ratchet
+          - substitute
+          - absent
+          - null
+        description: "ratchet, substitute, absent, or null when unanswered."
+      evidence: 
+        $ref: "#/$defs/evidence"
+      confirmed: 
+        $ref: "#/$defs/confirmed"
+      superseded: 
+        $ref: "#/$defs/superseded"
+  practice: 
+    type: object
+    additionalProperties: false
+    required: 
+      - current_practice
+      - existing_tools
+      - owner
+    properties: 
+      current_practice: 
+        $ref: "#/$defs/answer_text"
+        description: "What happens today, in plain words, without judging the people who run it."
+      existing_tools: 
+        $ref: "#/$defs/answer_text_list"
+        description: Tools already in use for it.
+      owner: 
+        $ref: "#/$defs/answer_text"
+        description: The team or role that owns it today.
+  stage: 
+    type: object
+    additionalProperties: false
+    required: 
+      - name
+      - current_practice
+      - existing_tools
+      - owner
+      - status
+    properties: 
+      name: 
+        type: string
+        description: "The stage's name from phases.yaml. Shipped filled; do not change it."
+      current_practice: 
+        $ref: "#/$defs/answer_text"
+        description: "What the organization does today toward this stage's exit test, in plain words."
+      existing_tools: 
+        $ref: "#/$defs/answer_text_list"
+        description: "Tools already in use for the stage's parts."
+      owner: 
+        $ref: "#/$defs/answer_text"
+        description: "The team or role that owns this stage's practice today."
+      status: 
+        $ref: "#/$defs/answer_ladder"
+        description: "Where the stage's practice stands on the ladder as a whole. Each part's own rung is in parts."
+  wait: 
+    type: object
+    additionalProperties: false
+    required: 
+      - provided_by
+      - substitute
+    properties: 
+      provided_by: 
+        $ref: "#/$defs/answer_provider"
+        description: What provides the capability today.
+      substitute: 
+        $ref: "#/$defs/answer_text"
+        description: "When provided_by is substitute: what provides the capability, who owns it, and how it delivers what the capability names. Confirmed separately: a person confirms that the substitute is fit for the capability."

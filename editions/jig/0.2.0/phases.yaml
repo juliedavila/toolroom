@@ -1,0 +1,58 @@
+# Jig edition 0.2.0. Generated; do not edit.
+phases: 
+  - id: PH-1
+    name: Attribute
+    exit: "A baseline rate of escaped defects by origin exists, with the measured share of changes the harnesses can stamp and closed-cohort self-fix and catch-rate measurement."
+    rests_on: 
+      - JC-30
+  - id: PH-2
+    name: "One check, many places"
+    exit: "The same findings at agent and pull-request time, with effective false positives under 10% at pull request, and the replay-miss gaming watch with owner retirement in place."
+    rests_on: 
+      - JC-13
+  - id: PH-3
+    name: Agent fixes first
+    exit: "Findings per AI hunk at pull request fall at least 50%, and the self-fix hold rate is measured."
+    rests_on: 
+      - JC-06
+  - id: PH-4
+    name: Focus the humans
+    exit: Escaped defects fall while review time per pull request holds flat.
+    rests_on: 
+      - JC-22
+      - JC-24
+  - id: PH-5
+    name: Pave the road
+    exit: Targeted classes trend toward zero.
+    rests_on: 
+      - JC-17
+unit_stages: 
+  status: draft for release review
+  units: 
+    - unit: U-430
+      phase: PH-1
+      reason: Declare the premises and harness coverage needed to establish the attribution baseline.
+    - unit: U-431
+      phase: PH-2
+      reason: Run the same pinned suite through local and server-side gates across harnesses.
+    - unit: U-432
+      phase: PH-3
+      reason: Keep outsider prose out of coding-agent context before expanding autonomous fixes.
+    - unit: U-433
+      phase: PH-4
+      reason: Route sensitive hunks to qualified reviewers and keep advisor output subordinate to rules.
+    - unit: U-436
+      phase: PH-1
+      reason: "Move outcome and self-fix measurement into attribution, before derived-check use and the agent-fix exit rely on it."
+    - unit: U-437
+      phase: PH-4
+      reason: Show reviewer drift and seeded-change catches so human review stays effective.
+    - unit: U-438
+      phase: PH-2
+      reason: Move replay-miss feedback and retirement alongside the first derived-check use to expose gaming from the start.
+    - unit: JU-01
+      phase: PH-1
+      reason: Move class-to-rule delivery into attribution because its outcome measurement requires these rules.
+    - unit: JU-02
+      phase: PH-2
+      reason: Validate incoming typed handoffs before one suite runs at every entry point.
