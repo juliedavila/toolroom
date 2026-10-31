@@ -1,0 +1,350 @@
+# Ratchet edition 5.2.1. Expected results, produced by the reference implementation.
+edition: 5.2.1
+results: 
+  - fixture: model.yaml
+    tool: model checks
+    outcome: pass
+    errors: 
+      []
+  - fixture: fixture-pc-example-mission-critical.yaml
+    tool: profile checker
+    today: "2026-12-01"
+    mode: complete
+    outcome: pass
+    schema_errors: 0
+    rule_errors: 0
+    should_never_codes: 
+      []
+  - fixture: fixture-pc-example-regulated-enterprise.yaml
+    tool: profile checker
+    today: "2026-12-01"
+    mode: complete
+    outcome: pass
+    schema_errors: 0
+    rule_errors: 0
+    should_never_codes: 
+      []
+  - fixture: fixture-pc-pass-agent-limits.yaml
+    tool: profile checker
+    today: "2026-12-01"
+    mode: complete
+    outcome: pass
+    schema_errors: 0
+    rule_errors: 0
+    should_never_codes: 
+      []
+  - fixture: fixture-pc-pass-current-practice.yaml
+    tool: profile checker
+    today: "2026-12-01"
+    mode: complete
+    outcome: pass
+    schema_errors: 0
+    rule_errors: 0
+    should_never_codes: 
+      []
+  - fixture: fixture-pc-pass-escapes.yaml
+    tool: profile checker
+    today: "2026-12-01"
+    mode: complete
+    outcome: pass
+    schema_errors: 0
+    rule_errors: 0
+    should_never_codes: 
+      []
+  - fixture: fixture-pc-pass-exception.yaml
+    tool: profile checker
+    today: "2026-12-01"
+    mode: complete
+    outcome: pass
+    schema_errors: 0
+    rule_errors: 0
+    should_never_codes: 
+      []
+  - fixture: fixture-pc-pass-gate-seeding.yaml
+    tool: profile checker
+    today: "2026-12-01"
+    mode: complete
+    outcome: pass
+    schema_errors: 0
+    rule_errors: 0
+    should_never_codes: 
+      []
+  - fixture: fixture-pc-pass-injection.yaml
+    tool: profile checker
+    today: "2026-12-01"
+    mode: complete
+    outcome: pass
+    schema_errors: 0
+    rule_errors: 0
+    should_never_codes: 
+      []
+  - fixture: fixture-pc-pass-kept-test.yaml
+    tool: profile checker
+    today: "2026-12-01"
+    mode: complete
+    outcome: pass
+    schema_errors: 0
+    rule_errors: 0
+    should_never_codes: 
+      []
+  - fixture: fixture-pc-pass-module-inventory.yaml
+    tool: profile checker
+    today: "2026-12-01"
+    mode: complete
+    outcome: pass
+    schema_errors: 0
+    rule_errors: 0
+    should_never_codes: 
+      []
+  - fixture: fixture-pc-pass-own-overlay.yaml
+    tool: profile checker
+    today: "2026-12-01"
+    mode: complete
+    outcome: pass
+    schema_errors: 0
+    rule_errors: 0
+    should_never_codes: 
+      []
+  - fixture: fixture-pc-pass-phase1-real-finding.yaml
+    tool: profile checker
+    today: "2026-12-01"
+    mode: complete
+    outcome: pass
+    schema_errors: 0
+    rule_errors: 0
+    should_never_codes: 
+      []
+  - fixture: fixture-pc-fail-admin.yaml
+    tool: profile checker
+    today: "2026-12-01"
+    mode: complete
+    outcome: fail
+    schema_errors: 0
+    rule_errors: 3
+    should_never_codes: 
+      - admin.cpo-is-platform
+      - admin.cpo-is-producer
+      - partition.cross-reads
+  - fixture: fixture-pc-fail-amend.yaml
+    tool: profile checker
+    today: "2026-12-01"
+    mode: complete
+    outcome: fail
+    schema_errors: 11
+    rule_errors: 3
+    should_never_codes: 
+      - road.service-granularity
+      - road.unvetted-version
+      - road.zero-sample
+  - fixture: fixture-pc-fail-boundary.yaml
+    tool: profile checker
+    today: "2026-12-01"
+    mode: complete
+    outcome: fail
+    schema_errors: 0
+    rule_errors: 3
+    should_never_codes: 
+      - model.phase1-boundary-unconfirmed
+      - model.trifecta
+  - fixture: fixture-pc-fail-many-defects.yaml
+    tool: profile checker
+    today: "2026-12-01"
+    mode: complete
+    outcome: fail
+    schema_errors: 33
+    rule_errors: 9
+    should_never_codes: 
+      - gate.crown-jewel-open-with-record
+      - intake.ledger-direct-write
+      - ownership.broken-separation
+      - sep.verifier-producer
+      - shipthrough.no-replay
+  - fixture: fixture-pc-fail-current-practice.yaml
+    tool: profile checker
+    today: "2026-12-01"
+    mode: complete
+    outcome: fail
+    schema_errors: 2
+    rule_errors: 1
+    should_never_codes: 
+      []
+  - fixture: fixture-pc-fail-doctrine.yaml
+    tool: profile checker
+    today: "2026-12-01"
+    mode: complete
+    outcome: fail
+    schema_errors: 8
+    rule_errors: 11
+    should_never_codes: 
+      - dial.bound-looser
+      - modules.before-evidence
+  - fixture: fixture-pc-fail-escapes.yaml
+    tool: profile checker
+    today: "2026-12-01"
+    mode: complete
+    outcome: fail
+    schema_errors: 0
+    rule_errors: 1
+    should_never_codes: 
+      []
+  - fixture: fixture-pc-fail-exception.yaml
+    tool: profile checker
+    today: "2026-12-01"
+    mode: complete
+    outcome: fail
+    schema_errors: 0
+    rule_errors: 2
+    should_never_codes: 
+      - sep.fix-closure
+  - fixture: fixture-pc-fail-gate-seeding.yaml
+    tool: profile checker
+    today: "2026-12-01"
+    mode: complete
+    outcome: fail
+    schema_errors: 0
+    rule_errors: 2
+    should_never_codes: 
+      []
+  - fixture: fixture-pc-fail-injection.yaml
+    tool: profile checker
+    today: "2026-12-01"
+    mode: complete
+    outcome: fail
+    schema_errors: 0
+    rule_errors: 3
+    should_never_codes: 
+      []
+  - fixture: fixture-pc-fail-injection-unnamed.yaml
+    tool: profile checker
+    today: "2026-12-01"
+    mode: complete
+    outcome: fail
+    schema_errors: 0
+    rule_errors: 5
+    should_never_codes: 
+      []
+  - fixture: fixture-pc-fail-kept-test.yaml
+    tool: profile checker
+    today: "2026-12-01"
+    mode: complete
+    outcome: fail
+    schema_errors: 0
+    rule_errors: 2
+    should_never_codes: 
+      - sep.purple-team-decides
+  - fixture: fixture-pc-fail-limits.yaml
+    tool: profile checker
+    today: "2026-12-01"
+    mode: complete
+    outcome: fail
+    schema_errors: 0
+    rule_errors: 7
+    should_never_codes: 
+      - dial.producer-turned
+      - limit.grant-beyond-design
+  - fixture: fixture-pc-fail-module-inventory.yaml
+    tool: profile checker
+    today: "2026-12-01"
+    mode: complete
+    outcome: fail
+    schema_errors: 0
+    rule_errors: 2
+    should_never_codes: 
+      []
+  - fixture: fixture-pc-fail-ai-resilience.yaml
+    tool: profile checker
+    today: "2026-12-01"
+    mode: complete
+    outcome: fail
+    schema_errors: 3
+    rule_errors: 8
+    should_never_codes: 
+      - infra.idp-not-fail-closed
+      - infra.siem-continue-without
+      - road.opt-in-without-check
+  - fixture: fixture-pc-fail-typed-routes.yaml
+    tool: profile checker
+    today: "2026-12-01"
+    mode: complete
+    outcome: fail
+    schema_errors: 0
+    rule_errors: 1
+    should_never_codes: 
+      []
+  - fixture: fixture-pc-fail-phase1-practice.yaml
+    tool: profile checker
+    today: "2026-12-01"
+    mode: complete
+    outcome: fail
+    schema_errors: 0
+    rule_errors: 1
+    should_never_codes: 
+      - model.trifecta
+  - fixture: fixture-pc-fail-phase1-real-finding.yaml
+    tool: profile checker
+    today: "2026-12-01"
+    mode: complete
+    outcome: fail
+    schema_errors: 0
+    rule_errors: 1
+    should_never_codes: 
+      - model.trifecta
+  - fixture: fixture-pc-fail-road.yaml
+    tool: profile checker
+    today: "2026-12-01"
+    mode: complete
+    outcome: fail
+    schema_errors: 14
+    rule_errors: 4
+    should_never_codes: 
+      - road.conformance-declared
+      - road.escape-hatch-free
+      - road.owner-metrics
+      - road.owner-verifies
+  - fixture: fixture-pc-fail-roles.yaml
+    tool: profile checker
+    today: "2026-12-01"
+    mode: complete
+    outcome: fail
+    schema_errors: 10
+    rule_errors: 5
+    should_never_codes: 
+      - attest.owner-drafts
+      - sep.business-risk-owner
+      - sep.security-risk-owner
+      - shipthrough.acceptor-not-business-owner
+      - shipthrough.no-concurrence
+  - fixture: fixture-pc-fail-secure-creation.yaml
+    tool: profile checker
+    today: "2026-12-01"
+    mode: complete
+    outcome: fail
+    schema_errors: 0
+    rule_errors: 5
+    should_never_codes: 
+      - creation.author-merges
+      - creation.catch-layer-conflicted
+      - creation.drift-reporter-is-reviewer
+      - modules.alignment-overdue
+      - sep.evaluator-conflicted
+  - fixture: fixture-pc-fail-tools.yaml
+    tool: profile checker
+    today: "2026-12-01"
+    mode: complete
+    outcome: fail
+    schema_errors: 14
+    rule_errors: 5
+    should_never_codes: 
+      - leads.as-coverage
+      - tools.decision-conflicted
+      - tools.owner-grades-own
+      - tools.unsampled-yield
+  - fixture: fixture-pc-fail-zone.yaml
+    tool: profile checker
+    today: "2026-12-01"
+    mode: complete
+    outcome: fail
+    schema_errors: 0
+    rule_errors: 2
+    should_never_codes: 
+      - admin.control-plane-operator

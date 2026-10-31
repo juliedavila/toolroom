@@ -1,0 +1,768 @@
+# Ratchet organization profile (starter). Answer what you can now; leave the rest as FILL. Then
+# check it against reference R1, or give it to an agent along with reference R1.
+# Values already present are core defaults. Comments come from the schema. Reference R1 lists where each fact usually lives.
+# Breaking a should-never rule is refused unless you record an exception (see the exceptions field and reference R1).
+# Edit this file in place: the comments carry each field's help, and a tool that rewrites the YAML drops them.
+# Quote every date as a string ("2026-11-02"): some YAML readers turn an unquoted date into a date value.
+profile:
+  name: "FILL"
+  description: "FILL"
+# Tool already in use at each seam (loop step STEP-1 to STEP-11), or null when the seam starts as a stand-in or
+# is built.
+# existing_tools records STEP-1 through STEP-11. STEP-12 is Harden the road;
+# record its tools under current_practice.steps for STEP-12 and in road. No STEP-12 tool field exists.
+existing_tools:
+  STEP-1: null # FILL (a name, or leave null)
+  STEP-2: null # FILL (a name, or leave null)
+  STEP-3: null # FILL (a name, or leave null)
+  STEP-4: null # FILL (a name, or leave null)
+  STEP-5: null # FILL (a name, or leave null)
+  STEP-6: null # FILL (a name, or leave null)
+  STEP-7: null # FILL (a name, or leave null)
+  STEP-8: null # FILL (a name, or leave null)
+  STEP-9: null # FILL (a name, or leave null)
+  STEP-10: null # FILL (a name, or leave null)
+  STEP-11: null # FILL (a name, or leave null)
+# Overlay only. The core model names no jurisdiction.
+jurisdictions: [] # FILL (list)
+# one entry has: id (string), incident_clocks (list of {event, hours, authority})
+# (? marks an optional field)
+delivery:
+  # Security checks aim for test time strictly below this many minutes at every delivery stage. The shipped
+  # default is 10 minutes when this optional field is absent. The organization may set another target here.
+  # Measures report stage test time and the share of runs below the effective target. This objective does not
+  # change a gate's timeout or failure posture.
+  security_test_time_target_minutes: 10
+  # The tolerance for the five delivery metrics of the services under test, set by each service owner before phase
+  # 2 begins, with who set it. Phase 2's exit test and the stop conditions read it.
+  metric_tolerance: null # FILL (a name, or leave null)
+  deploy_cadence: FILL # one of: continuous, daily, weekly, release-train, quarterly
+  starting_cadence_rung: FILL # one of: periodic, scheduled, continuous
+  standard_change_preapproval: null # FILL (true or false)
+# The three ownership choices worked as scenarios in the reference ownership scenarios.
+ownership:
+  # Where the team that checks the agents' work sits. one-team: one platform team runs everything. sibling: a
+  # separate assurance team beside the platform team, under the same security leader. second-line: the assurance
+  # team reports to a risk function independent of the teams that build and run the system, the second line in the
+  # three-lines model. split: authorization sits with infrastructure or identity and access management, and
+  # evidence and evaluation with an assurance team.
+  q1_checking_team: FILL # one of: one-team, sibling, second-line, split
+  q2_runtime_producer: FILL # one of: platform, red-team, vendor, product
+  q3_promotion_authority: FILL # one of: ai-governance, security-leadership, joint-board, evaluation-team
+# Team names for the roles the four rules keep apart.
+separation:
+  producer_team: "FILL"
+  approver_team: "FILL"
+  fixture_oracle_owner_team: "FILL"
+  verifier_team: "FILL"
+  fix_author_team: "FILL"
+  closure_acceptor_team: "FILL"
+  # The team that runs evaluation: matched evaluations, tool yield, road metrics, catch-layer assignment and drift
+  # reports. Phase 3 is the first phase in which the verifier and the evaluator run as systems, so it cannot start
+  # until this team is named, and it must differ from the verifier team, the paved-road owner, the tool owner and
+  # the portfolio decision owner.
+  evaluation_team: null # FILL (a name, or leave null)
+  # Optional: the purple team, which joins attack and defense. Its AI turns validated findings into proposed
+  # detections and kept regression tests, runs the scheduled re-proof of kept tests and supplies seed material for
+  # the approval and review gates. It may be the team that runs the agents. It must differ from the verifier team,
+  # the team that owns proof conditions, the security risk owner and, when named, the detection owner team, so it
+  # never accepts the kept tests, re-proof results, retirements or detections its own AI proposes.
+  purple_team: null # optional
+  # Optional: the defensive team that reviews, accepts, owns and deploys the detections the purple team's AI
+  # proposes. When named, it must differ from the purple team.
+  detection_owner_team: null # optional
+  # Organization choice, no core default: what counts as one team when the separation rules compare team names,
+  # for example a reporting line up to a named management level, a cost center, or a delivery pod. Name it so two
+  # entries count as the same team exactly when they share the incentives, manager pressure, access and blind
+  # spots the separation is meant to split. Recorded, not enforced; the checker compares the names the profile
+  # gives.
+  team_definition: null # FILL (a name, or leave null)
+  # Organization choice, no core default: where internal audit sits. verifier or closure-acceptor gives it an
+  # operating role in the loop; observer means it reads the record and relies on it for its own assurance without
+  # taking part; not-involved leaves it out. An operating role draws a warning that asks the profile to record how
+  # audit keeps its independence.
+  internal_audit_role: FILL # one of: verifier, closure-acceptor, observer, not-involved
+  # The executive who approves phases 1 and 2 and names the phase 1 roles. Accepts a phase_1_only exception before
+  # the risk owners are named, sets the default fix cap, and may not confirm escapes; while it is unanswered the
+  # checks that compare against it stay silent. Must not be the producer team or the verifier team.
+  program_decision_owner_role: null # FILL (a name, or leave null)
+  # The business owner accountable for the unit's financial results, who accepts residual business risk and
+  # ship-through decisions. Must not be the producer (discoverer and proposer) or verifier.
+  business_risk_owner_role: "FILL"
+  # The security function or a risk function independent of the teams that build and run the system (the second
+  # line in the three-lines model) that sets posture thresholds and concurs on ship-through. Must not be the
+  # producer (proposer).
+  security_risk_owner_role: "FILL"
+  # Role in the assurance unit that operates and administers the control plane: authorization service,
+  # policy engine, grant store, leases, model-boundary gates, audit, evidence stores and keys, only through the
+  # privileged access broker under dual control. Must not be the platform operator, the producer or the verifier.
+  control_plane_operator_role: "FILL"
+  # Optional: a stable id for each team, keyed by the team name as the role fields write it. An id never changes:
+  # a renamed team keeps its id under its new name, so a separation and a patch that cite the id stay valid, and a
+  # rename is never a reason to accept a patch again. A merger or a split is a change of fact and gets new ids.
+  # Two names may not share an id.
+  team_ids: null # optional
+  # Role that operates the shared orchestration services (run record, workflow, dispatch, model gateway
+  # routing and serving) and the execution cells. Must not be the control-plane operator.
+  platform_operator_role: "FILL"
+ledger_write_path: "intake-only"
+# The paved road the organization already has, as the existing-tool rung for the road plane
+# (null means the asset starts as a stand-in or is built), and the roles around it.
+road:
+  # Shared platform or developer-experience team that owns the catalog. Must not be the verifier of retirement
+  # claims.
+  owner_team: "FILL"
+  # Team that computes road metrics. Must not be the road owner, so the road team never grades its own road.
+  metrics_owner_team: "FILL"
+  assets:
+    developer_portal: null # FILL (a name, or leave null)
+    base_images: null # FILL (a name, or leave null)
+    container_platform_policy: null # FILL (a name, or leave null)
+    api_auth_libraries: null # FILL (a name, or leave null)
+    gateway: null # FILL (a name, or leave null)
+    secure_defaults_linters: null # FILL (a name, or leave null)
+  # deployed-state is required by the rules; declared is accepted by the schema only so the checker can name the
+  # error (F30).
+  conformance_basis: "deployed-state"
+  # call-site is required by the rules: a service is on-road only at the call sites a deterministic static or
+  # build-time check proves use a vetted entry. service is accepted by the schema only so the checker can name the
+  # error (F36).
+  conformance_granularity: "call-site"
+  # Must be true: only entry versions with a current road assurance record confer covered-by-road status (F37).
+  vet_each_version: true
+  # Share (0 to 1) of covered-by-road call sites sampled and tested anyway each cycle, so analysis tailoring is
+  # never blind. 0 is accepted by the schema only so the checker can name the error (F36).
+  covered_sample_share: 0.1
+  escape_hatch_reinstates_regressions: true
+  # Whether changes can be labeled human-written or agent-generated, for the on-road versus off-road split.
+  authorship_labeling: FILL # one of: labeled, unlabeled
+  # Prefer enforced road entries (compile-time check, framework default, platform policy) over opt-in
+  # libraries when choosing what goes on the road. false is accepted with a warning.
+  enforced_preferred: true
+  # Must be true: an opt-in entry confers covered-by-road status only at call sites the deterministic
+  # conformance check proves. false is accepted by the schema only so the checker can name the error.
+  opt_in_coverage_requires_call_site_check: true
+# The AppSec tools and review practices the organization already runs, each an input of labeled
+# leads. mandated marks a tool an obligation requires; its deprecation means keep for the obligation and remove
+# from developer queues, so a mandated tool must name its obligation.
+tools:
+  existing:
+    sast: [] # FILL (list)
+    # one entry has: name (string), mandated (boolean), obligation? (string)
+    # (? marks an optional field)
+    dast: [] # FILL (list)
+    # one entry has: name (string), mandated (boolean), obligation? (string)
+    # (? marks an optional field)
+    sca: [] # FILL (list)
+    # one entry has: name (string), mandated (boolean), obligation? (string)
+    # (? marks an optional field)
+    secrets: [] # FILL (list)
+    # one entry has: name (string), mandated (boolean), obligation? (string)
+    # (? marks an optional field)
+    iac: [] # FILL (list)
+    # one entry has: name (string), mandated (boolean), obligation? (string)
+    # (? marks an optional field)
+    container: [] # FILL (list)
+    # one entry has: name (string), mandated (boolean), obligation? (string)
+    # (? marks an optional field)
+    linter: [] # FILL (list)
+    # one entry has: name (string), mandated (boolean), obligation? (string)
+    # (? marks an optional field)
+    bug_bounty: [] # FILL (list)
+    # one entry has: name (string), mandated (boolean), obligation? (string)
+    # (? marks an optional field)
+    pentest: [] # FILL (list)
+    # one entry has: name (string), mandated (boolean), obligation? (string)
+    # (? marks an optional field)
+    threat_modeling: [] # FILL (list)
+    # one entry has: name (string), mandated (boolean), obligation? (string)
+    # (? marks an optional field)
+    security_review: [] # FILL (list)
+    # one entry has: name (string), mandated (boolean), obligation? (string)
+    # (? marks an optional field)
+  # Team that runs the tools and keeps exports flowing. Must not compute yield.
+  tool_owner_team: "FILL"
+  # Team that runs the sampled lead tests and owns yield and miss-rate numbers (evaluation by default). Must not
+  # be the tool owner.
+  yield_owner_team: "FILL"
+  # Accountable decider for integrate, migrate or deprecate. Core default: the security risk owner. Must not be
+  # the producer team or the tool owner.
+  decision_owner_role: "FILL"
+  # Default share (0 to 1) a tool's measured yield must reach before its leads go to developer queues without
+  # demonstration. Replaced per tool by measured yield once a sample clears the minimum.
+  confidence_bar_default: 0.3
+  # Pre-registered minimum sampled leads per tool class before any yield conclusion is drawn.
+  sample_minimum_per_class: 50
+  # Must be false. Accepted by the schema only so the checker can name the error (F33).
+  leads_count_as_coverage: false
+  # Must be true. Accepted by the schema only so the checker can name the error (F34).
+  yield_requires_sampling: true
+  # Delivery metrics the organization already collects, with DORA's current five names (change lead time,
+  # deployment frequency, failed deployment recovery time, change fail rate, deployment rework rate; Forsgren
+  #). Per-tool delivery impact and the phase 2 delivery guardrail use only these; anything missing is
+  # reported as not measured (side-quest metric).
+  delivery_metrics_collected: [] # FILL (list)
+# Pluggable modules on top of the core platform (the loop, its four rules and the record). Each module is
+# declared in the design's module declarations: its category, interface points, switch-on test, rule
+# inheritance, separations and the existing practice it wires in. A module is enabled only when its entry
+# evidence exists, and the profile checker refuses one enabled early (F44); the core loop runs regardless. Entry
+# criteria are defaults (inference) a profile may tighten. secure-creation is optional; leave it out when the
+# organization does not run a secure-creation loop.
+modules:
+  secure-creation:
+    enabled: null # FILL (true or false)
+    # The team that runs the secure-creation loop: its rules, checks and configuration.
+    owner_team: null # FILL (a name, or leave null)
+    # Who merges a change on the protected branch. Must be independent-reviewer: the author of a change is the
+    # coding agent together with the person whose session produced it, and whoever merges is neither.
+    merged_by: FILL # one of: independent-reviewer, change-author, coding-agent
+    # The team that assigns the layer that should have caught each accepted defect, usually the evaluation team.
+    # Must not be the secure-creation owner or the paved-road owner.
+    catch_layer_assigner_team: null # FILL (a name, or leave null)
+    # The team whose people review agent-written changes, as the separation rules compare team names.
+    reviewer_team: null # FILL (a name, or leave null)
+    # The team that reports reviewers' approval drift on agent-written changes. Must not be the reviewer team.
+    drift_reporter_team: null # FILL (a name, or leave null)
+    evidence:
+      # Share (0 to 1) of merged changes in scope that carry a provenance stamp, measured over the organization's
+      # chosen window.
+      provenance_stamped_share: null # FILL (number)
+      # Share (0 to 1) the organization sets as its entry bar. No default: an unanswered bar leaves the module unmet.
+      provenance_share_required: null # FILL (number)
+      # Derived checks running while code is written (at the edit, the Stop gate or commit). Entry: at least 1.
+      derived_checks_running: null # FILL (number)
+  consequence-gates:
+    enabled: null # FILL (true or false)
+    evidence:
+      # Accepted findings whose disposition records the assets the reproduced path reaches. Entry: at least 10, and
+      # the crown-jewel register at least 80 percent attested (computed from crown_jewel_register).
+      findings_with_reached_assets: null # FILL (number)
+  paved-road:
+    enabled: null # FILL (true or false)
+    evidence:
+      # Failure classes with two or more independently reproduced findings each. Entry: at least 3.
+      classes_with_two_reproduced: null # FILL (number)
+  tool-portfolio:
+    enabled: null # FILL (true or false)
+    evidence:
+      # Closed cases whose disposition records which hand-seeded leads pointed at them (or none). Entry: at least 20.
+      closed_cases_with_lead_provenance: null # FILL (number)
+      # Entry: must be true. Submitter- and tool-written lead text reaches only the quarantined, tool-less reader
+      #.
+      lead_text_quarantined: null # FILL (true or false)
+  production-effects:
+    enabled: null # FILL (true or false)
+    evidence:
+      # Entry: phase 3's matched evaluation recorded a continue decision.
+      phase_3_continue_decision: null # FILL (true or false)
+      # Entry: an approved production profile names the reversible effect classes, health pauses and cleanup.
+      approved_production_profile: null # FILL (true or false)
+# The organization's dial register. Every core dial listed in the design model
+# dials must appear. A dial past its core bound (a floor when safe is up, a ceiling when safe is down) needs
+# below_bound_acceptance, a risk acceptance id signed by the security risk owner. A profile bound may only be
+# tighter than the core. road.covered_sample_share, tools.sample_minimum_per_class and
+# tools.confidence_bar_default must equal their dial (one register).
+dials:
+  - {"id":"covered_sample_share","current":0.1,"bound":null,"turned_by_role":"FILL","last_turn_evidence":"FILL"}
+  - {"id":"negative_challenge_sample_share","current":0.1,"bound":null,"turned_by_role":"FILL","last_turn_evidence":"FILL"}
+  - {"id":"lead_sample_minimum_per_class","current":50,"bound":null,"turned_by_role":"FILL","last_turn_evidence":"FILL"}
+  - {"id":"held_lead_sample_share","current":0.05,"bound":null,"turned_by_role":"FILL","last_turn_evidence":"FILL"}
+  - {"id":"seeded_proposal_rate","current":0.02,"bound":null,"turned_by_role":"FILL","last_turn_evidence":"FILL"}
+  - {"id":"ship_through_renewal_cap","current":2,"bound":null,"turned_by_role":"FILL","last_turn_evidence":"FILL"}
+  - {"id":"approver_wip_limit","current":15,"bound":null,"turned_by_role":"FILL","last_turn_evidence":"FILL"}
+  - {"id":"verifier_wip_limit","current":10,"bound":null,"turned_by_role":"FILL","last_turn_evidence":"FILL"}
+  - {"id":"gate_queue_age_hours","current":48,"bound":null,"turned_by_role":"FILL","last_turn_evidence":"FILL"}
+  - {"id":"handoffs_per_closed_loop_ceiling","current":12,"bound":null,"turned_by_role":"FILL","last_turn_evidence":"FILL"}
+  - {"id":"regression_time_budget_minutes","current":10,"bound":null,"turned_by_role":"FILL","last_turn_evidence":"FILL"}
+  - {"id":"confidence_bar_default","current":0.3,"bound":null,"turned_by_role":"FILL","last_turn_evidence":"FILL"}
+  - {"id":"posture_review_interval_months","current":6,"bound":null,"turned_by_role":"FILL","last_turn_evidence":"FILL"}
+  - {"id":"early_stop_min_closed_cases","current":5,"bound":null,"turned_by_role":"FILL","last_turn_evidence":"FILL"}
+  - {"id":"approver_drift_threshold_pp","current":10,"bound":null,"turned_by_role":"FILL","last_turn_evidence":"FILL"}
+  - {"id":"failover_drill_interval_days","current":30,"bound":null,"turned_by_role":"FILL","last_turn_evidence":"FILL"}
+  - {"id":"typed_route_max_calibration_error","current":0.05,"bound":null,"turned_by_role":"FILL","last_turn_evidence":"FILL"}
+  - {"id":"posture_expiry_hours","current":168,"bound":null,"turned_by_role":"FILL","last_turn_evidence":"FILL"}
+  - {"id":"window_bundle_lead_hours","current":4,"bound":null,"turned_by_role":"FILL","last_turn_evidence":"FILL"}
+# Optional. The design limits on what each agent may touch. The design caps what an agent may touch, and the
+# record widens its scope only inside that cap. Inside a limit, and below the consequence line, a reviewed
+# action may run on its grant alone once the trust gate of clean runs holds, always through the authorization
+# service the agent cannot reach; outside a limit, or at or above the line, a person approves each exact action.
+# Acceptance gates never change: independent reproduction and closure with two human sign-offs stay with people.
+# Leave the section out, or the consequence line unanswered, and approval works exactly as before limits
+# existed: kept regression tests replay on their reviewed batch approvals and standing permissions, and every
+# other action is approved by a person. Each standing permission, batch approval, earned-autonomy grant or dial
+# listed under grants must sit inside the limit for its producer or judgment type and below the consequence
+# line, or the profile is refused unless it records an exception.
+agent_limits:
+  # The lowest consequence tier at which a person approves every action, whatever any limit says. crown-jewel
+  # keeps people on every action that reaches a crown jewel; standard keeps people on every action, kept-test
+  # replays included.
+  consequence_line: FILL # one of: standard, critical, crown-jewel
+  # The role that set the consequence line: the business risk owner (separation.business_risk_owner_role). Moving
+  # the line is a recorded change by this role, never a result of the record alone.
+  consequence_line_set_by_role: "FILL"
+  # One limit per producer route or judgment type; two limits for the same one are refused. Once the consequence
+  # line is set, a producer route or judgment type with no limit runs every action past a person.
+  limits: [] # FILL (list)
+  # one entry has: applies_to (producer | judgment-type), subject (string), max_tier (standard | critical | crown-jewel), environments (list), action_classes (list), set_by_role (string)
+  # (? marks an optional field)
+  # Every standing permission, batch approval, earned-autonomy grant and dial that lets an agent act, or a
+  # judgment stand, without a person approving each instance, with what it reaches. Each must sit inside the limit
+  # for its subject and below the consequence line. A batch approval is a person approving a named set of actions
+  # at once (the tests, the targets and the window they run in); it counts as a grant, and is listed here, when
+  # the actions it names run without a person approving each one. A batch whose actions each still wait for a
+  # person's approval grants nothing and is left out.
+  grants: [] # FILL (list)
+  # one entry has: id (string), kind (standing-permission | batch-approval | autonomy-grant | dial), applies_to (producer | judgment-type), subject (string), max_tier (standard | critical | crown-jewel), environments (list), action_classes (list)
+  # (? marks an optional field)
+  # Optional. The window over which phase 2 reads each agent route's trailing accuracy, the first of the two
+  # predictors every agent action record carries: a count of the route's most recent actions, or a number of days,
+  # as the organization chooses. Record it before phase 2 starts, so the window cannot be chosen after the results
+  # are in. Every record states the window it was read over.
+  accuracy_window:
+    # actions: the route's most recent actions; days: the actions of the most recent days.
+    unit: FILL # one of: actions, days
+    # How many actions, or how many days.
+    size: null # FILL (number)
+# Optional. The numeric thresholds that stop the work or grant a step of trust, which the sponsor sets from the
+# phase 1 map before phase 2 starts, each recorded with who set it and when. Phase 1 closes too few cases to set
+# them, so the list is usually empty until then. A number the dial register already holds, such as the
+# early-stop minimum, stays in the dial register only and is not repeated here: one register means one value. No
+# phase waits for this list.
+thresholds: null # optional
+# one entry has: value (number), unit (string), set_by_role (string), set_on (string), decides (string), gates_phase (1 | 2 | 3 | 4 | 5)
+# (? marks an optional field)
+# Parameters of the fix-capacity saturation signal. While the signal is on for a team, new producers
+# that would mainly target it are deferred and paved-road and class-reduction work is recommended instead.
+fix_capacity:
+  # Accepted findings open longer than this count toward saturation. With windows set by tier, this is the window
+  # for any tier that has none of its own.
+  remediation_window_days: null # FILL (number)
+  # Weeks the median accepted-finding age must rise, with open findings at the team WIP cap, before the signal
+  # turns on.
+  saturation_window_weeks: null # FILL (number)
+  # Optional. A remediation window for each consequence tier, for an organization whose vulnerability standard
+  # sets windows by class. A finding's window is the one for the highest tier its demonstrated path reaches; a
+  # tier with no window here uses remediation_window_days. The window drives the saturation signal and the report
+  # to the program decision owner of a finding still waiting for its fix path. Ratchet ships no value for any
+  # tier.
+  remediation_window_days_by_tier:
+    # Days for a finding whose path reaches a crown jewel.
+    crown-jewel: null # FILL (number)
+    # Days for a finding whose path reaches a critical asset and no crown jewel.
+    critical: null # FILL (number)
+    # Days for a finding whose path reaches only standard assets.
+    standard: null # FILL (number)
+  # Optional. The fix cap each owning team set with security: how many open validated findings the team accepts at
+  # once. This is the team WIP cap the saturation signal reads. A validated finding that would take the team above
+  # its cap is logged with its reason and reviewed at the refusal review interval; it is never dropped. A finding
+  # whose path reaches an asset at or above the consequence line (agent_limits), one matched by a sourced
+  # exploitation signal and one with an external disclosure deadline enter the queue regardless and are logged as
+  # over the cap.
+  team_caps: null # optional
+  # one entry has: team (string), cap (number), agreed_with_role (string)
+  # (? marks an optional field)
+  # Optional in the schema, required for phase 3 readiness. The cap for any owning team that set none, set by the
+  # program decision owner (the sponsor). While it is unset, a team with no cap of its own is uncapped, nothing
+  # above its capacity is refused or logged, and the profile is not ready for phase 3.
+  default_cap:
+    cap: null # FILL (number)
+    # Must be the program decision owner role in the separation section.
+    set_by_role: "FILL"
+  # Optional. Days within which a validated finding matched by a sourced exploitation signal (a known exploited
+  # catalog listing or observed exploitation) is to be fixed and verified in the running system, counted from the
+  # later of validation and the signal's date. Such a finding passes the owning team's fix cap. The edition sets
+  # no number; while it is unset, an exploited finding still passes the cap, no window is assumed and the gap is
+  # reported. The signal never lowers a posture and never counts as evidence.
+  exploited_window_days: null # optional
+  # Optional. How often each owning team reviews its refusals with the security role that agreed its cap, who
+  # co-signs each review; the review may run asynchronously in the tracker. Unset means monthly. A refused finding
+  # held at two consecutive reviews goes to the security risk owner.
+  refusal_review_interval_days: null # optional
+# Model provider dependency and the degradation ladder (frontier, self-hosted, no-agent, manual). The
+# control plane uses no model at any rung (lint rule).
+ai_resilience:
+  # Model providers in use, hosted and self-hosted serving stacks alike.
+  providers: [] # FILL (list)
+  # Share (0 to 1) of model requests that go to the largest provider; a concentration measure.
+  primary_provider_share: null # FILL (number)
+  # none: no self-hosted rung; drill-only: enough to run failover drills; partial: some producers; full: every
+  # producer whose lowest rung is self-hosted.
+  self_hosting_capacity: FILL # one of: none, drill-only, partial, full
+  # Eligible route used when the frontier route is lost; must be one of models.eligible_routes and is kept
+  # qualified by failover drills.
+  fallback_route_id: null # FILL (a name, or leave null)
+  producer_rungs: [] # FILL (list)
+  # one entry has: producer (string), lowest_rung (frontier | self-hosted | no-agent | manual)
+  # (? marks an optional field)
+# Third-party infrastructure the loop relies on, with the failure posture each must show when down (F50).
+infrastructure_dependencies: [] # FILL (list)
+# one entry has: name (string), kind (idp | ci | tracker | siem | change-management | other), failure_posture (fail-closed | queue-and-retry | mark-unknown | degrade-to-manual | continue-without)
+# (? marks an optional field)
+models:
+  eligible_routes: [] # FILL (list)
+  # one entry has: id (string), kind (self-hosted | hosted), data_classes_allowed (list), output? (text | typed), decision_types? (list)
+  # (? marks an optional field)
+  data_residency: [] # FILL (list)
+scale:
+  services: null # FILL (number)
+  teams: null # FILL (number)
+  engineers: null # FILL (number)
+risk_appetite: FILL # one of: low, moderate, high
+# Low-toil attestation. The testing team drafts each tier from material the organization already holds; the
+# business owner confirms or corrects. Re-attestation follows material change, not the calendar.
+attestation:
+  # The testing team that prepares drafts. Must not be the asset owner.
+  drafter_team: "FILL"
+  # Leader of the business unit that owns the asset, accountable for the unit's financial results, who confirms or
+  # corrects.
+  asset_owner_role: "FILL"
+  draft_sources: [] # FILL (list)
+  retrigger: FILL # one of: material-change
+  # Optional calendar ceiling; null means material change only.
+  calendar_max_months: null # optional
+  # Median owner minutes per attestation the program commits to stay under.
+  owner_minutes_target: null # FILL (number)
+# REQUIRED organization choice: the tier an unattested asset counts as when computing gate posture. The core
+# model has no opinion. truly unattested assets should be rare, because someone usually knows
+# roughly how critical an asset is.
+unattested_default: FILL # one of: crown-jewel, critical, standard
+crown_jewel_register: [] # FILL (list)
+# one entry has: asset (string), line_of_business (string), tier (crown-jewel | critical | standard), impact_score? (number), drafted_by (string), drafted_from (list), confirmed_by (string), confirmed_on (string)
+# (? marks an optional field)
+# Cost of blocking a deploy, per service.
+blocking_cost_register: [] # FILL (list)
+# one entry has: service (string), blocking_cost_tier (life-safety | mission-critical | standard)
+# (? marks an optional field)
+# Partial overrides of the design model defaults, per tier.
+tier_overrides: null
+gate_failure_policy:
+  key: "tier"
+  by_tier:
+    crown-jewel: FILL # one of: fail-closed, fail-open-with-record, fail-open-under-expiring-acceptance
+    critical: FILL # one of: fail-closed, fail-open-with-record, fail-open-under-expiring-acceptance
+    standard: FILL # one of: fail-closed, fail-open-with-record, fail-open-under-expiring-acceptance
+  # declared-dependencies (default): only deploys touching a regression's declared artifact, policy or identity
+  # dependencies are subject to the posture; others proceed and are recorded.
+  scope_when_unavailable: "declared-dependencies"
+  # Used only when key is impact_score: paths reaching an asset at or above it fail closed.
+  score_threshold: null
+  # Optional. The p95 deploy latency the regression stage may add, owed to service teams; unanswered means the
+  # default, 10 minutes. The organization sets it, and the regression time budget in the dial register
+  # (regression_time_budget_minutes, default 10). An objective below the budget is refused unless latency_handling
+  # records how the stage keeps to it.
+  added_latency_objective_minutes: null # optional
+  # Optional. How the stage keeps an added-latency objective set below the regression time budget:
+  # dependency-scoped (only replays whose declared dependencies the deploy touches run in the stage) or
+  # post-deploy (replays past the objective run after the deploy and are owed before the next one).
+  latency_handling: null # optional; one of: dependency-scoped, post-deploy
+  blocking_cost_adjustments: [] # FILL (list)
+  # one entry has: blocking_cost_tier (life-safety | mission-critical | standard), path_tier (crown-jewel | critical | standard), posture (fail-closed | fail-open-with-record | fail-open-under-expiring-acceptance)
+  # (? marks an optional field)
+  override:
+    # Default: the business risk owner.
+    acceptor_role: "FILL"
+    # Default: the security risk owner. null removes concurrence, which the checker flags.
+    concurrence_role: null # FILL (a name, or leave null)
+    max_expiry_hours: null # FILL (number)
+    replay_on_recovery: true
+# Optional (build or buy is decided per part, case by case). Map from a part id in
+# the design model or a plane name in the design model to { choice: build | buy | reuse | undecided, product,
+# organization_controls, administered_by, note }; a part entry overrides its plane: once the part's own choice
+# is answered, only the part's entry applies to that part, and none of its fields come from the plane's entry.
+# Whatever is bought, the organization keeps control of the parts that enforce the four rules, so choice buy on
+# such a part needs organization_controls: true (the profile checker refuses it otherwise). administered_by names the
+# role that deploys and administers the part; for a fail-closed control in the control zone it must be the
+# control-plane operator role. Absent means reuse where existing_tools names a tool and undecided
+# elsewhere.
+build_or_buy: null
+# Optional. Ratchet's safety rules are should-nevers. A profile that breaks one is refused
+# unless it records an exception for that rule's code (the should-never rules (reference R1) lists every code with its
+# trade-off card). The business risk owner accepts, the security risk owner concurs, the exception expires
+# within exception_policy.max_days (180), names at least one compensating control, and records at least two
+# roles that reviewed the card. Codes starting model. declare architecture exceptions the profile cannot express
+# otherwise. Consistency checks cannot take an exception.
+exceptions: null # optional
+# one entry has: rule (string), scope? (string), reason (string), phase_1_only? (boolean), risk_owner_review_on? (string), phase_1_exit_on? (string), accepted_by_role (string), concurrence_role (string), accepted_on (string), expires_on (string), compensating_controls (list), reviewed_with (list), on_expiry (revert | review)
+# (? marks an optional field)
+# Phase 1 runs before the request-data gate exists, so it stays outside the model-injection rule
+# (model.trifecta) only while its boundary holds: with a practice target, the agent route lacks untrusted text
+# and holds no real data; with a real finding, the agent drafts only and its one exit is the approved model
+# route. The independent reviewer confirms each condition before phase 1 starts and again whenever the
+# environment changes. While status is active, any condition answered false is refused under model.trifecta
+# unless the named risk owners accept an exception (a phase_1_only exception cannot cover it). Set status to
+# retired once phase 2's request-data gate is load-bearing on every agent route.
+phase_1_boundary:
+  status: FILL # one of: active, retired
+  # Optional; absent means practice-target. Where phase 1's one weakness comes from, an organization choice: a
+  # practice target the team writes, a finding from the organization's existing discovery practice (for example
+  # people running agents against repositories or infrastructure), or a recent finding. The conditions that keep
+  # phase 1 outside the model-injection rule depend on it: a practice target needs all four synthetic conditions;
+  # a real finding needs the agent to draft only and to exit only through the approved model route.
+  source: FILL # one of: practice-target, discovery-finding, recent-finding
+  # Optional; what limits the runner in phase 1, before the action broker and exact grants exist. scoped-role: a
+  # role scoped to the test environment, not bound to the exact approved action, which leaves a gap phase 2 closes
+  # when the runner presents an exact grant instead; action-bound: each run is bound to the exact approved action;
+  # other: describe it in the phase 1 plan.
+  runner_limit: null # optional; one of: scoped-role, action-bound, other
+  # Answered only when source is a real finding, and then it must be true before phase 1 starts: the phase 1 agent
+  # produces text only, it holds no tools, every action is run by a person after approval of the exact action, and
+  # its drafts reach people only. Real data in its context follows the organization's rules for the approved model
+  # route. With a practice target it plays no part, so null or absent is a complete answer.
+  agent_drafts_only: null # FILL (true or false, or leave null where the comment above allows)
+  # The independent reviewer; must equal separation.verifier_team while status is active.
+  confirmed_by_role: "FILL"
+  # The synthetic protected resource and the seeded path were written by the phase 1 team, and nobody outside it
+  # can write to them.
+  target_written_by_team: null # FILL (true or false)
+  # No text written by outsiders reaches the agent: no bug bounty reports, scanner messages, issue text or quoted
+  # strings, no third-party code comments or READMEs from dependencies, no logs from a shared environment, no data
+  # copied from production.
+  outsider_text_excluded: null # FILL (true or false)
+  # The agent's only network exit is the approved model route.
+  agent_egress_model_route_only: null # FILL (true or false)
+  # Everything in the agent's context is synthetic or test-only, credentials included; nothing comes from real
+  # systems.
+  context_synthetic: null # FILL (true or false)
+# Optional; the first thing an adopting agent maps, with the people who run today's process. Most organizations
+# already run part of the loop. Often skilled red teamers or security engineers point agents at repositories or
+# infrastructure and let them run, and what follows a finding ranges from a well-worn process to nothing.
+# Recording how each step works today sets where each step starts (by hand, an existing tool, or built), so
+# Ratchet iterates from the organization's real position. It records today's practice; it is never a finding
+# against the people who run it.
+current_practice:
+  discovery:
+    # Who runs discovery today, for example the red team or security engineers.
+    who: "FILL"
+    # What discovery is pointed at: repositories, infrastructure, applications.
+    targets: [] # FILL (list)
+    # The agents, products and model providers in use.
+    agents_and_models: [] # FILL (list)
+    # How freely agents act today: free-running (given a target and left to work), scoped (bounded targets or
+    # tools), or action-approved (a person approves each action).
+    latitude: FILL # one of: free-running, scoped, action-approved
+    # Who checks today whether a finding is reachable end to end, and roughly how many days it takes.
+    end_to_end_check: "FILL"
+    # Where a confirmed finding goes today: a tracker, a chat channel, a report, or nowhere.
+    findings_go_to: "FILL"
+    # Optional; where this account of discovery came from. by: the role of the person who gave it, or the name of
+    # the agent that found it; from: the source, named so that someone can read it again (a file, a tracker query, a
+    # conversation with a named role); as_of: the date the source was read, an ISO date written as a quoted string.
+    # This is the discovery date.
+    found:
+      by: "FILL"
+      from: "FILL"
+      # ISO date the source was read.
+      as_of: "FILL"
+  # How each step of the loop works today, one entry per step.
+  steps: [] # FILL (list)
+  # one entry has: step (STEP-1 | STEP-2 | STEP-3 | STEP-4 | STEP-5 | STEP-6 | STEP-7 | STEP-8 | STEP-9 | STEP-10 | STEP-11 | STEP-12), state (established | partial | ad-hoc | absent | unrecorded), owner? (string), evidence? (string), confirmed_by? (string), note? (string), found? (object), confirmed? (object)
+  # (? marks an optional field)
+  # The pluggable modules the organization already runs in some form, often disconnected from each other, one
+  # entry per module. Wiring a module that already exists is mostly interface work, and the interface comes first:
+  # record for each interface point how far the wiring has come. Optional; leave it out until the modules are
+  # mapped.
+  modules: [] # FILL (list)
+  # one entry has: module (tool-portfolio | consequence-gates | production-effects | paved-road | secure-creation), state (established | partial | ad-hoc | absent | unrecorded), owner? (string), connects? (string), found? (object), confirmed? (object), points? (list of {point, wiring, since, note})
+  # (? marks an optional field)
+  # Past findings and incidents, gathered during phase 1 by the people who keep this map, so the escape rate has a
+  # measured starting point before phase 2: phase 1 handles one weakness, which cannot set a rate. The evaluation
+  # report reads its starting point and its before-figures from here and labels them as drawn from past records,
+  # because past escapes were never confirmed the way the escapes section requires. Optional; leave it out until
+  # it is gathered.
+  history:
+    # ISO date: the start of the period the records cover.
+    period_start: "FILL"
+    # ISO date: the end of that period.
+    period_end: "FILL"
+    # Every source read, named so it can be read again: a tracker query, incident records, bug bounty and external
+    # report history, pentest reports.
+    sources: [] # FILL (list)
+    # Deployments in the period, from deployment records: the starting point's denominator. null when deployment
+    # records do not reach back that far, which the report then says.
+    deployments: null # FILL (number)
+    # One entry per weakness class the records show.
+    classes: [] # FILL (list)
+    # one entry has: weakness_class (string), findings (number), reached_production? (number), note? (string)
+    # (? marks an optional field)
+    # The role that confirmed the figures against their sources. Absent or null means nobody has confirmed them yet.
+    confirmed_by: null # FILL (a name, or leave null)
+    note: null # FILL (a name, or leave null)
+    # Optional until phase 2 starts: the freeze of this baseline at phase 2 entry. The figures are copied into the
+    # record with the date and the confirmer, and this entry holds the hash of what was frozen. From then on a
+    # change to the figures is a dated amendment, and every comparison with the baseline names the version it read:
+    # version 1 is the freeze, and each amendment adds one.
+    frozen:
+      # ISO date the baseline froze, at phase 2 entry.
+      frozen_on: "FILL"
+      # The role that confirmed the frozen figures.
+      confirmed_by_role: "FILL"
+      # SHA-256, 64 lowercase hex digits, of the history as frozen: canonical JSON of this history mapping without
+      # frozen and amendments.
+      sha256: "FILL"
+    # Dated corrections to the frozen baseline, oldest first; each one is a new version. The latest one's hash must
+    # match the history as it stands.
+    amendments: [] # FILL (list)
+    # one entry has: on (string), by_role (string), reason (string), sha256 (string)
+    # (? marks an optional field)
+# Optional; leave unset when the organization uses no overlay. The overlay the organization draws candidates
+# from: the shipped worked example (aws), or the organization's own overlay once it is recorded as its baseline.
+# One overlay covers every part, so a hybrid or on-premises estate starts from the example and adds its own
+# account classes. Candidates never change the core model; per-part choices still go in build_or_buy. When
+# models.data_residency is set, the overlay checks list the parts that can move data across regions as
+# configuration duties.
+cloud_overlay:
+  # The overlay's name, as in its file name overlay-<name>.yaml: aws for the shipped example, or the
+  # organization's own overlay name (lowercase letters, digits and hyphens).
+  provider: "FILL"
+  # Regions the organization allows, primary first.
+  regions: [] # FILL (list)
+# How evidence, ledger, audit and context stores are partitioned. Each partition has its own key
+# from key management; reads across partitions go only through the review console, attributed.
+data_partitioning:
+  # Partition keys. line_of_business partitions by business unit. Must include jurisdiction when the profile lists
+  # more than one jurisdiction.
+  keys: [] # FILL (list)
+  # review-console-only is required: cross-partition reads go through the review console with reviewer, partitions
+  # and reason recorded.
+  cross_partition_reads: FILL # one of: review-console-only, open
+# Optional in the schema, so a profile written without it stays valid; phase 2 readiness needs it, because from
+# phase 2 on each escape is reported with its cost. An escape is a weakness that reached production where an
+# attacker can reach it through the running system. This section makes that definition operational for the
+# organization: which sources detect escapes and which role in each, how many days after a deployment an escape
+# found there still counts toward that deployment's escape rate, and which role confirms each escape
+# independently. The confirmer must differ from every detecting role, from the producer team and from the
+# program decision owner (consistency checks). An escape left unconfirmed counts nowhere, so one older than the
+# alert age is raised to the security risk owner. Each escape record also names the role that traced it to a
+# deployment and the method used; an escape that no deployment shipped (configuration drift, a newly disclosed
+# weakness in a dependency that did not change, a change made outside the pipeline) is reported in a bucket of
+# its own, apart from the escape rate. Each escape's cost is kept in its record, from facts the program already
+# holds: blast radius as the consequence tiers of the assets its path reached and the services affected, time to
+# recover from detection to a fix verified in the running system, and whether the fix removed the weakness class
+# (closure constraint enforced) or one instance (path broken).
+escapes:
+  # Days after a deployment within which an escape attributed to it counts toward that deployment's escape rate.
+  # An escape detected later is still recorded, as a late escape, and the report shows the escape rate twice,
+  # without late escapes and with them included. Most escapes found through bug bounty or external reports are
+  # expected to arrive after the window, so they will mostly appear in the second figure. A period's escape rate
+  # is final once the window has passed for its last deployment.
+  detection_window_days: null # FILL (number)
+  # Where escapes are detected, one entry per source, each with the role that detects there. List every source the
+  # organization will count; an escape from an unlisted source is recorded and reported apart until the source is
+  # added.
+  detection_sources: [] # FILL (list)
+  # one entry has: source (incident-response | bug-bounty | external-report | production-testing | monitoring | discovery-practice | other), detecting_role (string), note? (string)
+  # (? marks an optional field)
+  # The role that confirms each escape independently, by reproducing the weakness through the running system
+  # before it counts. It must differ from every detecting_role, from separation.producer_team and from
+  # separation.program_decision_owner_role, whose results the escape rate judges. Until it confirms, an escape is
+  # listed as unconfirmed and counts in no measure.
+  confirmer_role: "FILL"
+  # Optional. Days an escape may stay unconfirmed before the security risk owner is alerted; the record stays
+  # listed as overdue until it is confirmed or rejected with a reason. When unset, the alert age is
+  # detection_window_days.
+  unconfirmed_alert_days: null # optional
+# Optional. The notice policy for attack-injection experiments past deployment. Each experiment reintroduces a
+# verified fix's weakness at the detection layer expected to catch its class: the workstation (secure-creation
+# checks), a pull request (CI checks before merge), the pipeline (the kept regression test), a deployed test
+# environment (monitoring and scheduled discovery) or production (runtime detection and incident response). The
+# three pre-deploy layers need no notice: the injected change is never merged or deployed, and those experiments
+# may repeat as routine re-proof. A deployed test environment or production is reached only under the notice
+# mode declared here and only in the environments listed. Leave the section out, or leave a placeholder in it,
+# and no injection runs past the pipeline; the pre-deploy layers still run. The authorization service refuses
+# any injection past the pipeline outside this policy, with no person involved. Every injection grant carries
+# its restore, approved with it, and expires at the service owner's time limit for the experiment; at expiry, or
+# on the trusted agent's stop, the authorization service runs the restore with no new approval. Production
+# injection also needs the production-effects module enabled, and runs only when its approved production profile
+# names attack injection explicitly among its reversible effect classes.
+injection:
+  # trusted-agent is the recommended mode: one role on the detection side is told in advance and can stop the
+  # exercise at any point, so the people who watch the running system are still tested and a real incident is
+  # never mistaken for the exercise. announced: the detecting roles are told before the start, which tests
+  # detection tooling more than the people using it. unannounced: nobody on the detection side is told.
+  notice_mode: FILL # one of: announced, trusted-agent, unannounced
+  # In the trusted-agent mode, the role told in advance. It must be on the detection side, one of the roles that
+  # detect escapes (escapes.detection_sources) or the detection owner team (separation.detection_owner_team), and
+  # must not be the team that runs the agents (separation.producer_team). In that mode null means no trusted
+  # agent, which contradicts the mode, so it is refused. Unused in the other modes.
+  trusted_agent_role: null # FILL (a name, or leave null)
+  # In the trusted-agent mode, must be true: the trusted agent can stop the exercise at any point. The stop goes
+  # straight to the authorization service, which revokes the injection grant at once and runs its restore: the
+  # injected change is withdrawn, the environment restored, and the fix verified again. In that mode false or null
+  # is refused. Unused in the other modes.
+  trusted_agent_can_stop: null # FILL (true or false, or leave null where the comment above allows)
+  # The environments past deployment an injection may reach. deployed-test: a deployed test environment, under its
+  # normal authorization. production: only while the production-effects module is enabled and with
+  # production_max_exposure_minutes set (consistency checks). An empty list keeps every injection at the
+  # pre-deploy layers.
+  allowed_environments: [] # FILL (list)
+  # The organization's ceiling, in minutes, from a stop or a grant's expiry to the injected change withdrawn and
+  # the environment restored. Required once allowed_environments lists any environment; the edition sets no
+  # number. Each stop and expiry is recorded against it.
+  stop_restore_max_minutes: null # FILL (number)
+  # The longest time, in minutes, a production injection may stay live. Required when allowed_environments lists
+  # production; the edition sets no number. A production injection grant expires at the earlier of this window and
+  # the service owner's time limit, and the injected change is reverted automatically at expiry.
+  production_max_exposure_minutes: null # FILL (number)
+# Optional. Who owns reports of weaknesses the loop finds in software the organization does not own, and the
+# coordination policy that role follows. Agents that find real weaknesses will find some in third-party
+# components; the role named here reports them to the component's maintainers, and each report is recorded with
+# its date, the external deadline agreed and its outcome. A finding that carries an external deadline, from an
+# outside reporter or from an outbound report, passes the owning team's fix cap and alerts the security risk
+# owner ahead of the deadline. Leave the section out and external deadlines still pass the cap; outbound reports
+# then have no named owner, which the phase 4 report shows.
+disclosure:
+  # The role that owns outbound reports to third-party maintainers, often the organization's product security
+  # incident response team or its vulnerability disclosure owner.
+  outbound_owner_role: "FILL"
+  # The coordinated disclosure policy the role follows, by name or link, for example the organization's published
+  # vulnerability disclosure policy.
+  policy: "FILL"
+  # Optional. Days before an external deadline that the security risk owner is alerted about a finding still open.
+  # The edition sets no number; while it is unset, the alert fires when the deadline is recorded.
+  deadline_alert_days: null # optional
+# Optional. How each human gate the four rules name is measured with seeded known-bad items: the approver (rule
+# 1), the proof-condition holder (rule 2) and the decider who judges the outcome (rules 3 and 4). A known-bad
+# item is one the gate should stop: a proposal the approver should refuse, a result the proof-condition holder
+# should find does not meet the proof condition, a finding or closure the decider should not accept. Seeds look
+# like real items and come from the categories of the organization's threat model for its own oversight,
+# refreshed on a stated date so the people at the gate cannot learn to spot them. Per-person catch rates go to
+# the seeding owner, who sits outside the gate's reporting line, and to each person for their own rate, never to
+# a manager or a performance review. The system computes a breach of the floor and starts the named action. Once
+# declared, every one of the three gates needs one entry. The check verifies this setup; whether people stay
+# attentive shows only in the catch rates once the loop runs.
+gate_seeding: null # optional
+# one entry has: gate (approver | proof-holder | decider), seed_rate (number), seed_categories (number), categories_from (string), categories_refreshed_on? (string), categories_refresh_by (string), catch_rate_floor (number), breach_action (string), seeding_owner_role (string), per_person_results_to (list), breach_computed_by (system | person)
+# (? marks an optional field)
+# Optional. The thresholds the status report's regime check uses to place each weakness class in a regime:
+# backlog, balanced or near zero, as the reference's regimes section describes them. The edition sets none of
+# these numbers. Derive each from the organization's own past findings, recomputed over earlier windows, and
+# record who set them; until all five are set, the report shows counts and ratios with no regime and warns.
+regimes:
+  # Whole days the check counts over, ending on the report's date; the trend compares with the same number of days
+  # before. Recipe: start from the reporting rhythm (a quarter is about 91 days) and lengthen it until most
+  # classes the organization tracks reach min_events in one window. A window much longer than a fix usually takes
+  # hides a turn in the trend.
+  window_days: null # FILL (number)
+  # The fewest arrivals and verified fixes together, in one window, from which a ratio is read; a class below it
+  # reports too few to call. Recipe: recompute past windows class by class, and pick the smallest count at which
+  # one finding more or fewer would not have moved a class across balanced_min_ratio. Fewer events make a ratio
+  # swing harder.
+  min_events: null # FILL (number)
+  # Verified fixes per arrival at or above which a class is balanced; below it, backlog. 1 means fixes match
+  # arrivals in the window. A number above 0. Recipe: recompute the ratio over past windows for the classes whose
+  # open queue held level, and set it at the lowest of those ratios, so a class whose queue was not growing reads
+  # balanced.
+  balanced_min_ratio: null # FILL (number)
+  # Arrivals in one window at or below which, together with near_zero_max_open, a class is near zero. A whole
+  # number. Recipe: take the classes the security risk owner already treats as rare, such as those retired onto
+  # the paved road, recompute their arrivals per window over the past year, and set it at the highest count they
+  # showed. Revisit it after a sweep or a model release, when new classes can appear.
+  near_zero_max_arrivals: null # FILL (number)
+  # Findings open on the report's date at or below which, together with near_zero_max_arrivals, a class is near
+  # zero. A whole number. Recipe: the highest open count those same rare classes showed on past report dates.
+  near_zero_max_open: null # FILL (number)
+  # The role that set the thresholds. The reference expects the security risk owner to confirm them; the report
+  # names whoever did.
+  set_by_role: "FILL"
+  # The date they were set, YYYY-MM-DD.
+  set_on: "FILL"

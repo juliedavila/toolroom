@@ -1,0 +1,3047 @@
+fixtures: 
+  - name: closed drift with independent confirmation and matching run
+    record: 
+      record_version: 1
+      id: KT-1
+      finding: FND-1
+      weakness_class: example-class
+      team: Team Alpha
+      repository: repo://service-a
+      suite: component
+      fix: 
+        pull_request: PR-12
+        author: Fix author
+        team_decision: edited
+        decision_reason: Team reviewed and adjusted the correction
+        deployed_digest: sha256:example
+      instance_test: 
+        id: T-1
+        version: "1"
+        source_revision: rev2
+        dependencies: 
+          - service-a
+        input_ref: repo://test/input
+        assertions_ref: repo://test/assertions
+        failing_before: CI-11
+        passing_after: CI-12
+        visible_to_agents: true
+        protected_content: false
+      mirror: 
+        built: true
+        source_access: read-only
+        enrollment: 
+          test_id: T-1
+          test_version: "1"
+          enrolled_at: 2026-10-28T09:00:00Z
+        observations: 
+          - id: OBS-1
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev2
+            dependency_scope: 
+              &dependency_scope
+              - service-a
+            configuration: ci-main
+            run: CI-12
+            observed_at: 2026-10-28T10:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+          - id: OBS-2
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev3
+            dependency_scope: 
+              *dependency_scope
+            configuration: ci-main
+            run: CI-13
+            observed_at: 2026-10-28T11:00:00Z
+            source: ci://12
+            state: skipped
+            result: unknown
+            collection: success
+          - id: OBS-3
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev4
+            dependency_scope: 
+              *dependency_scope
+            configuration: ci-main
+            run: CI-14
+            observed_at: 2026-10-28T12:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+      drift: 
+        - episode: D1
+          test_version: "1"
+          finding: FND-2
+          observation: OBS-2
+          reason: skipped
+          route: normal-loop
+          state: closed
+          closure: 
+            disposition: finding://FND-2/disposition
+            evidence: finding://FND-2/retest
+            accepted_by: Closure acceptor
+            confirmed_by: Independent verifier
+            repair_author: Fix author
+            repository_revision: rev4
+            configuration: ci-main
+            dependency_scope: 
+              - service-a
+            closed_at: 2026-10-28T13:00:00Z
+            observation: OBS-3
+      reviews: 
+        - protection: current
+          observation: OBS-3
+          repository_revision: rev4
+          configuration: ci-main
+          dependency_scope: 
+            - service-a
+          as_of: 2026-10-28T14:00:00Z
+          fresh_from: 2026-10-28T11:00:00Z
+    valid: true
+  - name: phase 1 manual evidence with unknown protection
+    record: 
+      record_version: 1
+      id: KT-1
+      finding: FND-1
+      weakness_class: example-class
+      team: Team Alpha
+      repository: repo://service-a
+      suite: component
+      fix: 
+        pull_request: PR-12
+        author: Fix author
+        team_decision: edited
+        decision_reason: Team reviewed and adjusted the correction
+        deployed_digest: sha256:example
+      instance_test: 
+        id: T-1
+        version: "1"
+        source_revision: rev2
+        dependencies: 
+          - service-a
+        input_ref: repo://test/input
+        assertions_ref: repo://test/assertions
+        failing_before: CI-11
+        passing_after: CI-12
+        visible_to_agents: true
+        protected_content: false
+      mirror: 
+        built: false
+        source_access: read-only
+        enrollment: 
+          test_id: T-1
+          test_version: "1"
+          enrolled_at: 2026-10-28T09:00:00Z
+        observations: 
+          - id: OBS-1
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev2
+            dependency_scope: 
+              &dependency_scope1
+              - service-a
+            configuration: ci-main
+            run: CI-12
+            observed_at: 2026-10-28T10:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+          - id: OBS-2
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev3
+            dependency_scope: 
+              *dependency_scope1
+            configuration: ci-main
+            run: CI-13
+            observed_at: 2026-10-28T11:00:00Z
+            source: ci://12
+            state: skipped
+            result: unknown
+            collection: success
+          - id: OBS-3
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev4
+            dependency_scope: 
+              *dependency_scope1
+            configuration: ci-main
+            run: CI-14
+            observed_at: 2026-10-28T12:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+      drift: 
+        - episode: D1
+          test_version: "1"
+          finding: FND-2
+          observation: OBS-2
+          reason: skipped
+          route: normal-loop
+          state: closed
+          closure: 
+            disposition: finding://FND-2/disposition
+            evidence: finding://FND-2/retest
+            accepted_by: Closure acceptor
+            confirmed_by: Independent verifier
+            repair_author: Fix author
+            repository_revision: rev4
+            configuration: ci-main
+            dependency_scope: 
+              - service-a
+            closed_at: 2026-10-28T13:00:00Z
+            observation: OBS-3
+      reviews: 
+        - protection: unknown
+    valid: true
+  - name: read-only mirror cannot write source
+    record: 
+      record_version: 1
+      id: KT-1
+      finding: FND-1
+      weakness_class: example-class
+      team: Team Alpha
+      repository: repo://service-a
+      suite: component
+      fix: 
+        pull_request: PR-12
+        author: Fix author
+        team_decision: edited
+        decision_reason: Team reviewed and adjusted the correction
+        deployed_digest: sha256:example
+      instance_test: 
+        id: T-1
+        version: "1"
+        source_revision: rev2
+        dependencies: 
+          - service-a
+        input_ref: repo://test/input
+        assertions_ref: repo://test/assertions
+        failing_before: CI-11
+        passing_after: CI-12
+        visible_to_agents: true
+        protected_content: false
+      mirror: 
+        built: true
+        source_access: write
+        enrollment: 
+          test_id: T-1
+          test_version: "1"
+          enrolled_at: 2026-10-28T09:00:00Z
+        observations: 
+          - id: OBS-1
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev2
+            dependency_scope: 
+              &dependency_scope2
+              - service-a
+            configuration: ci-main
+            run: CI-12
+            observed_at: 2026-10-28T10:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+          - id: OBS-2
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev3
+            dependency_scope: 
+              *dependency_scope2
+            configuration: ci-main
+            run: CI-13
+            observed_at: 2026-10-28T11:00:00Z
+            source: ci://12
+            state: skipped
+            result: unknown
+            collection: success
+          - id: OBS-3
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev4
+            dependency_scope: 
+              *dependency_scope2
+            configuration: ci-main
+            run: CI-14
+            observed_at: 2026-10-28T12:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+      drift: 
+        - episode: D1
+          test_version: "1"
+          finding: FND-2
+          observation: OBS-2
+          reason: skipped
+          route: normal-loop
+          state: closed
+          closure: 
+            disposition: finding://FND-2/disposition
+            evidence: finding://FND-2/retest
+            accepted_by: Closure acceptor
+            confirmed_by: Independent verifier
+            repair_author: Fix author
+            repository_revision: rev4
+            configuration: ci-main
+            dependency_scope: 
+              - service-a
+            closed_at: 2026-10-28T13:00:00Z
+            observation: OBS-3
+      reviews: 
+        - protection: current
+          observation: OBS-3
+          repository_revision: rev4
+          configuration: ci-main
+          dependency_scope: 
+            - service-a
+          as_of: 2026-10-28T14:00:00Z
+          fresh_from: 2026-10-28T11:00:00Z
+    valid: false
+  - name: re-enable alone never closes
+    record: 
+      record_version: 1
+      id: KT-1
+      finding: FND-1
+      weakness_class: example-class
+      team: Team Alpha
+      repository: repo://service-a
+      suite: component
+      fix: 
+        pull_request: PR-12
+        author: Fix author
+        team_decision: edited
+        decision_reason: Team reviewed and adjusted the correction
+        deployed_digest: sha256:example
+      instance_test: 
+        id: T-1
+        version: "1"
+        source_revision: rev2
+        dependencies: 
+          - service-a
+        input_ref: repo://test/input
+        assertions_ref: repo://test/assertions
+        failing_before: CI-11
+        passing_after: CI-12
+        visible_to_agents: true
+        protected_content: false
+      mirror: 
+        built: true
+        source_access: read-only
+        enrollment: 
+          test_id: T-1
+          test_version: "1"
+          enrolled_at: 2026-10-28T09:00:00Z
+        observations: 
+          - id: OBS-1
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev2
+            dependency_scope: 
+              &dependency_scope3
+              - service-a
+            configuration: ci-main
+            run: CI-12
+            observed_at: 2026-10-28T10:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+          - id: OBS-2
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev3
+            dependency_scope: 
+              *dependency_scope3
+            configuration: ci-main
+            run: CI-13
+            observed_at: 2026-10-28T11:00:00Z
+            source: ci://12
+            state: skipped
+            result: unknown
+            collection: success
+          - id: OBS-3
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev4
+            dependency_scope: 
+              *dependency_scope3
+            configuration: ci-main
+            run: CI-14
+            observed_at: 2026-10-28T12:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+      drift: 
+        - episode: D1
+          test_version: "1"
+          finding: FND-2
+          observation: OBS-2
+          reason: skipped
+          route: normal-loop
+          state: closed
+          closure: 
+            disposition: finding://FND-2/disposition
+            evidence: finding://FND-2/retest
+            accepted_by: Closure acceptor
+            confirmed_by: Independent verifier
+            repair_author: Fix author
+            repository_revision: rev4
+            configuration: ci-main
+            dependency_scope: 
+              - service-a
+            closed_at: 2026-10-28T13:00:00Z
+            observation: missing
+      reviews: 
+        - protection: current
+          observation: OBS-3
+          repository_revision: rev4
+          configuration: ci-main
+          dependency_scope: 
+            - service-a
+          as_of: 2026-10-28T14:00:00Z
+          fresh_from: 2026-10-28T11:00:00Z
+    valid: false
+  - name: independent confirmation required
+    record: 
+      record_version: 1
+      id: KT-1
+      finding: FND-1
+      weakness_class: example-class
+      team: Team Alpha
+      repository: repo://service-a
+      suite: component
+      fix: 
+        pull_request: PR-12
+        author: Fix author
+        team_decision: edited
+        decision_reason: Team reviewed and adjusted the correction
+        deployed_digest: sha256:example
+      instance_test: 
+        id: T-1
+        version: "1"
+        source_revision: rev2
+        dependencies: 
+          - service-a
+        input_ref: repo://test/input
+        assertions_ref: repo://test/assertions
+        failing_before: CI-11
+        passing_after: CI-12
+        visible_to_agents: true
+        protected_content: false
+      mirror: 
+        built: true
+        source_access: read-only
+        enrollment: 
+          test_id: T-1
+          test_version: "1"
+          enrolled_at: 2026-10-28T09:00:00Z
+        observations: 
+          - id: OBS-1
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev2
+            dependency_scope: 
+              &dependency_scope4
+              - service-a
+            configuration: ci-main
+            run: CI-12
+            observed_at: 2026-10-28T10:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+          - id: OBS-2
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev3
+            dependency_scope: 
+              *dependency_scope4
+            configuration: ci-main
+            run: CI-13
+            observed_at: 2026-10-28T11:00:00Z
+            source: ci://12
+            state: skipped
+            result: unknown
+            collection: success
+          - id: OBS-3
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev4
+            dependency_scope: 
+              *dependency_scope4
+            configuration: ci-main
+            run: CI-14
+            observed_at: 2026-10-28T12:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+      drift: 
+        - episode: D1
+          test_version: "1"
+          finding: FND-2
+          observation: OBS-2
+          reason: skipped
+          route: normal-loop
+          state: closed
+          closure: 
+            disposition: finding://FND-2/disposition
+            evidence: finding://FND-2/retest
+            accepted_by: Closure acceptor
+            confirmed_by: Fix author
+            repair_author: Fix author
+            repository_revision: rev4
+            configuration: ci-main
+            dependency_scope: 
+              - service-a
+            closed_at: 2026-10-28T13:00:00Z
+            observation: OBS-3
+      reviews: 
+        - protection: current
+          observation: OBS-3
+          repository_revision: rev4
+          configuration: ci-main
+          dependency_scope: 
+            - service-a
+          as_of: 2026-10-28T14:00:00Z
+          fresh_from: 2026-10-28T11:00:00Z
+    valid: false
+  - name: closure configuration must match
+    record: 
+      record_version: 1
+      id: KT-1
+      finding: FND-1
+      weakness_class: example-class
+      team: Team Alpha
+      repository: repo://service-a
+      suite: component
+      fix: 
+        pull_request: PR-12
+        author: Fix author
+        team_decision: edited
+        decision_reason: Team reviewed and adjusted the correction
+        deployed_digest: sha256:example
+      instance_test: 
+        id: T-1
+        version: "1"
+        source_revision: rev2
+        dependencies: 
+          - service-a
+        input_ref: repo://test/input
+        assertions_ref: repo://test/assertions
+        failing_before: CI-11
+        passing_after: CI-12
+        visible_to_agents: true
+        protected_content: false
+      mirror: 
+        built: true
+        source_access: read-only
+        enrollment: 
+          test_id: T-1
+          test_version: "1"
+          enrolled_at: 2026-10-28T09:00:00Z
+        observations: 
+          - id: OBS-1
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev2
+            dependency_scope: 
+              &dependency_scope5
+              - service-a
+            configuration: ci-main
+            run: CI-12
+            observed_at: 2026-10-28T10:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+          - id: OBS-2
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev3
+            dependency_scope: 
+              *dependency_scope5
+            configuration: ci-main
+            run: CI-13
+            observed_at: 2026-10-28T11:00:00Z
+            source: ci://12
+            state: skipped
+            result: unknown
+            collection: success
+          - id: OBS-3
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev4
+            dependency_scope: 
+              *dependency_scope5
+            configuration: ci-main
+            run: CI-14
+            observed_at: 2026-10-28T12:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+      drift: 
+        - episode: D1
+          test_version: "1"
+          finding: FND-2
+          observation: OBS-2
+          reason: skipped
+          route: normal-loop
+          state: closed
+          closure: 
+            disposition: finding://FND-2/disposition
+            evidence: finding://FND-2/retest
+            accepted_by: Closure acceptor
+            confirmed_by: Independent verifier
+            repair_author: Fix author
+            repository_revision: rev4
+            configuration: other
+            dependency_scope: 
+              - service-a
+            closed_at: 2026-10-28T13:00:00Z
+            observation: OBS-3
+      reviews: 
+        - protection: current
+          observation: OBS-3
+          repository_revision: rev4
+          configuration: ci-main
+          dependency_scope: 
+            - service-a
+          as_of: 2026-10-28T14:00:00Z
+          fresh_from: 2026-10-28T11:00:00Z
+    valid: false
+  - name: closure scope must match
+    record: 
+      record_version: 1
+      id: KT-1
+      finding: FND-1
+      weakness_class: example-class
+      team: Team Alpha
+      repository: repo://service-a
+      suite: component
+      fix: 
+        pull_request: PR-12
+        author: Fix author
+        team_decision: edited
+        decision_reason: Team reviewed and adjusted the correction
+        deployed_digest: sha256:example
+      instance_test: 
+        id: T-1
+        version: "1"
+        source_revision: rev2
+        dependencies: 
+          - service-a
+        input_ref: repo://test/input
+        assertions_ref: repo://test/assertions
+        failing_before: CI-11
+        passing_after: CI-12
+        visible_to_agents: true
+        protected_content: false
+      mirror: 
+        built: true
+        source_access: read-only
+        enrollment: 
+          test_id: T-1
+          test_version: "1"
+          enrolled_at: 2026-10-28T09:00:00Z
+        observations: 
+          - id: OBS-1
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev2
+            dependency_scope: 
+              &dependency_scope6
+              - service-a
+            configuration: ci-main
+            run: CI-12
+            observed_at: 2026-10-28T10:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+          - id: OBS-2
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev3
+            dependency_scope: 
+              *dependency_scope6
+            configuration: ci-main
+            run: CI-13
+            observed_at: 2026-10-28T11:00:00Z
+            source: ci://12
+            state: skipped
+            result: unknown
+            collection: success
+          - id: OBS-3
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev4
+            dependency_scope: 
+              *dependency_scope6
+            configuration: ci-main
+            run: CI-14
+            observed_at: 2026-10-28T12:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+      drift: 
+        - episode: D1
+          test_version: "1"
+          finding: FND-2
+          observation: OBS-2
+          reason: skipped
+          route: normal-loop
+          state: closed
+          closure: 
+            disposition: finding://FND-2/disposition
+            evidence: finding://FND-2/retest
+            accepted_by: Closure acceptor
+            confirmed_by: Independent verifier
+            repair_author: Fix author
+            repository_revision: rev4
+            configuration: ci-main
+            dependency_scope: 
+              - service-b
+            closed_at: 2026-10-28T13:00:00Z
+            observation: OBS-3
+      reviews: 
+        - protection: current
+          observation: OBS-3
+          repository_revision: rev4
+          configuration: ci-main
+          dependency_scope: 
+            - service-a
+          as_of: 2026-10-28T14:00:00Z
+          fresh_from: 2026-10-28T11:00:00Z
+    valid: false
+  - name: closure revision must match
+    record: 
+      record_version: 1
+      id: KT-1
+      finding: FND-1
+      weakness_class: example-class
+      team: Team Alpha
+      repository: repo://service-a
+      suite: component
+      fix: 
+        pull_request: PR-12
+        author: Fix author
+        team_decision: edited
+        decision_reason: Team reviewed and adjusted the correction
+        deployed_digest: sha256:example
+      instance_test: 
+        id: T-1
+        version: "1"
+        source_revision: rev2
+        dependencies: 
+          - service-a
+        input_ref: repo://test/input
+        assertions_ref: repo://test/assertions
+        failing_before: CI-11
+        passing_after: CI-12
+        visible_to_agents: true
+        protected_content: false
+      mirror: 
+        built: true
+        source_access: read-only
+        enrollment: 
+          test_id: T-1
+          test_version: "1"
+          enrolled_at: 2026-10-28T09:00:00Z
+        observations: 
+          - id: OBS-1
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev2
+            dependency_scope: 
+              &dependency_scope7
+              - service-a
+            configuration: ci-main
+            run: CI-12
+            observed_at: 2026-10-28T10:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+          - id: OBS-2
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev3
+            dependency_scope: 
+              *dependency_scope7
+            configuration: ci-main
+            run: CI-13
+            observed_at: 2026-10-28T11:00:00Z
+            source: ci://12
+            state: skipped
+            result: unknown
+            collection: success
+          - id: OBS-3
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev4
+            dependency_scope: 
+              *dependency_scope7
+            configuration: ci-main
+            run: CI-14
+            observed_at: 2026-10-28T12:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+      drift: 
+        - episode: D1
+          test_version: "1"
+          finding: FND-2
+          observation: OBS-2
+          reason: skipped
+          route: normal-loop
+          state: closed
+          closure: 
+            disposition: finding://FND-2/disposition
+            evidence: finding://FND-2/retest
+            accepted_by: Closure acceptor
+            confirmed_by: Independent verifier
+            repair_author: Fix author
+            repository_revision: other
+            configuration: ci-main
+            dependency_scope: 
+              - service-a
+            closed_at: 2026-10-28T13:00:00Z
+            observation: OBS-3
+      reviews: 
+        - protection: current
+          observation: OBS-3
+          repository_revision: rev4
+          configuration: ci-main
+          dependency_scope: 
+            - service-a
+          as_of: 2026-10-28T14:00:00Z
+          fresh_from: 2026-10-28T11:00:00Z
+    valid: false
+  - name: missing disposition fails
+    record: 
+      record_version: 1
+      id: KT-1
+      finding: FND-1
+      weakness_class: example-class
+      team: Team Alpha
+      repository: repo://service-a
+      suite: component
+      fix: 
+        pull_request: PR-12
+        author: Fix author
+        team_decision: edited
+        decision_reason: Team reviewed and adjusted the correction
+        deployed_digest: sha256:example
+      instance_test: 
+        id: T-1
+        version: "1"
+        source_revision: rev2
+        dependencies: 
+          - service-a
+        input_ref: repo://test/input
+        assertions_ref: repo://test/assertions
+        failing_before: CI-11
+        passing_after: CI-12
+        visible_to_agents: true
+        protected_content: false
+      mirror: 
+        built: true
+        source_access: read-only
+        enrollment: 
+          test_id: T-1
+          test_version: "1"
+          enrolled_at: 2026-10-28T09:00:00Z
+        observations: 
+          - id: OBS-1
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev2
+            dependency_scope: 
+              &dependency_scope8
+              - service-a
+            configuration: ci-main
+            run: CI-12
+            observed_at: 2026-10-28T10:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+          - id: OBS-2
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev3
+            dependency_scope: 
+              *dependency_scope8
+            configuration: ci-main
+            run: CI-13
+            observed_at: 2026-10-28T11:00:00Z
+            source: ci://12
+            state: skipped
+            result: unknown
+            collection: success
+          - id: OBS-3
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev4
+            dependency_scope: 
+              *dependency_scope8
+            configuration: ci-main
+            run: CI-14
+            observed_at: 2026-10-28T12:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+      drift: 
+        - episode: D1
+          test_version: "1"
+          finding: FND-2
+          observation: OBS-2
+          reason: skipped
+          route: normal-loop
+          state: closed
+          closure: 
+            disposition: null
+            evidence: finding://FND-2/retest
+            accepted_by: Closure acceptor
+            confirmed_by: Independent verifier
+            repair_author: Fix author
+            repository_revision: rev4
+            configuration: ci-main
+            dependency_scope: 
+              - service-a
+            closed_at: 2026-10-28T13:00:00Z
+            observation: OBS-3
+      reviews: 
+        - protection: current
+          observation: OBS-3
+          repository_revision: rev4
+          configuration: ci-main
+          dependency_scope: 
+            - service-a
+          as_of: 2026-10-28T14:00:00Z
+          fresh_from: 2026-10-28T11:00:00Z
+    valid: false
+  - name: stale current claim fails
+    record: 
+      record_version: 1
+      id: KT-1
+      finding: FND-1
+      weakness_class: example-class
+      team: Team Alpha
+      repository: repo://service-a
+      suite: component
+      fix: 
+        pull_request: PR-12
+        author: Fix author
+        team_decision: edited
+        decision_reason: Team reviewed and adjusted the correction
+        deployed_digest: sha256:example
+      instance_test: 
+        id: T-1
+        version: "1"
+        source_revision: rev2
+        dependencies: 
+          - service-a
+        input_ref: repo://test/input
+        assertions_ref: repo://test/assertions
+        failing_before: CI-11
+        passing_after: CI-12
+        visible_to_agents: true
+        protected_content: false
+      mirror: 
+        built: true
+        source_access: read-only
+        enrollment: 
+          test_id: T-1
+          test_version: "1"
+          enrolled_at: 2026-10-28T09:00:00Z
+        observations: 
+          - id: OBS-1
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev2
+            dependency_scope: 
+              &dependency_scope9
+              - service-a
+            configuration: ci-main
+            run: CI-12
+            observed_at: 2026-10-28T10:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+          - id: OBS-2
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev3
+            dependency_scope: 
+              *dependency_scope9
+            configuration: ci-main
+            run: CI-13
+            observed_at: 2026-10-28T11:00:00Z
+            source: ci://12
+            state: skipped
+            result: unknown
+            collection: success
+          - id: OBS-3
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev4
+            dependency_scope: 
+              *dependency_scope9
+            configuration: ci-main
+            run: CI-14
+            observed_at: 2026-10-28T12:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+      drift: 
+        - episode: D1
+          test_version: "1"
+          finding: FND-2
+          observation: OBS-2
+          reason: skipped
+          route: normal-loop
+          state: closed
+          closure: 
+            disposition: finding://FND-2/disposition
+            evidence: finding://FND-2/retest
+            accepted_by: Closure acceptor
+            confirmed_by: Independent verifier
+            repair_author: Fix author
+            repository_revision: rev4
+            configuration: ci-main
+            dependency_scope: 
+              - service-a
+            closed_at: 2026-10-28T13:00:00Z
+            observation: OBS-3
+      reviews: 
+        - protection: current
+          observation: OBS-3
+          repository_revision: rev4
+          configuration: ci-main
+          dependency_scope: 
+            - service-a
+          as_of: 2026-10-28T14:00:00Z
+          fresh_from: 2026-10-28T12:30:00Z
+    valid: false
+  - name: unbuilt mirror cannot claim current
+    record: 
+      record_version: 1
+      id: KT-1
+      finding: FND-1
+      weakness_class: example-class
+      team: Team Alpha
+      repository: repo://service-a
+      suite: component
+      fix: 
+        pull_request: PR-12
+        author: Fix author
+        team_decision: edited
+        decision_reason: Team reviewed and adjusted the correction
+        deployed_digest: sha256:example
+      instance_test: 
+        id: T-1
+        version: "1"
+        source_revision: rev2
+        dependencies: 
+          - service-a
+        input_ref: repo://test/input
+        assertions_ref: repo://test/assertions
+        failing_before: CI-11
+        passing_after: CI-12
+        visible_to_agents: true
+        protected_content: false
+      mirror: 
+        built: false
+        source_access: read-only
+        enrollment: 
+          test_id: T-1
+          test_version: "1"
+          enrolled_at: 2026-10-28T09:00:00Z
+        observations: 
+          - id: OBS-1
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev2
+            dependency_scope: 
+              &dependency_scope10
+              - service-a
+            configuration: ci-main
+            run: CI-12
+            observed_at: 2026-10-28T10:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+          - id: OBS-2
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev3
+            dependency_scope: 
+              *dependency_scope10
+            configuration: ci-main
+            run: CI-13
+            observed_at: 2026-10-28T11:00:00Z
+            source: ci://12
+            state: skipped
+            result: unknown
+            collection: success
+          - id: OBS-3
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev4
+            dependency_scope: 
+              *dependency_scope10
+            configuration: ci-main
+            run: CI-14
+            observed_at: 2026-10-28T12:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+      drift: 
+        - episode: D1
+          test_version: "1"
+          finding: FND-2
+          observation: OBS-2
+          reason: skipped
+          route: normal-loop
+          state: closed
+          closure: 
+            disposition: finding://FND-2/disposition
+            evidence: finding://FND-2/retest
+            accepted_by: Closure acceptor
+            confirmed_by: Independent verifier
+            repair_author: Fix author
+            repository_revision: rev4
+            configuration: ci-main
+            dependency_scope: 
+              - service-a
+            closed_at: 2026-10-28T13:00:00Z
+            observation: OBS-3
+      reviews: 
+        - protection: current
+          observation: OBS-3
+          repository_revision: rev4
+          configuration: ci-main
+          dependency_scope: 
+            - service-a
+          as_of: 2026-10-28T14:00:00Z
+          fresh_from: 2026-10-28T11:00:00Z
+    valid: false
+  - name: duplicate drift episode fails
+    record: 
+      record_version: 1
+      id: KT-1
+      finding: FND-1
+      weakness_class: example-class
+      team: Team Alpha
+      repository: repo://service-a
+      suite: component
+      fix: 
+        pull_request: PR-12
+        author: Fix author
+        team_decision: edited
+        decision_reason: Team reviewed and adjusted the correction
+        deployed_digest: sha256:example
+      instance_test: 
+        id: T-1
+        version: "1"
+        source_revision: rev2
+        dependencies: 
+          - service-a
+        input_ref: repo://test/input
+        assertions_ref: repo://test/assertions
+        failing_before: CI-11
+        passing_after: CI-12
+        visible_to_agents: true
+        protected_content: false
+      mirror: 
+        built: true
+        source_access: read-only
+        enrollment: 
+          test_id: T-1
+          test_version: "1"
+          enrolled_at: 2026-10-28T09:00:00Z
+        observations: 
+          - id: OBS-1
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev2
+            dependency_scope: 
+              &dependency_scope11
+              - service-a
+            configuration: ci-main
+            run: CI-12
+            observed_at: 2026-10-28T10:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+          - id: OBS-2
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev3
+            dependency_scope: 
+              *dependency_scope11
+            configuration: ci-main
+            run: CI-13
+            observed_at: 2026-10-28T11:00:00Z
+            source: ci://12
+            state: skipped
+            result: unknown
+            collection: success
+          - id: OBS-3
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev4
+            dependency_scope: 
+              *dependency_scope11
+            configuration: ci-main
+            run: CI-14
+            observed_at: 2026-10-28T12:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+      drift: 
+        - episode: D1
+          test_version: "1"
+          finding: FND-2
+          observation: OBS-2
+          reason: skipped
+          route: normal-loop
+          state: closed
+          closure: 
+            disposition: finding://FND-2/disposition
+            evidence: finding://FND-2/retest
+            accepted_by: Closure acceptor
+            confirmed_by: Independent verifier
+            repair_author: Fix author
+            repository_revision: rev4
+            configuration: ci-main
+            dependency_scope: 
+              - service-a
+            closed_at: 2026-10-28T13:00:00Z
+            observation: OBS-3
+        - episode: D1
+          test_version: "1"
+          finding: FND-2
+          observation: OBS-2
+          reason: skipped
+          route: normal-loop
+          state: closed
+          closure: 
+            disposition: finding://FND-2/disposition
+            evidence: finding://FND-2/retest
+            accepted_by: Closure acceptor
+            confirmed_by: Independent verifier
+            repair_author: Fix author
+            repository_revision: rev4
+            configuration: ci-main
+            dependency_scope: 
+              - service-a
+            closed_at: 2026-10-28T13:00:00Z
+            observation: OBS-3
+      reviews: 
+        - protection: current
+          observation: OBS-3
+          repository_revision: rev4
+          configuration: ci-main
+          dependency_scope: 
+            - service-a
+          as_of: 2026-10-28T14:00:00Z
+          fresh_from: 2026-10-28T11:00:00Z
+    valid: false
+  - name: missing drift finding fails
+    record: 
+      record_version: 1
+      id: KT-1
+      finding: FND-1
+      weakness_class: example-class
+      team: Team Alpha
+      repository: repo://service-a
+      suite: component
+      fix: 
+        pull_request: PR-12
+        author: Fix author
+        team_decision: edited
+        decision_reason: Team reviewed and adjusted the correction
+        deployed_digest: sha256:example
+      instance_test: 
+        id: T-1
+        version: "1"
+        source_revision: rev2
+        dependencies: 
+          - service-a
+        input_ref: repo://test/input
+        assertions_ref: repo://test/assertions
+        failing_before: CI-11
+        passing_after: CI-12
+        visible_to_agents: true
+        protected_content: false
+      mirror: 
+        built: true
+        source_access: read-only
+        enrollment: 
+          test_id: T-1
+          test_version: "1"
+          enrolled_at: 2026-10-28T09:00:00Z
+        observations: 
+          - id: OBS-1
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev2
+            dependency_scope: 
+              &dependency_scope12
+              - service-a
+            configuration: ci-main
+            run: CI-12
+            observed_at: 2026-10-28T10:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+          - id: OBS-2
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev3
+            dependency_scope: 
+              *dependency_scope12
+            configuration: ci-main
+            run: CI-13
+            observed_at: 2026-10-28T11:00:00Z
+            source: ci://12
+            state: skipped
+            result: unknown
+            collection: success
+          - id: OBS-3
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev4
+            dependency_scope: 
+              *dependency_scope12
+            configuration: ci-main
+            run: CI-14
+            observed_at: 2026-10-28T12:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+      drift: 
+        []
+      reviews: 
+        - protection: current
+          observation: OBS-3
+          repository_revision: rev4
+          configuration: ci-main
+          dependency_scope: 
+            - service-a
+          as_of: 2026-10-28T14:00:00Z
+          fresh_from: 2026-10-28T11:00:00Z
+    valid: false
+  - name: absent actual run never passes
+    record: 
+      record_version: 1
+      id: KT-1
+      finding: FND-1
+      weakness_class: example-class
+      team: Team Alpha
+      repository: repo://service-a
+      suite: component
+      fix: 
+        pull_request: PR-12
+        author: Fix author
+        team_decision: edited
+        decision_reason: Team reviewed and adjusted the correction
+        deployed_digest: sha256:example
+      instance_test: 
+        id: T-1
+        version: "1"
+        source_revision: rev2
+        dependencies: 
+          - service-a
+        input_ref: repo://test/input
+        assertions_ref: repo://test/assertions
+        failing_before: CI-11
+        passing_after: CI-12
+        visible_to_agents: true
+        protected_content: false
+      mirror: 
+        built: true
+        source_access: read-only
+        enrollment: 
+          test_id: T-1
+          test_version: "1"
+          enrolled_at: 2026-10-28T09:00:00Z
+        observations: 
+          - id: OBS-1
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev2
+            dependency_scope: 
+              &dependency_scope13
+              - service-a
+            configuration: ci-main
+            run: CI-12
+            observed_at: 2026-10-28T10:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+          - id: OBS-2
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev3
+            dependency_scope: 
+              *dependency_scope13
+            configuration: ci-main
+            run: CI-13
+            observed_at: 2026-10-28T11:00:00Z
+            source: ci://12
+            state: skipped
+            result: unknown
+            collection: success
+          - id: OBS-3
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev4
+            dependency_scope: 
+              *dependency_scope13
+            configuration: ci-main
+            run: null
+            observed_at: 2026-10-28T12:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+      drift: 
+        - episode: D1
+          test_version: "1"
+          finding: FND-2
+          observation: OBS-2
+          reason: skipped
+          route: normal-loop
+          state: closed
+          closure: 
+            disposition: finding://FND-2/disposition
+            evidence: finding://FND-2/retest
+            accepted_by: Closure acceptor
+            confirmed_by: Independent verifier
+            repair_author: Fix author
+            repository_revision: rev4
+            configuration: ci-main
+            dependency_scope: 
+              - service-a
+            closed_at: 2026-10-28T13:00:00Z
+            observation: OBS-3
+      reviews: 
+        - protection: current
+          observation: OBS-3
+          repository_revision: rev4
+          configuration: ci-main
+          dependency_scope: 
+            - service-a
+          as_of: 2026-10-28T14:00:00Z
+          fresh_from: 2026-10-28T11:00:00Z
+    valid: false
+  - name: collection unavailable never passes
+    record: 
+      record_version: 1
+      id: KT-1
+      finding: FND-1
+      weakness_class: example-class
+      team: Team Alpha
+      repository: repo://service-a
+      suite: component
+      fix: 
+        pull_request: PR-12
+        author: Fix author
+        team_decision: edited
+        decision_reason: Team reviewed and adjusted the correction
+        deployed_digest: sha256:example
+      instance_test: 
+        id: T-1
+        version: "1"
+        source_revision: rev2
+        dependencies: 
+          - service-a
+        input_ref: repo://test/input
+        assertions_ref: repo://test/assertions
+        failing_before: CI-11
+        passing_after: CI-12
+        visible_to_agents: true
+        protected_content: false
+      mirror: 
+        built: true
+        source_access: read-only
+        enrollment: 
+          test_id: T-1
+          test_version: "1"
+          enrolled_at: 2026-10-28T09:00:00Z
+        observations: 
+          - id: OBS-1
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev2
+            dependency_scope: 
+              &dependency_scope14
+              - service-a
+            configuration: ci-main
+            run: CI-12
+            observed_at: 2026-10-28T10:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+          - id: OBS-2
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev3
+            dependency_scope: 
+              *dependency_scope14
+            configuration: ci-main
+            run: CI-13
+            observed_at: 2026-10-28T11:00:00Z
+            source: ci://12
+            state: skipped
+            result: unknown
+            collection: success
+          - id: OBS-3
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev4
+            dependency_scope: 
+              *dependency_scope14
+            configuration: ci-main
+            run: CI-14
+            observed_at: 2026-10-28T12:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: unavailable
+      drift: 
+        - episode: D1
+          test_version: "1"
+          finding: FND-2
+          observation: OBS-2
+          reason: skipped
+          route: normal-loop
+          state: closed
+          closure: 
+            disposition: finding://FND-2/disposition
+            evidence: finding://FND-2/retest
+            accepted_by: Closure acceptor
+            confirmed_by: Independent verifier
+            repair_author: Fix author
+            repository_revision: rev4
+            configuration: ci-main
+            dependency_scope: 
+              - service-a
+            closed_at: 2026-10-28T13:00:00Z
+            observation: OBS-3
+      reviews: 
+        - protection: current
+          observation: OBS-3
+          repository_revision: rev4
+          configuration: ci-main
+          dependency_scope: 
+            - service-a
+          as_of: 2026-10-28T14:00:00Z
+          fresh_from: 2026-10-28T11:00:00Z
+    valid: false
+  - name: protected content excluded
+    record: 
+      record_version: 1
+      id: KT-1
+      finding: FND-1
+      weakness_class: example-class
+      team: Team Alpha
+      repository: repo://service-a
+      suite: component
+      fix: 
+        pull_request: PR-12
+        author: Fix author
+        team_decision: edited
+        decision_reason: Team reviewed and adjusted the correction
+        deployed_digest: sha256:example
+      instance_test: 
+        id: T-1
+        version: "1"
+        source_revision: rev2
+        dependencies: 
+          - service-a
+        input_ref: repo://test/input
+        assertions_ref: repo://test/assertions
+        failing_before: CI-11
+        passing_after: CI-12
+        visible_to_agents: true
+        protected_content: true
+      mirror: 
+        built: true
+        source_access: read-only
+        enrollment: 
+          test_id: T-1
+          test_version: "1"
+          enrolled_at: 2026-10-28T09:00:00Z
+        observations: 
+          - id: OBS-1
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev2
+            dependency_scope: 
+              &dependency_scope15
+              - service-a
+            configuration: ci-main
+            run: CI-12
+            observed_at: 2026-10-28T10:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+          - id: OBS-2
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev3
+            dependency_scope: 
+              *dependency_scope15
+            configuration: ci-main
+            run: CI-13
+            observed_at: 2026-10-28T11:00:00Z
+            source: ci://12
+            state: skipped
+            result: unknown
+            collection: success
+          - id: OBS-3
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev4
+            dependency_scope: 
+              *dependency_scope15
+            configuration: ci-main
+            run: CI-14
+            observed_at: 2026-10-28T12:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+      drift: 
+        - episode: D1
+          test_version: "1"
+          finding: FND-2
+          observation: OBS-2
+          reason: skipped
+          route: normal-loop
+          state: closed
+          closure: 
+            disposition: finding://FND-2/disposition
+            evidence: finding://FND-2/retest
+            accepted_by: Closure acceptor
+            confirmed_by: Independent verifier
+            repair_author: Fix author
+            repository_revision: rev4
+            configuration: ci-main
+            dependency_scope: 
+              - service-a
+            closed_at: 2026-10-28T13:00:00Z
+            observation: OBS-3
+      reviews: 
+        - protection: current
+          observation: OBS-3
+          repository_revision: rev4
+          configuration: ci-main
+          dependency_scope: 
+            - service-a
+          as_of: 2026-10-28T14:00:00Z
+          fresh_from: 2026-10-28T11:00:00Z
+    valid: false
+  - name: unknown without freshness policy
+    record: 
+      record_version: 1
+      id: KT-1
+      finding: FND-1
+      weakness_class: example-class
+      team: Team Alpha
+      repository: repo://service-a
+      suite: component
+      fix: 
+        pull_request: PR-12
+        author: Fix author
+        team_decision: edited
+        decision_reason: Team reviewed and adjusted the correction
+        deployed_digest: sha256:example
+      instance_test: 
+        id: T-1
+        version: "1"
+        source_revision: rev2
+        dependencies: 
+          - service-a
+        input_ref: repo://test/input
+        assertions_ref: repo://test/assertions
+        failing_before: CI-11
+        passing_after: CI-12
+        visible_to_agents: true
+        protected_content: false
+      mirror: 
+        built: true
+        source_access: read-only
+        enrollment: 
+          test_id: T-1
+          test_version: "1"
+          enrolled_at: 2026-10-28T09:00:00Z
+        observations: 
+          - id: OBS-1
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev2
+            dependency_scope: 
+              &dependency_scope16
+              - service-a
+            configuration: ci-main
+            run: CI-12
+            observed_at: 2026-10-28T10:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+          - id: OBS-2
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev3
+            dependency_scope: 
+              *dependency_scope16
+            configuration: ci-main
+            run: CI-13
+            observed_at: 2026-10-28T11:00:00Z
+            source: ci://12
+            state: skipped
+            result: unknown
+            collection: success
+          - id: OBS-3
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev4
+            dependency_scope: 
+              *dependency_scope16
+            configuration: ci-main
+            run: CI-14
+            observed_at: 2026-10-28T12:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+      drift: 
+        - episode: D1
+          test_version: "1"
+          finding: FND-2
+          observation: OBS-2
+          reason: skipped
+          route: normal-loop
+          state: closed
+          closure: 
+            disposition: finding://FND-2/disposition
+            evidence: finding://FND-2/retest
+            accepted_by: Closure acceptor
+            confirmed_by: Independent verifier
+            repair_author: Fix author
+            repository_revision: rev4
+            configuration: ci-main
+            dependency_scope: 
+              - service-a
+            closed_at: 2026-10-28T13:00:00Z
+            observation: OBS-3
+      reviews: 
+        - protection: unknown
+    valid: true
+  - name: removed test remains enrolled and creates a finding
+    record: 
+      record_version: 1
+      id: KT-1
+      finding: FND-1
+      weakness_class: example-class
+      team: Team Alpha
+      repository: repo://service-a
+      suite: component
+      fix: 
+        pull_request: PR-12
+        author: Fix author
+        team_decision: edited
+        decision_reason: Team reviewed and adjusted the correction
+        deployed_digest: sha256:example
+      instance_test: 
+        id: T-1
+        version: "1"
+        source_revision: rev2
+        dependencies: 
+          - service-a
+        input_ref: repo://test/input
+        assertions_ref: repo://test/assertions
+        failing_before: CI-11
+        passing_after: CI-12
+        visible_to_agents: true
+        protected_content: false
+      mirror: 
+        built: true
+        source_access: read-only
+        enrollment: 
+          test_id: T-1
+          test_version: "1"
+          enrolled_at: 2026-10-28T09:00:00Z
+        observations: 
+          - id: OBS-1
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev2
+            dependency_scope: 
+              &dependency_scope17
+              - service-a
+            configuration: ci-main
+            run: CI-12
+            observed_at: 2026-10-28T10:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+          - id: OBS-2
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev3
+            dependency_scope: 
+              *dependency_scope17
+            configuration: ci-main
+            run: CI-13
+            observed_at: 2026-10-28T11:00:00Z
+            source: ci://12
+            state: removed
+            result: unknown
+            collection: success
+          - id: OBS-3
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev4
+            dependency_scope: 
+              *dependency_scope17
+            configuration: ci-main
+            run: CI-14
+            observed_at: 2026-10-28T12:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+      drift: 
+        - episode: D1
+          test_version: "1"
+          finding: FND-2
+          observation: OBS-2
+          reason: removed
+          route: normal-loop
+          state: closed
+          closure: 
+            disposition: finding://FND-2/disposition
+            evidence: finding://FND-2/retest
+            accepted_by: Closure acceptor
+            confirmed_by: Independent verifier
+            repair_author: Fix author
+            repository_revision: rev4
+            configuration: ci-main
+            dependency_scope: 
+              - service-a
+            closed_at: 2026-10-28T13:00:00Z
+            observation: OBS-3
+      reviews: 
+        - protection: current
+          observation: OBS-3
+          repository_revision: rev4
+          configuration: ci-main
+          dependency_scope: 
+            - service-a
+          as_of: 2026-10-28T14:00:00Z
+          fresh_from: 2026-10-28T11:00:00Z
+    valid: true
+  - name: failing test creates a normal-loop finding
+    record: 
+      record_version: 1
+      id: KT-1
+      finding: FND-1
+      weakness_class: example-class
+      team: Team Alpha
+      repository: repo://service-a
+      suite: component
+      fix: 
+        pull_request: PR-12
+        author: Fix author
+        team_decision: edited
+        decision_reason: Team reviewed and adjusted the correction
+        deployed_digest: sha256:example
+      instance_test: 
+        id: T-1
+        version: "1"
+        source_revision: rev2
+        dependencies: 
+          - service-a
+        input_ref: repo://test/input
+        assertions_ref: repo://test/assertions
+        failing_before: CI-11
+        passing_after: CI-12
+        visible_to_agents: true
+        protected_content: false
+      mirror: 
+        built: true
+        source_access: read-only
+        enrollment: 
+          test_id: T-1
+          test_version: "1"
+          enrolled_at: 2026-10-28T09:00:00Z
+        observations: 
+          - id: OBS-1
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev2
+            dependency_scope: 
+              &dependency_scope18
+              - service-a
+            configuration: ci-main
+            run: CI-12
+            observed_at: 2026-10-28T10:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+          - id: OBS-2
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev3
+            dependency_scope: 
+              *dependency_scope18
+            configuration: ci-main
+            run: CI-13
+            observed_at: 2026-10-28T11:00:00Z
+            source: ci://12
+            state: enabled
+            result: failing
+            collection: success
+          - id: OBS-3
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev4
+            dependency_scope: 
+              *dependency_scope18
+            configuration: ci-main
+            run: CI-14
+            observed_at: 2026-10-28T12:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+      drift: 
+        - episode: D1
+          test_version: "1"
+          finding: FND-2
+          observation: OBS-2
+          reason: failing
+          route: normal-loop
+          state: closed
+          closure: 
+            disposition: finding://FND-2/disposition
+            evidence: finding://FND-2/retest
+            accepted_by: Closure acceptor
+            confirmed_by: Independent verifier
+            repair_author: Fix author
+            repository_revision: rev4
+            configuration: ci-main
+            dependency_scope: 
+              - service-a
+            closed_at: 2026-10-28T13:00:00Z
+            observation: OBS-3
+      reviews: 
+        - protection: current
+          observation: OBS-3
+          repository_revision: rev4
+          configuration: ci-main
+          dependency_scope: 
+            - service-a
+          as_of: 2026-10-28T14:00:00Z
+          fresh_from: 2026-10-28T11:00:00Z
+    valid: true
+  - name: repeated observations share one drift episode
+    record: 
+      record_version: 1
+      id: KT-1
+      finding: FND-1
+      weakness_class: example-class
+      team: Team Alpha
+      repository: repo://service-a
+      suite: component
+      fix: 
+        pull_request: PR-12
+        author: Fix author
+        team_decision: edited
+        decision_reason: Team reviewed and adjusted the correction
+        deployed_digest: sha256:example
+      instance_test: 
+        id: T-1
+        version: "1"
+        source_revision: rev2
+        dependencies: 
+          - service-a
+        input_ref: repo://test/input
+        assertions_ref: repo://test/assertions
+        failing_before: CI-11
+        passing_after: CI-12
+        visible_to_agents: true
+        protected_content: false
+      mirror: 
+        built: true
+        source_access: read-only
+        enrollment: 
+          test_id: T-1
+          test_version: "1"
+          enrolled_at: 2026-10-28T09:00:00Z
+        observations: 
+          - id: OBS-1
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev2
+            dependency_scope: 
+              &dependency_scope19
+              - service-a
+            configuration: ci-main
+            run: CI-12
+            observed_at: 2026-10-28T10:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+          - id: OBS-2
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev3
+            dependency_scope: 
+              *dependency_scope19
+            configuration: ci-main
+            run: CI-13
+            observed_at: 2026-10-28T11:00:00Z
+            source: ci://12
+            state: skipped
+            result: unknown
+            collection: success
+          - id: OBS-3
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev4
+            dependency_scope: 
+              *dependency_scope19
+            configuration: ci-main
+            run: CI-14
+            observed_at: 2026-10-28T12:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+          - id: OBS-2b
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev3
+            dependency_scope: 
+              *dependency_scope19
+            configuration: ci-main
+            run: CI-13
+            observed_at: 2026-10-28T11:30:00Z
+            source: ci://12
+            state: skipped
+            result: unknown
+            collection: success
+            episode: D1
+      drift: 
+        - episode: D1
+          test_version: "1"
+          finding: FND-2
+          observation: OBS-2
+          reason: skipped
+          route: normal-loop
+          state: closed
+          closure: 
+            disposition: finding://FND-2/disposition
+            evidence: finding://FND-2/retest
+            accepted_by: Closure acceptor
+            confirmed_by: Independent verifier
+            repair_author: Fix author
+            repository_revision: rev4
+            configuration: ci-main
+            dependency_scope: 
+              - service-a
+            closed_at: 2026-10-28T13:00:00Z
+            observation: OBS-3
+      reviews: 
+        - protection: current
+          observation: OBS-3
+          repository_revision: rev4
+          configuration: ci-main
+          dependency_scope: 
+            - service-a
+          as_of: 2026-10-28T14:00:00Z
+          fresh_from: 2026-10-28T11:00:00Z
+    valid: true
+  - name: open drift with unknown protection is valid
+    record: 
+      record_version: 1
+      id: KT-1
+      finding: FND-1
+      weakness_class: example-class
+      team: Team Alpha
+      repository: repo://service-a
+      suite: component
+      fix: 
+        pull_request: PR-12
+        author: Fix author
+        team_decision: edited
+        decision_reason: Team reviewed and adjusted the correction
+        deployed_digest: sha256:example
+      instance_test: 
+        id: T-1
+        version: "1"
+        source_revision: rev2
+        dependencies: 
+          - service-a
+        input_ref: repo://test/input
+        assertions_ref: repo://test/assertions
+        failing_before: CI-11
+        passing_after: CI-12
+        visible_to_agents: true
+        protected_content: false
+      mirror: 
+        built: true
+        source_access: read-only
+        enrollment: 
+          test_id: T-1
+          test_version: "1"
+          enrolled_at: 2026-10-28T09:00:00Z
+        observations: 
+          - id: OBS-1
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev2
+            dependency_scope: 
+              &dependency_scope20
+              - service-a
+            configuration: ci-main
+            run: CI-12
+            observed_at: 2026-10-28T10:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+          - id: OBS-2
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev3
+            dependency_scope: 
+              *dependency_scope20
+            configuration: ci-main
+            run: CI-13
+            observed_at: 2026-10-28T11:00:00Z
+            source: ci://12
+            state: skipped
+            result: unknown
+            collection: success
+          - id: OBS-3
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev4
+            dependency_scope: 
+              *dependency_scope20
+            configuration: ci-main
+            run: CI-14
+            observed_at: 2026-10-28T12:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+      drift: 
+        - episode: D1
+          test_version: "1"
+          finding: FND-2
+          observation: OBS-2
+          reason: skipped
+          route: normal-loop
+          state: open
+          closure: null
+      reviews: 
+        - protection: unknown
+    valid: true
+  - name: null observation is a validation error
+    record: 
+      record_version: 1
+      id: KT-1
+      finding: FND-1
+      weakness_class: example-class
+      team: Team Alpha
+      repository: repo://service-a
+      suite: component
+      fix: 
+        pull_request: PR-12
+        author: Fix author
+        team_decision: edited
+        decision_reason: Team reviewed and adjusted the correction
+        deployed_digest: sha256:example
+      instance_test: 
+        id: T-1
+        version: "1"
+        source_revision: rev2
+        dependencies: 
+          - service-a
+        input_ref: repo://test/input
+        assertions_ref: repo://test/assertions
+        failing_before: CI-11
+        passing_after: CI-12
+        visible_to_agents: true
+        protected_content: false
+      mirror: 
+        built: true
+        source_access: read-only
+        enrollment: 
+          test_id: T-1
+          test_version: "1"
+          enrolled_at: 2026-10-28T09:00:00Z
+        observations: 
+          - id: OBS-1
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev2
+            dependency_scope: 
+              &dependency_scope21
+              - service-a
+            configuration: ci-main
+            run: CI-12
+            observed_at: 2026-10-28T10:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+          - id: OBS-2
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev3
+            dependency_scope: 
+              *dependency_scope21
+            configuration: ci-main
+            run: CI-13
+            observed_at: 2026-10-28T11:00:00Z
+            source: ci://12
+            state: skipped
+            result: unknown
+            collection: success
+          - id: OBS-3
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev4
+            dependency_scope: 
+              *dependency_scope21
+            configuration: ci-main
+            run: CI-14
+            observed_at: 2026-10-28T12:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+          - null
+      drift: 
+        - episode: D1
+          test_version: "1"
+          finding: FND-2
+          observation: OBS-2
+          reason: skipped
+          route: normal-loop
+          state: closed
+          closure: 
+            disposition: finding://FND-2/disposition
+            evidence: finding://FND-2/retest
+            accepted_by: Closure acceptor
+            confirmed_by: Independent verifier
+            repair_author: Fix author
+            repository_revision: rev4
+            configuration: ci-main
+            dependency_scope: 
+              - service-a
+            closed_at: 2026-10-28T13:00:00Z
+            observation: OBS-3
+      reviews: 
+        - protection: current
+          observation: OBS-3
+          repository_revision: rev4
+          configuration: ci-main
+          dependency_scope: 
+            - service-a
+          as_of: 2026-10-28T14:00:00Z
+          fresh_from: 2026-10-28T11:00:00Z
+    valid: false
+  - name: null episode is a validation error
+    record: 
+      record_version: 1
+      id: KT-1
+      finding: FND-1
+      weakness_class: example-class
+      team: Team Alpha
+      repository: repo://service-a
+      suite: component
+      fix: 
+        pull_request: PR-12
+        author: Fix author
+        team_decision: edited
+        decision_reason: Team reviewed and adjusted the correction
+        deployed_digest: sha256:example
+      instance_test: 
+        id: T-1
+        version: "1"
+        source_revision: rev2
+        dependencies: 
+          - service-a
+        input_ref: repo://test/input
+        assertions_ref: repo://test/assertions
+        failing_before: CI-11
+        passing_after: CI-12
+        visible_to_agents: true
+        protected_content: false
+      mirror: 
+        built: true
+        source_access: read-only
+        enrollment: 
+          test_id: T-1
+          test_version: "1"
+          enrolled_at: 2026-10-28T09:00:00Z
+        observations: 
+          - id: OBS-1
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev2
+            dependency_scope: 
+              &dependency_scope22
+              - service-a
+            configuration: ci-main
+            run: CI-12
+            observed_at: 2026-10-28T10:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+          - id: OBS-2
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev3
+            dependency_scope: 
+              *dependency_scope22
+            configuration: ci-main
+            run: CI-13
+            observed_at: 2026-10-28T11:00:00Z
+            source: ci://12
+            state: skipped
+            result: unknown
+            collection: success
+          - id: OBS-3
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev4
+            dependency_scope: 
+              *dependency_scope22
+            configuration: ci-main
+            run: CI-14
+            observed_at: 2026-10-28T12:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+      drift: 
+        - episode: D1
+          test_version: "1"
+          finding: FND-2
+          observation: OBS-2
+          reason: skipped
+          route: normal-loop
+          state: closed
+          closure: 
+            disposition: finding://FND-2/disposition
+            evidence: finding://FND-2/retest
+            accepted_by: Closure acceptor
+            confirmed_by: Independent verifier
+            repair_author: Fix author
+            repository_revision: rev4
+            configuration: ci-main
+            dependency_scope: 
+              - service-a
+            closed_at: 2026-10-28T13:00:00Z
+            observation: OBS-3
+        - null
+      reviews: 
+        - protection: current
+          observation: OBS-3
+          repository_revision: rev4
+          configuration: ci-main
+          dependency_scope: 
+            - service-a
+          as_of: 2026-10-28T14:00:00Z
+          fresh_from: 2026-10-28T11:00:00Z
+    valid: false
+  - name: null review is a validation error
+    record: 
+      record_version: 1
+      id: KT-1
+      finding: FND-1
+      weakness_class: example-class
+      team: Team Alpha
+      repository: repo://service-a
+      suite: component
+      fix: 
+        pull_request: PR-12
+        author: Fix author
+        team_decision: edited
+        decision_reason: Team reviewed and adjusted the correction
+        deployed_digest: sha256:example
+      instance_test: 
+        id: T-1
+        version: "1"
+        source_revision: rev2
+        dependencies: 
+          - service-a
+        input_ref: repo://test/input
+        assertions_ref: repo://test/assertions
+        failing_before: CI-11
+        passing_after: CI-12
+        visible_to_agents: true
+        protected_content: false
+      mirror: 
+        built: true
+        source_access: read-only
+        enrollment: 
+          test_id: T-1
+          test_version: "1"
+          enrolled_at: 2026-10-28T09:00:00Z
+        observations: 
+          - id: OBS-1
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev2
+            dependency_scope: 
+              &dependency_scope23
+              - service-a
+            configuration: ci-main
+            run: CI-12
+            observed_at: 2026-10-28T10:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+          - id: OBS-2
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev3
+            dependency_scope: 
+              *dependency_scope23
+            configuration: ci-main
+            run: CI-13
+            observed_at: 2026-10-28T11:00:00Z
+            source: ci://12
+            state: skipped
+            result: unknown
+            collection: success
+          - id: OBS-3
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev4
+            dependency_scope: 
+              *dependency_scope23
+            configuration: ci-main
+            run: CI-14
+            observed_at: 2026-10-28T12:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+      drift: 
+        - episode: D1
+          test_version: "1"
+          finding: FND-2
+          observation: OBS-2
+          reason: skipped
+          route: normal-loop
+          state: closed
+          closure: 
+            disposition: finding://FND-2/disposition
+            evidence: finding://FND-2/retest
+            accepted_by: Closure acceptor
+            confirmed_by: Independent verifier
+            repair_author: Fix author
+            repository_revision: rev4
+            configuration: ci-main
+            dependency_scope: 
+              - service-a
+            closed_at: 2026-10-28T13:00:00Z
+            observation: OBS-3
+      reviews: 
+        - protection: current
+          observation: OBS-3
+          repository_revision: rev4
+          configuration: ci-main
+          dependency_scope: 
+            - service-a
+          as_of: 2026-10-28T14:00:00Z
+          fresh_from: 2026-10-28T11:00:00Z
+        - null
+    valid: false
+  - name: current claim during open drift fails
+    record: 
+      record_version: 1
+      id: KT-1
+      finding: FND-1
+      weakness_class: example-class
+      team: Team Alpha
+      repository: repo://service-a
+      suite: component
+      fix: 
+        pull_request: PR-12
+        author: Fix author
+        team_decision: edited
+        decision_reason: Team reviewed and adjusted the correction
+        deployed_digest: sha256:example
+      instance_test: 
+        id: T-1
+        version: "1"
+        source_revision: rev2
+        dependencies: 
+          - service-a
+        input_ref: repo://test/input
+        assertions_ref: repo://test/assertions
+        failing_before: CI-11
+        passing_after: CI-12
+        visible_to_agents: true
+        protected_content: false
+      mirror: 
+        built: true
+        source_access: read-only
+        enrollment: 
+          test_id: T-1
+          test_version: "1"
+          enrolled_at: 2026-10-28T09:00:00Z
+        observations: 
+          - id: OBS-1
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev2
+            dependency_scope: 
+              &dependency_scope24
+              - service-a
+            configuration: ci-main
+            run: CI-12
+            observed_at: 2026-10-28T10:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+          - id: OBS-2
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev3
+            dependency_scope: 
+              *dependency_scope24
+            configuration: ci-main
+            run: CI-13
+            observed_at: 2026-10-28T11:00:00Z
+            source: ci://12
+            state: skipped
+            result: unknown
+            collection: success
+          - id: OBS-3
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev4
+            dependency_scope: 
+              *dependency_scope24
+            configuration: ci-main
+            run: CI-14
+            observed_at: 2026-10-28T12:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+      drift: 
+        - episode: D1
+          test_version: "1"
+          finding: FND-2
+          observation: OBS-2
+          reason: skipped
+          route: normal-loop
+          state: open
+          closure: null
+      reviews: 
+        - protection: current
+          observation: OBS-3
+          repository_revision: rev4
+          configuration: ci-main
+          dependency_scope: 
+            - service-a
+          as_of: 2026-10-28T14:00:00Z
+          fresh_from: 2026-10-28T11:00:00Z
+    valid: false
+  - name: unavailable later source makes protection unknown
+    record: 
+      record_version: 1
+      id: KT-1
+      finding: FND-1
+      weakness_class: example-class
+      team: Team Alpha
+      repository: repo://service-a
+      suite: component
+      fix: 
+        pull_request: PR-12
+        author: Fix author
+        team_decision: edited
+        decision_reason: Team reviewed and adjusted the correction
+        deployed_digest: sha256:example
+      instance_test: 
+        id: T-1
+        version: "1"
+        source_revision: rev2
+        dependencies: 
+          - service-a
+        input_ref: repo://test/input
+        assertions_ref: repo://test/assertions
+        failing_before: CI-11
+        passing_after: CI-12
+        visible_to_agents: true
+        protected_content: false
+      mirror: 
+        built: true
+        source_access: read-only
+        enrollment: 
+          test_id: T-1
+          test_version: "1"
+          enrolled_at: 2026-10-28T09:00:00Z
+        observations: 
+          - id: OBS-1
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev2
+            dependency_scope: 
+              &dependency_scope25
+              - service-a
+            configuration: ci-main
+            run: CI-12
+            observed_at: 2026-10-28T10:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+          - id: OBS-2
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev3
+            dependency_scope: 
+              *dependency_scope25
+            configuration: ci-main
+            run: CI-13
+            observed_at: 2026-10-28T11:00:00Z
+            source: ci://12
+            state: skipped
+            result: unknown
+            collection: success
+          - id: OBS-3
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev4
+            dependency_scope: 
+              *dependency_scope25
+            configuration: ci-main
+            run: CI-14
+            observed_at: 2026-10-28T12:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+          - id: OBS-4
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev4
+            dependency_scope: 
+              *dependency_scope25
+            configuration: ci-main
+            run: null
+            observed_at: 2026-10-28T13:30:00Z
+            source: ci://12
+            state: enabled
+            result: unknown
+            collection: unavailable
+      drift: 
+        - episode: D1
+          test_version: "1"
+          finding: FND-2
+          observation: OBS-2
+          reason: skipped
+          route: normal-loop
+          state: closed
+          closure: 
+            disposition: finding://FND-2/disposition
+            evidence: finding://FND-2/retest
+            accepted_by: Closure acceptor
+            confirmed_by: Independent verifier
+            repair_author: Fix author
+            repository_revision: rev4
+            configuration: ci-main
+            dependency_scope: 
+              - service-a
+            closed_at: 2026-10-28T13:00:00Z
+            observation: OBS-3
+      reviews: 
+        - protection: current
+          observation: OBS-3
+          repository_revision: rev4
+          configuration: ci-main
+          dependency_scope: 
+            - service-a
+          as_of: 2026-10-28T14:00:00Z
+          fresh_from: 2026-10-28T11:00:00Z
+    valid: false
+  - name: later matching passing evidence does not invalidate current
+    record: 
+      record_version: 1
+      id: KT-1
+      finding: FND-1
+      weakness_class: example-class
+      team: Team Alpha
+      repository: repo://service-a
+      suite: component
+      fix: 
+        pull_request: PR-12
+        author: Fix author
+        team_decision: edited
+        decision_reason: Team reviewed and adjusted the correction
+        deployed_digest: sha256:example
+      instance_test: 
+        id: T-1
+        version: "1"
+        source_revision: rev2
+        dependencies: 
+          - service-a
+        input_ref: repo://test/input
+        assertions_ref: repo://test/assertions
+        failing_before: CI-11
+        passing_after: CI-12
+        visible_to_agents: true
+        protected_content: false
+      mirror: 
+        built: true
+        source_access: read-only
+        enrollment: 
+          test_id: T-1
+          test_version: "1"
+          enrolled_at: 2026-10-28T09:00:00Z
+        observations: 
+          - id: OBS-1
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev2
+            dependency_scope: 
+              &dependency_scope26
+              - service-a
+            configuration: ci-main
+            run: CI-12
+            observed_at: 2026-10-28T10:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+          - id: OBS-2
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev3
+            dependency_scope: 
+              *dependency_scope26
+            configuration: ci-main
+            run: CI-13
+            observed_at: 2026-10-28T11:00:00Z
+            source: ci://12
+            state: skipped
+            result: unknown
+            collection: success
+          - id: OBS-3
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev4
+            dependency_scope: 
+              *dependency_scope26
+            configuration: ci-main
+            run: CI-14
+            observed_at: 2026-10-28T12:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+          - id: OBS-4
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev4
+            dependency_scope: 
+              *dependency_scope26
+            configuration: ci-main
+            run: CI-14
+            observed_at: 2026-10-28T13:30:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+      drift: 
+        - episode: D1
+          test_version: "1"
+          finding: FND-2
+          observation: OBS-2
+          reason: skipped
+          route: normal-loop
+          state: closed
+          closure: 
+            disposition: finding://FND-2/disposition
+            evidence: finding://FND-2/retest
+            accepted_by: Closure acceptor
+            confirmed_by: Independent verifier
+            repair_author: Fix author
+            repository_revision: rev4
+            configuration: ci-main
+            dependency_scope: 
+              - service-a
+            closed_at: 2026-10-28T13:00:00Z
+            observation: OBS-3
+      reviews: 
+        - protection: current
+          observation: OBS-3
+          repository_revision: rev4
+          configuration: ci-main
+          dependency_scope: 
+            - service-a
+          as_of: 2026-10-28T14:00:00Z
+          fresh_from: 2026-10-28T11:00:00Z
+    valid: true
+  - name: rejected correction cannot enroll a kept test
+    record: 
+      record_version: 1
+      id: KT-1
+      finding: FND-1
+      weakness_class: example-class
+      team: Team Alpha
+      repository: repo://service-a
+      suite: component
+      fix: 
+        pull_request: PR-12
+        author: Fix author
+        team_decision: rejected
+        decision_reason: Team reviewed and adjusted the correction
+        deployed_digest: sha256:example
+      instance_test: 
+        id: T-1
+        version: "1"
+        source_revision: rev2
+        dependencies: 
+          - service-a
+        input_ref: repo://test/input
+        assertions_ref: repo://test/assertions
+        failing_before: CI-11
+        passing_after: CI-12
+        visible_to_agents: true
+        protected_content: false
+      mirror: 
+        built: true
+        source_access: read-only
+        enrollment: 
+          test_id: T-1
+          test_version: "1"
+          enrolled_at: 2026-10-28T09:00:00Z
+        observations: 
+          - id: OBS-1
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev2
+            dependency_scope: 
+              &dependency_scope27
+              - service-a
+            configuration: ci-main
+            run: CI-12
+            observed_at: 2026-10-28T10:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+          - id: OBS-2
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev3
+            dependency_scope: 
+              *dependency_scope27
+            configuration: ci-main
+            run: CI-13
+            observed_at: 2026-10-28T11:00:00Z
+            source: ci://12
+            state: skipped
+            result: unknown
+            collection: success
+          - id: OBS-3
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev4
+            dependency_scope: 
+              *dependency_scope27
+            configuration: ci-main
+            run: CI-14
+            observed_at: 2026-10-28T12:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+      drift: 
+        - episode: D1
+          test_version: "1"
+          finding: FND-2
+          observation: OBS-2
+          reason: skipped
+          route: normal-loop
+          state: closed
+          closure: 
+            disposition: finding://FND-2/disposition
+            evidence: finding://FND-2/retest
+            accepted_by: Closure acceptor
+            confirmed_by: Independent verifier
+            repair_author: Fix author
+            repository_revision: rev4
+            configuration: ci-main
+            dependency_scope: 
+              - service-a
+            closed_at: 2026-10-28T13:00:00Z
+            observation: OBS-3
+      reviews: 
+        - protection: current
+          observation: OBS-3
+          repository_revision: rev4
+          configuration: ci-main
+          dependency_scope: 
+            - service-a
+          as_of: 2026-10-28T14:00:00Z
+          fresh_from: 2026-10-28T11:00:00Z
+    valid: false
+  - name: closure after review leaves drift open at that review
+    record: 
+      record_version: 1
+      id: KT-1
+      finding: FND-1
+      weakness_class: example-class
+      team: Team Alpha
+      repository: repo://service-a
+      suite: component
+      fix: 
+        pull_request: PR-12
+        author: Fix author
+        team_decision: edited
+        decision_reason: Team reviewed and adjusted the correction
+        deployed_digest: sha256:example
+      instance_test: 
+        id: T-1
+        version: "1"
+        source_revision: rev2
+        dependencies: 
+          - service-a
+        input_ref: repo://test/input
+        assertions_ref: repo://test/assertions
+        failing_before: CI-11
+        passing_after: CI-12
+        visible_to_agents: true
+        protected_content: false
+      mirror: 
+        built: true
+        source_access: read-only
+        enrollment: 
+          test_id: T-1
+          test_version: "1"
+          enrolled_at: 2026-10-28T09:00:00Z
+        observations: 
+          - id: OBS-1
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev2
+            dependency_scope: 
+              &dependency_scope28
+              - service-a
+            configuration: ci-main
+            run: CI-12
+            observed_at: 2026-10-28T10:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+          - id: OBS-2
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev3
+            dependency_scope: 
+              *dependency_scope28
+            configuration: ci-main
+            run: CI-13
+            observed_at: 2026-10-28T11:00:00Z
+            source: ci://12
+            state: skipped
+            result: unknown
+            collection: success
+          - id: OBS-3
+            test_id: T-1
+            test_version: "1"
+            repository_revision: rev4
+            dependency_scope: 
+              *dependency_scope28
+            configuration: ci-main
+            run: CI-14
+            observed_at: 2026-10-28T12:00:00Z
+            source: ci://12
+            state: enabled
+            result: passing
+            collection: success
+      drift: 
+        - episode: D1
+          test_version: "1"
+          finding: FND-2
+          observation: OBS-2
+          reason: skipped
+          route: normal-loop
+          state: closed
+          closure: 
+            disposition: finding://FND-2/disposition
+            evidence: finding://FND-2/retest
+            accepted_by: Closure acceptor
+            confirmed_by: Independent verifier
+            repair_author: Fix author
+            repository_revision: rev4
+            configuration: ci-main
+            dependency_scope: 
+              - service-a
+            closed_at: 2026-10-28T15:00:00Z
+            observation: OBS-3
+      reviews: 
+        - protection: current
+          observation: OBS-3
+          repository_revision: rev4
+          configuration: ci-main
+          dependency_scope: 
+            - service-a
+          as_of: 2026-10-28T14:00:00Z
+          fresh_from: 2026-10-28T11:00:00Z
+    valid: false

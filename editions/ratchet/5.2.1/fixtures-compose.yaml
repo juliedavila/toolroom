@@ -1,0 +1,655 @@
+# Portable composition contracts. Each numbered rule is checked without a model checker.
+fixtures:
+  - name: compose-four-projections
+    base: full
+    modes:
+      - full
+      - ratchet
+      - core
+      - jig
+  - name: compose-patched-organization
+    base: full
+    patch:
+      ops:
+        - op: add_element
+          element:
+            id: jig:org.adopter-probe
+            name: Organization harness
+            system: shared:EXT
+            trust_zone: shared:existing
+            level: component
+            kind: service
+            role_class: existing
+            module: secure-creation
+            responsibility: Runs the declared checks.
+            agent_reachable: true
+          layers:
+            realization:
+              plane: shared:integration
+              class: service
+              examples:
+                []
+              swap_point: false
+              existing_tool_default: organization
+            overlay:
+              services:
+                - Organization check runner
+              fit: existing
+              account: existing
+              portability: open
+        - op: add_relationship
+          relationship:
+            id: shared:o01-probe
+            from: s6.regression-catalog
+            to: jig:org.adopter-probe
+            kind: data
+            carries:
+              []
+            optional: true
+            content: structured
+            module: secure-creation
+            no_contract: Reports the declared check signal.
+        - op: add_to_seam
+          seam: shared:secure-creation
+          crossings:
+            - id: shared:o01-probe
+              carries:
+                []
+        - op: set_seam_exposure
+          seam: shared:secure-creation
+          part: jig:org.adopter-probe
+          marks:
+            agent_reachable: true
+            exposed: false
+            model_free: true
+            role_class: existing
+            kind: service
+    modes:
+      - full
+      - ratchet
+      - core
+      - jig
+  - name: compose-one-identity-binding
+    base: full
+    bind_identity: true
+    modes:
+      - full
+      - ratchet
+      - core
+      - jig
+  - name: compose-jig-partial-layers
+    base: jig
+    modes:
+      - jig
+    floor:
+      shared:RoadEntry:
+        - MC-23
+        - MC-102
+      shared:DerivedCheck:
+        - MC-23
+        - MC-102
+      shared:DroppedCheck:
+        - MC-7
+      shared:ProvenClass:
+        - MC-23
+        - MC-102
+      shared:RoadAssuranceStatus:
+        - MC-23
+        - MC-102
+      shared:FixBrief:
+        - MC-23
+        - MC-87
+        - MC-102
+      shared:CreationRule:
+        - MC-23
+        - MC-102
+      shared:CatchLayer:
+        - MC-86
+      shared:ClassTestCount:
+        - MC-23
+        - MC-102
+      shared:CreationLead:
+        - MC-7
+        - MC-102
+      shared:ProvenanceStamp:
+        - MC-86
+      shared:ReviewerSeedCatch:
+        - MC-106
+      shared:SeededChange:
+        - MC-7
+      shared:DerivedCheckMisses:
+        - MC-98
+      shared:ClassTestTotals:
+        - MC-106
+  - name: compose-refuses-incomplete-exposure
+    base: full
+    modes:
+      - full
+      - ratchet
+      - core
+      - jig
+    remove_mark: model_free
+    error: composition-exposure-missing
+  - name: compose-full-floor-projections
+    base: full
+    modes:
+      - full
+      - ratchet
+      - core
+      - jig
+    floor:
+      shared:RoadEntry:
+        - MC-23
+        - MC-102
+      shared:DerivedCheck:
+        - MC-23
+        - MC-102
+      shared:DroppedCheck:
+        - MC-7
+      shared:ProvenClass:
+        - MC-23
+        - MC-102
+      shared:RoadAssuranceStatus:
+        - MC-23
+        - MC-102
+      shared:FixBrief:
+        - MC-23
+        - MC-87
+        - MC-102
+      shared:CreationRule:
+        - MC-23
+        - MC-102
+      shared:CatchLayer:
+        - MC-86
+      shared:ClassTestCount:
+        - MC-23
+        - MC-102
+      shared:CreationLead:
+        - MC-7
+        - MC-102
+      shared:ProvenanceStamp:
+        - MC-86
+      shared:ReviewerSeedCatch:
+        - MC-106
+      shared:SeededChange:
+        - MC-7
+      shared:DerivedCheckMisses:
+        - MC-98
+      shared:ClassTestTotals:
+        - MC-106
+  - name: compose-missing-full-floor-entry
+    base: full
+    modes:
+      - full
+      - ratchet
+      - core
+      - jig
+    floor:
+      {}
+    error: compose.floor
+  - name: compose-organization-overlay
+    base: full
+    modes:
+      - full
+      - ratchet
+      - core
+      - jig
+    custom_overlay: true
+  - name: compose-rule-1-references-and-vocabulary
+    base: full
+    modes:
+      - full
+      - ratchet
+      - core
+      - jig
+    rule: 1
+    without_checker: true
+  - name: compose-rule-2-scenario-runbook-identities
+    base: full
+    modes:
+      - full
+      - ratchet
+      - core
+      - jig
+    rule: 2
+    without_checker: true
+  - name: compose-rule-3-module-seam-projection
+    base: full
+    modes:
+      - full
+      - ratchet
+      - core
+      - jig
+    rule: 3
+    without_checker: true
+  - name: compose-rule-4-shared-crossing-order
+    base: full
+    modes:
+      - full
+      - ratchet
+      - core
+      - jig
+    rule: 4
+    without_checker: true
+  - name: compose-rule-5-core-module-pruning
+    base: full
+    modes:
+      - core
+    rule: 5
+    without_checker: true
+  - name: compose-rule-6-outside-reference-order
+    base: full
+    modes:
+      - full
+      - ratchet
+      - core
+      - jig
+    rule: 6
+    without_checker: true
+  - name: compose-rule-7-boundary-shape-and-order
+    base: full
+    modes:
+      - full
+      - ratchet
+      - core
+      - jig
+    rule: 7
+    without_checker: true
+  - name: compose-rule-8-view-members-and-sequence
+    base: full
+    modes:
+      - full
+      - ratchet
+      - core
+      - jig
+    rule: 8
+    without_checker: true
+  - name: compose-rule-9-omitted-module-order
+    base: full
+    modes:
+      - full
+      - ratchet
+      - core
+      - jig
+    rule: 9
+    without_checker: true
+  - name: compose-rule-10-source-record-order
+    base: full
+    modes:
+      - full
+      - ratchet
+      - core
+      - jig
+    rule: 10
+    without_checker: true
+  - name: compose-rule-11-overlay-literal-values
+    base: jig
+    modes:
+      - jig
+    rule: 11
+    without_checker: true
+    floor:
+      &floor
+      shared:RoadEntry:
+        - MC-23
+        - MC-102
+      shared:DerivedCheck:
+        - MC-23
+        - MC-102
+      shared:DroppedCheck:
+        - MC-7
+      shared:ProvenClass:
+        - MC-23
+        - MC-102
+      shared:RoadAssuranceStatus:
+        - MC-23
+        - MC-102
+      shared:FixBrief:
+        - MC-23
+        - MC-87
+        - MC-102
+      shared:CreationRule:
+        - MC-23
+        - MC-102
+      shared:CatchLayer:
+        - MC-86
+      shared:ClassTestCount:
+        - MC-23
+        - MC-102
+      shared:CreationLead:
+        - MC-7
+        - MC-102
+      shared:ProvenanceStamp:
+        - MC-86
+      shared:ReviewerSeedCatch:
+        - MC-106
+      shared:SeededChange:
+        - MC-7
+      shared:DerivedCheckMisses:
+        - MC-98
+      shared:ClassTestTotals:
+        - MC-106
+  - name: compose-rule-12-scenario-merge-order
+    base: full
+    modes:
+      - full
+      - ratchet
+      - core
+      - jig
+    rule: 12
+    without_checker: true
+  - name: compose-rule-13-closure-merge-order
+    base: full
+    modes:
+      - full
+      - ratchet
+      - core
+      - jig
+    rule: 13
+    without_checker: true
+  - name: compose-rule-14-core-unit-fixed-point
+    base: full
+    modes:
+      - core
+    rule: 14
+    without_checker: true
+  - name: compose-rule-15-absent-finding-registry
+    base: jig
+    modes:
+      - jig
+    rule: 15
+    without_checker: true
+    floor:
+      *floor
+  - name: compose-rule-16-exposure-derivation
+    base: full
+    modes:
+      - full
+      - ratchet
+      - core
+      - jig
+    rule: 16
+    without_checker: true
+  - name: compose-rule-17-exposure-before-filtering
+    base: full
+    modes:
+      - full
+      - ratchet
+      - core
+      - jig
+    rule: 17
+    without_checker: true
+    remove_mark: kind
+    error: composition-exposure-missing
+  - name: compose-rule-18-refusal-channel
+    base: full
+    modes:
+      - full
+      - ratchet
+      - core
+      - jig
+    rule: 18
+    without_checker: true
+    floor:
+      {}
+    error: compose.floor
+  - name: compose-rule-19-floor-and-shared-bytes
+    base: full
+    modes:
+      - full
+      - ratchet
+      - core
+      - jig
+    rule: 19
+    without_checker: true
+    floor:
+      shared:RoadEntry:
+        - MC-23
+        - MC-102
+      shared:DerivedCheck:
+        - MC-23
+        - MC-102
+      shared:DroppedCheck:
+        - MC-7
+      shared:ProvenClass:
+        - MC-23
+        - MC-102
+      shared:RoadAssuranceStatus:
+        - MC-23
+        - MC-102
+      shared:FixBrief:
+        - MC-23
+        - MC-87
+        - MC-102
+      shared:CreationRule:
+        - MC-23
+        - MC-102
+      shared:CatchLayer:
+        - MC-86
+      shared:ClassTestCount:
+        - MC-23
+        - MC-102
+      shared:CreationLead:
+        - MC-7
+        - MC-102
+      shared:ProvenanceStamp:
+        - MC-86
+      shared:ReviewerSeedCatch:
+        - MC-106
+      shared:SeededChange:
+        - MC-7
+      shared:DerivedCheckMisses:
+        - MC-98
+      shared:ClassTestTotals:
+        - MC-106
+  - name: compose-rule-20-complete-floor-identity
+    base: jig
+    modes:
+      - jig
+    rule: 20
+    without_checker: true
+    floor:
+      *floor
+  - name: compose-rule-21-patch-provenance-and-layers
+    base: full
+    modes:
+      - full
+      - ratchet
+      - core
+      - jig
+    rule: 21
+    without_checker: true
+    patch:
+      ops:
+        - op: add_element
+          element:
+            id: jig:org.adopter-probe
+            name: Organization harness
+            system: shared:EXT
+            trust_zone: shared:existing
+            level: component
+            kind: service
+            role_class: existing
+            module: secure-creation
+            responsibility: Runs the declared checks.
+            agent_reachable: true
+          layers:
+            realization:
+              plane: shared:integration
+              class: service
+              examples:
+                []
+              swap_point: false
+              existing_tool_default: organization
+            overlay:
+              services:
+                - Organization check runner
+              fit: existing
+              account: existing
+              portability: open
+        - op: add_relationship
+          relationship:
+            id: shared:o01-probe
+            from: s6.regression-catalog
+            to: jig:org.adopter-probe
+            kind: data
+            carries:
+              []
+            optional: true
+            content: structured
+            module: secure-creation
+            no_contract: Reports the declared check signal.
+        - op: add_to_seam
+          seam: shared:secure-creation
+          crossings:
+            - id: shared:o01-probe
+              carries:
+                []
+        - op: set_seam_exposure
+          seam: shared:secure-creation
+          part: jig:org.adopter-probe
+          marks:
+            agent_reachable: true
+            exposed: false
+            model_free: true
+            role_class: existing
+            kind: service
+  - name: compose-rule-22-one-binding-projection
+    base: full
+    modes:
+      - full
+      - ratchet
+      - core
+      - jig
+    rule: 22
+    without_checker: true
+    bind_identity: true
+  - name: compose-rule-23-jig-known-inventory
+    base: jig
+    modes:
+      - jig
+    rule: 23
+    without_checker: true
+    floor:
+      *floor
+  - name: compose-jig-without-model-checker
+    base: jig
+    modes:
+      - jig
+    floor:
+      shared:RoadEntry:
+        - MC-23
+        - MC-102
+      shared:DerivedCheck:
+        - MC-23
+        - MC-102
+      shared:DroppedCheck:
+        - MC-7
+      shared:ProvenClass:
+        - MC-23
+        - MC-102
+      shared:RoadAssuranceStatus:
+        - MC-23
+        - MC-102
+      shared:FixBrief:
+        - MC-23
+        - MC-87
+        - MC-102
+      shared:CreationRule:
+        - MC-23
+        - MC-102
+      shared:CatchLayer:
+        - MC-86
+      shared:ClassTestCount:
+        - MC-23
+        - MC-102
+      shared:CreationLead:
+        - MC-7
+        - MC-102
+      shared:ProvenanceStamp:
+        - MC-86
+      shared:ReviewerSeedCatch:
+        - MC-106
+      shared:SeededChange:
+        - MC-7
+      shared:DerivedCheckMisses:
+        - MC-98
+      shared:ClassTestTotals:
+        - MC-106
+    without_checker: true
+  - name: compose-organization-failure-scenario
+    base: full
+    modes:
+      - full
+      - ratchet
+      - core
+      - jig
+    without_checker: true
+    scenario: org.hostile-response
+    patch:
+      ops:
+        - op: add_failure_scenario
+          scenario:
+            id: org.hostile-response
+            title: Hostile model response
+            elements:
+              - s4.response-proposal-gate
+              - s2.workflow-engine
+              - s2.producer-adapters
+            trigger: A hostile response reaches the gate.
+            required_behavior: The gate refuses it and the task remains unauthorized.
+            invariant: I1
+            detection: A gate refusal is recorded.
+            runbook: RB-org.hostile-response
+            test:
+              kind: pipeline
+              steps: Send hostile model output and assert refusal with no unauthorized task.
+
+  - name: compose-refuses-unit-stage-missing
+    base: full
+    modes: [full, ratchet, core, jig]
+    without_checker: true
+    unit_stage: "missing"
+    error: compose.stage
+
+  - name: compose-refuses-unit-stage-null
+    base: full
+    modes: [full, ratchet, core, jig]
+    without_checker: true
+    unit_stage: null
+    error: compose.stage
+
+  - name: compose-refuses-unit-stage-string
+    base: full
+    modes: [full, ratchet, core, jig]
+    without_checker: true
+    unit_stage: "1"
+    error: compose.stage
+
+  - name: compose-refuses-unit-stage-zero
+    base: full
+    modes: [full, ratchet, core, jig]
+    without_checker: true
+    unit_stage: 0
+    error: compose.stage
+
+  - name: compose-refuses-unit-stage-six
+    base: full
+    modes: [full, ratchet, core, jig]
+    without_checker: true
+    unit_stage: 6
+    error: compose.stage
+
+  - name: compose-refuses-unit-stage-fraction
+    base: full
+    modes: [full, ratchet, core, jig]
+    without_checker: true
+    unit_stage: 1.5
+    error: compose.stage
+
+  - name: compose-preserves-explicit-unit-stage
+    base: full
+    modes: [full, ratchet, core, jig]
+    without_checker: true
+    unit_stage: 4
+    rule: 24

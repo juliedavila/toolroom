@@ -1,0 +1,508 @@
+# Acceptance fixtures for the figure builder (specification: spec-figure-builder.md).
+# Every fixture runs on the shipped files of the edition folder (model.yaml, realization.yaml, quality.yaml,
+# profile-schema.yaml), changed only by its "edits". An edited model is passed with the model option, an edited
+# realization or quality file in a layer folder, an edited schema in a copy of the edition folder. "profile" is written
+# as the profile file. Expected results were written from the specification, and the reference implementation reproduces every one.
+# expect.errors and expect.warnings list every message of that level (a code, or a code and location), order ignored.
+# expect.built lists the figures written, in order. The figure keys (header, nodes, edges, members, classes,
+# text_contains) read each written Mermaid file by the statement subset; edges are "<from> <op> <to>" with op ">" for
+# -->, "." for -.->, "x" for -.-x, "<>" for <--> and "~" for ~~~. svg_text_contains holds strings in the SVG file.
+# For every figure a run writes, the runner also checks the SVG beside the Mermaid against FB-13 to FB-15, whatever
+# the expect block says: written in both forms, the same structure read by the SVG statement subset, and the drawing rules.
+
+fixtures:
+  - name: "fixture-fb-shipped.yaml"
+    description: "The shipped files byte for byte, with no profile: all five design figures, no messages (FB-1 to FB-4, FB-6 to FB-10)."
+    expect:
+      outcome: "ok"
+      exit: 0
+      errors: []
+      warnings: []
+      built: ["FIG-LOOP", "FIG-CONTROL-BOUNDARY", "FIG-PLANES", "FIG-PROVIDER-LADDER", "FIG-PART-MAP"]
+      header:
+        FIG-CONTROL-BOUNDARY: ["flowchart LR", "  %% FIG-CONTROL-BOUNDARY: The control boundary"]
+        FIG-PLANES: ["flowchart LR", "  %% FIG-PLANES: The planes and their primary flows"]
+        FIG-PROVIDER-LADDER: ["flowchart TB", "  %% FIG-PROVIDER-LADDER: Losing a model provider degrades the loop in steps"]
+        FIG-PART-MAP: ["flowchart LR", "  %% FIG-PART-MAP: Every part by plane, trust zone and quality tier"]
+      nodes:
+        FIG-LOOP:
+          count: 18
+          contains: ["STEP-1", "STEP-6", "STEP-7", "STEP-12", "legend-agent", "legend-person", "legend-control", "legend-team", "change-stopped", "next-scenario"]
+        FIG-CONTROL-BOUNDARY:
+          count: 6
+          contains: ["people.accountable-authorities", "s2.workflow-worker-app", "s4.model-data-gateway", "s3.action-control-service", "s5.proof-evidence-service", "s3.bounded-runner"]
+        FIG-PLANES:
+          count: 10
+          contains: ["integration", "road", "context", "orchestration", "model-access", "control", "execution", "evidence", "evaluation", "roles"]
+        FIG-PROVIDER-LADDER:
+          count: 5
+          contains: ["frontier", "self-hosted", "no-agent", "manual", "control"]
+        FIG-PART-MAP:
+          contains: ["s3.bounded-runner", "ext.estate", "s1.tool-signal-intake", "people.accountable-authorities"]
+          excludes: ["s3.local-enforcement-point"]
+      edges:
+        FIG-LOOP:
+          contains: ["STEP-1 > STEP-2", "STEP-5 > STEP-6", "STEP-7 > STEP-8", "STEP-11 > STEP-12", "STEP-10 . change-stopped", "STEP-11 > next-scenario", "who ~ find", "find > keep", "legend-agent ~ legend-person"]
+          excludes: ["STEP-6 > STEP-7"]
+        FIG-CONTROL-BOUNDARY:
+          contains: ["s2.workflow-worker-app > s3.action-control-service", "people.accountable-authorities > s3.action-control-service", "s3.action-control-service > s3.bounded-runner", "s3.bounded-runner > s5.proof-evidence-service", "s2.workflow-worker-app . s4.model-data-gateway", "s2.workflow-worker-app x s3.bounded-runner"]
+        FIG-PLANES:
+          contains: ["integration > context", "context > orchestration", "orchestration > control", "control <> model-access", "roles > control", "control > execution", "execution > evidence", "evidence > integration", "evidence > evaluation", "evaluation > orchestration", "evidence > road", "road > integration"]
+          excludes: ["model-access > control", "model-access <> control"]
+        FIG-PROVIDER-LADDER:
+          contains: ["frontier > self-hosted", "self-hosted > no-agent", "no-agent > manual", "control . frontier", "control . self-hosted", "control . no-agent", "control . manual"]
+      text_contains:
+        FIG-LOOP: ['%%{init: {"flowchart": {"rankSpacing": 26, "nodeSpacing": 22}', "%%\nflowchart TB\n  %% FIG-LOOP: The loop by actor\n"]
+      members:
+        FIG-LOOP: { STEP-1: "find", STEP-6: "find", STEP-7: "keep", STEP-12: "keep", legend-team: "who", change-stopped: "keep", next-scenario: "keep" }
+        FIG-CONTROL-BOUNDARY: { people.accountable-authorities: null, s2.workflow-worker-app: "reasoning", s4.model-data-gateway: "reasoning", s3.action-control-service: "control", s5.proof-evidence-service: "control", s3.bounded-runner: "cell" }
+        FIG-PART-MAP: { s3.bounded-runner: "zone-execution-execution", ext.estate: "zone-integration-shared_existing", s1.tool-signal-intake: "zone-integration-reasoning", people.accountable-authorities: "people-roles" }
+      classes:
+        FIG-LOOP: { STEP-1: "person", STEP-3: "agent", STEP-4: "person", STEP-5: "control", STEP-8: "team", STEP-9: "control", STEP-12: "team", change-stopped: "stop", next-scenario: "again" }
+        FIG-PART-MAP: { s3.bounded-runner: "tierT0", ext.estate: "tierEXT", s1.tool-signal-intake: "tierT2", people.accountable-authorities: "person" }
+      svg_text_contains:
+        FIG-LOOP: ['role="img"', 'aria-label="FIG-LOOP: The loop by actor', 'data-figure="FIG-LOOP"', '<g data-node="STEP-3" data-in="find" data-classes="agent" data-shape="box">']
+        FIG-CONTROL-BOUNDARY: ['data-from="s2.workflow-worker-app" data-to="s3.bounded-runner" data-op="x"', 'data-subgraph="cell" data-in=""']
+        FIG-PLANES: ['data-from="control" data-to="model-access" data-op="&lt;&gt;"', 'data-node="roles" data-in="" data-classes="" data-shape="round"']
+        FIG-PART-MAP: ['data-subgraph="zone-execution-execution" data-in="plane-execution"', 'stroke:var(--ink-2,#5A5047)']
+
+  - name: "fixture-fb-determinism.yaml"
+    description: "Two runs on the same inputs write byte-identical files and reports (FB-11)."
+    runs: 2
+    expect:
+      outcome: "ok"
+      outputs_byte_identical: true
+
+  - name: "fixture-fb-report.yaml"
+    description: "The JSON report's top-level keys, in order, and each built figure's keys, naming both its files (FB-12)."
+    expect:
+      outcome: "ok"
+      json_keys: ["tool", "edition", "figures", "messages"]
+      figure_keys: ["id", "title", "file", "svg"]
+
+  - name: "fixture-fb-select.yaml"
+    description: "The figure option restricts the build (FB-1)."
+    options: { figures: ["FIG-PLANES"] }
+    expect:
+      outcome: "ok"
+      errors: []
+      built: ["FIG-PLANES"]
+
+  - name: "fixture-fb-unknown-figure.yaml"
+    description: "An illustrative figure is not the builder's to draw; any other id is an option error and nothing is built (FB-1)."
+    options: { figures: ["FIG-SWEEP-LOOP"] }
+    expect:
+      outcome: "error"
+      exit: 1
+      errors: ["FB-E-option"]
+      built: []
+
+  - name: "fixture-fb-missing-entry.yaml"
+    description: "A model without its relationships is an input error; nothing is built."
+    edits:
+      - { op: set_path, file: "model.yaml", path: "relationships", value: null }
+    expect:
+      outcome: "error"
+      errors: ["FB-E-input"]
+      built: []
+
+  - name: "fixture-fb-cb-missing-edge.yaml"
+    description: "The approval edge has no relationship behind it; the control boundary is not written and the other figures are (FB-5, FB-7)."
+    edits:
+      - { op: remove_relationships, from: "people.accountable-authorities", to: "s3.action-control-service" }
+    expect:
+      outcome: "error"
+      errors: [{ code: "FB-E-relationship", location: "FIG-CONTROL-BOUNDARY people.accountable-authorities -> s3.action-control-service" }]
+      warnings: []
+      built: ["FIG-LOOP", "FIG-PLANES", "FIG-PROVIDER-LADDER", "FIG-PART-MAP"]
+
+  - name: "fixture-fb-cb-missing-node.yaml"
+    description: "A node's element is gone: one error for the element, none for the edges touching it (FB-7)."
+    options: { figures: ["FIG-CONTROL-BOUNDARY"] }
+    edits:
+      - { op: remove_element, id: "s5.proof-evidence-service" }
+    expect:
+      outcome: "error"
+      errors: [{ code: "FB-E-element", location: "FIG-CONTROL-BOUNDARY s5.proof-evidence-service" }]
+      built: []
+
+  - name: "fixture-fb-cb-zone.yaml"
+    description: "The runner moved to the control trust zone no longer matches the cell the figure draws it in (FB-7)."
+    options: { figures: ["FIG-CONTROL-BOUNDARY"] }
+    edits:
+      - { op: set_element, id: "s3.bounded-runner", field: "trust_zone", value: "control" }
+    expect:
+      outcome: "error"
+      errors: [{ code: "FB-E-zone", location: "FIG-CONTROL-BOUNDARY s3.bounded-runner" }]
+      built: []
+
+  - name: "fixture-fb-cb-boundary.yaml"
+    description: "A relationship from the test-drafting agent into the execution cell breaks rule 1; reported once, as the boundary rule (FB-7)."
+    options: { figures: ["FIG-CONTROL-BOUNDARY"] }
+    edits:
+      - { op: add_relationship, relationship: { id: "o1-r1", from: "s2.workflow-worker-app", to: "s3.bounded-runner", label: "Direct run", carries: [], kind: "proposal", optional: false } }
+    expect:
+      outcome: "error"
+      errors: [{ code: "FB-E-boundary", location: "FIG-CONTROL-BOUNDARY o1-r1" }]
+      warnings: []
+      built: []
+
+  - name: "fixture-fb-cb-exception.yaml"
+    description: "The same relationship under a recorded exception is drawn and warned; the absent edge is left out (FB-7)."
+    options: { figures: ["FIG-CONTROL-BOUNDARY"], exceptions: ["o1-r1"] }
+    edits:
+      - { op: add_relationship, relationship: { id: "o1-r1", from: "s2.workflow-worker-app", to: "s3.bounded-runner", label: "Direct run", carries: [], kind: "proposal", optional: false } }
+    expect:
+      outcome: "ok"
+      errors: []
+      warnings: [{ code: "FB-W-exception", location: "FIG-CONTROL-BOUNDARY o1-r1" }]
+      built: ["FIG-CONTROL-BOUNDARY"]
+      nodes:
+        FIG-CONTROL-BOUNDARY: { count: 6 }
+      edges:
+        FIG-CONTROL-BOUNDARY:
+          contains: ["s2.workflow-worker-app > s3.bounded-runner"]
+          excludes: ["s2.workflow-worker-app x s3.bounded-runner"]
+      text_contains:
+        FIG-CONTROL-BOUNDARY: ['|"exception: o1-r1"|']
+
+  - name: "fixture-fb-cb-exception-new-nodes.yaml"
+    description: "An excepted crossing between parts the figure does not draw adds both ends, each in its side (FB-7)."
+    options: { figures: ["FIG-CONTROL-BOUNDARY"], exceptions: ["o1-r2"] }
+    edits:
+      - { op: add_relationship, relationship: { id: "o1-r2", from: "s4.inference-endpoints", to: "s3.local-enforcement-point", label: "Health probe", carries: [], kind: "observation", optional: false } }
+    expect:
+      outcome: "ok"
+      warnings: [{ code: "FB-W-exception", location: "FIG-CONTROL-BOUNDARY o1-r2" }]
+      nodes:
+        FIG-CONTROL-BOUNDARY: { count: 8 }
+      members:
+        FIG-CONTROL-BOUNDARY: { s4.inference-endpoints: "reasoning", s3.local-enforcement-point: "cell" }
+      edges:
+        FIG-CONTROL-BOUNDARY:
+          contains: ["s4.inference-endpoints > s3.local-enforcement-point", "s2.workflow-worker-app x s3.bounded-runner"]
+
+  - name: "fixture-fb-cb-absent.yaml"
+    description: "With the agent moved out of the orchestration plane, the boundary rule no longer sees the path; the absent edge still refuses it (FB-7)."
+    options: { figures: ["FIG-CONTROL-BOUNDARY"] }
+    edits:
+      - { op: set_layer, file: "realization", id: "s2.workflow-worker-app", value: { plane: "context", class: "Durable workflow worker", swap_point: false, existing_tool_default: false } }
+      - { op: add_relationship, relationship: { id: "o1-r1", from: "s2.workflow-worker-app", to: "s3.bounded-runner", label: "Direct run", carries: [], kind: "proposal", optional: false } }
+    expect:
+      outcome: "error"
+      errors: [{ code: "FB-E-absent", location: "FIG-CONTROL-BOUNDARY o1-r1" }]
+      built: []
+
+  - name: "fixture-fb-cb-exception-unused.yaml"
+    description: "An exception naming a relationship that crosses nothing draws nothing and warns (FB-7)."
+    options: { figures: ["FIG-CONTROL-BOUNDARY"], exceptions: ["r003"] }
+    expect:
+      outcome: "ok"
+      errors: []
+      warnings: [{ code: "FB-W-exception-unused", location: "FIG-CONTROL-BOUNDARY r003" }]
+      built: ["FIG-CONTROL-BOUNDARY"]
+      nodes:
+        FIG-CONTROL-BOUNDARY: { count: 6 }
+
+  - name: "fixture-fb-cb-exception-unknown.yaml"
+    description: "An exception naming no relationship is an option error; nothing is built."
+    options: { exceptions: ["o9-r9"] }
+    expect:
+      outcome: "error"
+      errors: [{ code: "FB-E-option", location: "exception o9-r9" }]
+      built: []
+
+  - name: "fixture-fb-planes-flow.yaml"
+    description: "With no relationship from the paved road to integration, that primary flow stops the planes figure; the part map still builds (FB-8)."
+    edits:
+      - { op: remove_plane_flow, from: "road", to: "integration" }
+    expect:
+      outcome: "error"
+      errors: [{ code: "FB-E-flow", location: "FIG-PLANES road -> integration" }]
+      built: ["FIG-LOOP", "FIG-CONTROL-BOUNDARY", "FIG-PROVIDER-LADDER", "FIG-PART-MAP"]
+
+  - name: "fixture-fb-planes-unknown-plane.yaml"
+    description: "A part in a plane outside the nine stops both figures that place parts in planes (FB-8, FB-10)."
+    options: { figures: ["FIG-PLANES", "FIG-PART-MAP"] }
+    edits:
+      - { op: set_layer, file: "realization", id: "ext.estate", value: { plane: "edge", class: "Edge estate", swap_point: false, existing_tool_default: true } }
+    expect:
+      outcome: "error"
+      errors: [{ code: "FB-E-plane", location: "FIG-PLANES ext.estate" }, { code: "FB-E-plane", location: "FIG-PART-MAP ext.estate" }]
+      built: []
+
+  - name: "fixture-fb-layer-missing.yaml"
+    description: "An added part with no realization entry has no plane (FB-8, FB-10)."
+    options: { figures: ["FIG-PLANES", "FIG-PART-MAP"] }
+    edits:
+      - { op: add_element, element: { id: "o1.scanner-bridge", name: "Scanner bridge", kind: "service", trust_zone: "shared:existing" } }
+    expect:
+      outcome: "error"
+      errors: [{ code: "FB-E-layer", location: "FIG-PLANES o1.scanner-bridge" }, { code: "FB-E-layer", location: "FIG-PART-MAP o1.scanner-bridge" }]
+      built: []
+
+  - name: "fixture-fb-part-map-new-part.yaml"
+    description: "An organization's part, its components and its relationships, drawn by the same rules as the shipped ones (FB-10)."
+    options: { figures: ["FIG-PART-MAP"] }
+    edits:
+      - { op: add_element, element: { id: "o1.scanner-bridge", name: "Scanner bridge", kind: "service", trust_zone: "shared:existing" } }
+      - { op: add_element, element: { id: "o1.bridge-cache", name: "Bridge cache", kind: "store", trust_zone: "shared:existing", parent: "o1.scanner-bridge" } }
+      - { op: add_element, element: { id: "o1.bridge-scorer", name: "Bridge scorer", kind: "service", trust_zone: "reasoning", parent: "o1.scanner-bridge" } }
+      - { op: set_layer, file: "realization", id: "o1.scanner-bridge", value: { plane: "integration", class: "Bridge adapter", swap_point: false, existing_tool_default: true } }
+      - { op: set_layer, file: "realization", id: "o1.bridge-cache", value: { plane: "integration", class: "Key-value cache", swap_point: true, existing_tool_default: false } }
+      - { op: set_layer, file: "realization", id: "o1.bridge-scorer", value: { plane: "context", class: "Scoring job", swap_point: false, existing_tool_default: false } }
+      - { op: set_layer, file: "quality", id: "o1.scanner-bridge", value: ["T2", "mark-unknown", "bridge outage"] }
+      - { op: set_layer, file: "quality", id: "o1.bridge-scorer", value: ["T3", "mark-unknown", "scores late"] }
+      - { op: add_relationship, relationship: { id: "o1-r1", from: "o1.scanner-bridge", to: "s1.tool-signal-intake", label: "Imported findings", carries: ["ScannerExport"], kind: "data", optional: false } }
+      - { op: add_relationship, relationship: { id: "o1-r2", from: "o1.bridge-cache", to: "ext.estate", label: "Cache reads", carries: [], kind: "data", optional: false } }
+    expect:
+      outcome: "ok"
+      errors: []
+      built: ["FIG-PART-MAP"]
+      nodes:
+        FIG-PART-MAP:
+          contains: ["o1.scanner-bridge", "o1.bridge-scorer"]
+          excludes: ["o1.bridge-cache"]
+      members:
+        FIG-PART-MAP: { o1.scanner-bridge: "zone-integration-shared_existing", o1.bridge-scorer: "zone-context-reasoning" }
+      classes:
+        FIG-PART-MAP: { o1.scanner-bridge: "swap", o1.bridge-scorer: "tierT3" }
+      edges:
+        FIG-PART-MAP:
+          contains: ["o1.scanner-bridge > s1.tool-signal-intake", "o1.scanner-bridge . ext.estate"]
+      text_contains:
+        FIG-PART-MAP: ["+1 components", '|"ScannerExport"|']
+
+  - name: "fixture-fb-part-map-bad-id.yaml"
+    description: "An element id that cannot be a node id stops the part map (FB-3, FB-10)."
+    options: { figures: ["FIG-PART-MAP"] }
+    edits:
+      - { op: add_element, element: { id: "9.bridge", name: "Numbered bridge", kind: "service", trust_zone: "shared:existing" } }
+      - { op: set_layer, file: "realization", id: "9.bridge", value: { plane: "integration", class: "Bridge adapter", swap_point: false, existing_tool_default: true } }
+    expect:
+      outcome: "error"
+      errors: [{ code: "FB-E-id", location: "FIG-PART-MAP 9.bridge" }]
+      built: []
+
+  - name: "fixture-fb-part-map-tier.yaml"
+    description: "A tier outside T0 to T3 and EXT stops the part map (FB-10)."
+    options: { figures: ["FIG-PART-MAP"] }
+    edits:
+      - { op: set_layer, file: "quality", id: "s3.bounded-runner", value: ["T9", "fail-closed", "no run"] }
+    expect:
+      outcome: "error"
+      errors: [{ code: "FB-E-tier", location: "FIG-PART-MAP s3.bounded-runner" }]
+      built: []
+
+  - name: "fixture-fb-ladder-none.yaml"
+    description: "No self-hosting capacity drops that rung and renumbers the rest; each producer points at its lowest rung (FB-9)."
+    options: { figures: ["FIG-PROVIDER-LADDER"] }
+    profile:
+      ai_resilience:
+        providers: ["hosted frontier provider"]
+        primary_provider_share: 1
+        self_hosting_capacity: "none"
+        fallback_route_id: null
+        producer_rungs:
+          - { producer: "Scripted comparator", lowest_rung: "no-agent" }
+    expect:
+      outcome: "ok"
+      errors: []
+      warnings: []
+      nodes:
+        FIG-PROVIDER-LADDER:
+          count: 5
+          contains: ["frontier", "no-agent", "manual", "control", "producer-scripted-comparator"]
+          excludes: ["self-hosted"]
+      edges:
+        FIG-PROVIDER-LADDER:
+          contains: ["frontier > no-agent", "no-agent > manual", "producer-scripted-comparator . no-agent"]
+      text_contains:
+        FIG-PROVIDER-LADDER: ["2 Scripted comparison"]
+
+  - name: "fixture-fb-ladder-self-hosted-on-none.yaml"
+    description: "A producer whose lowest rung is the one the profile has no capacity for (FB-9)."
+    options: { figures: ["FIG-PROVIDER-LADDER"] }
+    profile:
+      ai_resilience:
+        providers: ["hosted frontier provider"]
+        primary_provider_share: 1
+        self_hosting_capacity: "none"
+        fallback_route_id: null
+        producer_rungs:
+          - { producer: "source-assisted reviewer", lowest_rung: "self-hosted" }
+    expect:
+      outcome: "error"
+      errors: [{ code: "FB-E-producer", location: "FIG-PROVIDER-LADDER producer-source-assisted-reviewer" }]
+      built: []
+
+  - name: "fixture-fb-ladder-duplicate.yaml"
+    description: "Two producers whose names give the same node id (FB-9)."
+    options: { figures: ["FIG-PROVIDER-LADDER"] }
+    profile:
+      ai_resilience:
+        providers: ["hosted frontier provider", "internal open-weight serving"]
+        primary_provider_share: 0.8
+        self_hosting_capacity: "partial"
+        fallback_route_id: "internal-open-weight"
+        producer_rungs:
+          - { producer: "scripted comparator", lowest_rung: "no-agent" }
+          - { producer: "Scripted  Comparator!", lowest_rung: "manual" }
+    expect:
+      outcome: "error"
+      errors: [{ code: "FB-E-producer", location: "FIG-PROVIDER-LADDER producer-scripted-comparator" }]
+      built: []
+
+  - name: "fixture-fb-ladder-no-section.yaml"
+    description: "A profile with no ai_resilience section warns and draws the shipped ladder (FB-9)."
+    options: { figures: ["FIG-PROVIDER-LADDER"] }
+    profile:
+      organization: { name: "example" }
+    expect:
+      outcome: "ok"
+      errors: []
+      warnings: ["FB-W-no-resilience"]
+      nodes:
+        FIG-PROVIDER-LADDER: { count: 5, contains: ["self-hosted"] }
+
+  - name: "fixture-fb-ladder-rungs.yaml"
+    description: "The schema's rung values no longer match the ladder (FB-9)."
+    options: { figures: ["FIG-PROVIDER-LADDER"] }
+    edits:
+      - { op: set_path, file: "profile-schema.yaml", path: "properties.ai_resilience.properties.producer_rungs.items.properties.lowest_rung.enum", value: ["frontier", "self-hosted", "manual"] }
+    expect:
+      outcome: "error"
+      errors: [{ code: "FB-E-rungs", location: "FIG-PROVIDER-LADDER profile-schema.yaml" }]
+      built: []
+
+  - name: "fixture-fb-loop-actor.yaml"
+    description: "An accepted change has a control approve step 4: the step is recolored and the run warns (FB-6)."
+    options: { figures: ["FIG-LOOP"], actors: { STEP-4: "control" } }
+    expect:
+      outcome: "ok"
+      errors: []
+      warnings: [{ code: "FB-W-actor", location: "FIG-LOOP STEP-4" }]
+      classes:
+        FIG-LOOP: { STEP-4: "control", STEP-3: "agent" }
+
+  - name: "fixture-fb-loop-agent.yaml"
+    description: "The agent drawn at step 5 breaks rule 1; the loop is not written (FB-6)."
+    options: { figures: ["FIG-LOOP"], actors: { STEP-5: "agent" } }
+    expect:
+      outcome: "error"
+      errors: [{ code: "FB-E-actor", location: "FIG-LOOP STEP-5" }]
+      built: []
+
+  - name: "fixture-fb-loop-bad-step.yaml"
+    description: "An override for a step the loop does not have is an option error; nothing is built (FB-6)."
+    options: { actors: { STEP-13: "person" } }
+    expect:
+      outcome: "error"
+      errors: [{ code: "FB-E-option", location: "actor STEP-13=person" }]
+      built: []
+
+  - name: "fixture-fb-namespaced-ids.yaml"
+    description: "Parts and a role another edition ships, named with a namespace, drawn under their escaped node ids in both files; an excepted crossing between two of them adds both ends to the control boundary (FB-3, FB-16)."
+    options: { figures: ["FIG-CONTROL-BOUNDARY", "FIG-PART-MAP"], exceptions: ["o1-r3"] }
+    edits:
+      - { op: add_element, element: { id: "jig:org-coding-agent", name: "Organization coding agent", kind: "service", trust_zone: "reasoning" } }
+      - { op: add_element, element: { id: "jig:org-sandbox", name: "Organization sandbox", kind: "service", trust_zone: "execution" } }
+      - { op: add_element, element: { id: "jig:org-sandbox-cache", name: "Sandbox cache", kind: "store", trust_zone: "execution", parent: "jig:org-sandbox" } }
+      - { op: add_element, element: { id: "jig:people.org-maintainer", name: "Organization maintainer", kind: "person" } }
+      - { op: set_layer, file: "realization", id: "jig:org-coding-agent", value: { plane: "orchestration", class: "Coding agent harness", swap_point: false, existing_tool_default: false } }
+      - { op: set_layer, file: "realization", id: "jig:org-sandbox", value: { plane: "execution", class: "Sandbox runner", swap_point: false, existing_tool_default: false } }
+      - { op: set_layer, file: "realization", id: "jig:org-sandbox-cache", value: { plane: "execution", class: "Cache", swap_point: false, existing_tool_default: false } }
+      - { op: set_layer, file: "quality", id: "jig:org-coding-agent", value: ["T2", "mark-unknown", "drafts late"] }
+      - { op: set_layer, file: "quality", id: "jig:org-sandbox", value: ["T1", "fail-closed", "no run"] }
+      - { op: add_relationship, relationship: { id: "o1-r3", from: "jig:org-coding-agent", to: "jig:org-sandbox", label: "Direct run", carries: [], kind: "proposal", optional: false } }
+      - { op: add_relationship, relationship: { id: "o1-r4", from: "jig:people.org-maintainer", to: "jig:org-coding-agent", label: "Approves a change", carries: ["OrgApproval"], kind: "authorization", optional: false } }
+      - { op: add_relationship, relationship: { id: "o1-r5", from: "jig:org-coding-agent", to: "s1.tool-signal-intake", label: "Derived checks", carries: ["DerivedCheck"], kind: "data", optional: false } }
+    expect:
+      outcome: "ok"
+      errors: []
+      warnings: [{ code: "FB-W-exception", location: "FIG-CONTROL-BOUNDARY o1-r3" }]
+      built: ["FIG-CONTROL-BOUNDARY", "FIG-PART-MAP"]
+      nodes:
+        FIG-CONTROL-BOUNDARY: { count: 8, contains: ["jig__org-coding-agent", "jig__org-sandbox"] }
+        FIG-PART-MAP:
+          contains: ["jig__org-coding-agent", "jig__org-sandbox", "jig__people.org-maintainer"]
+          excludes: ["jig__org-sandbox-cache", "jig:org-coding-agent"]
+      members:
+        FIG-CONTROL-BOUNDARY: { jig__org-coding-agent: "reasoning", jig__org-sandbox: "cell" }
+        FIG-PART-MAP: { jig__org-coding-agent: "zone-orchestration-reasoning", jig__org-sandbox: "zone-execution-execution", jig__people.org-maintainer: "people-roles" }
+      edges:
+        FIG-CONTROL-BOUNDARY:
+          contains: ["jig__org-coding-agent > jig__org-sandbox", "s2.workflow-worker-app x s3.bounded-runner"]
+        FIG-PART-MAP:
+          contains: ["jig__org-coding-agent . jig__org-sandbox", "jig__people.org-maintainer > jig__org-coding-agent", "jig__org-coding-agent > s1.tool-signal-intake"]
+      classes:
+        FIG-PART-MAP: { jig__org-coding-agent: "tierT2", jig__org-sandbox: "tierT1", jig__people.org-maintainer: "person" }
+      text_contains:
+        FIG-CONTROL-BOUNDARY: ['|"exception: o1-r3"|']
+        FIG-PART-MAP: ["+1 components"]
+      svg_text_contains:
+        FIG-PART-MAP: ['data-node="jig__org-sandbox" data-in="zone-execution-execution"']
+
+  - name: "fixture-fb-namespaced-bad-ids.yaml"
+    description: "Element ids the escape cannot carry: two underscores in a row, an uppercase namespace, a digit after the colon, and two colons. Each is FB-E-id, located at the id as the model writes it (FB-16)."
+    options: { figures: ["FIG-PART-MAP"] }
+    edits:
+      - { op: add_element, element: { id: "o1.double__underscore", name: "Double underscore", kind: "service", trust_zone: "shared:existing" } }
+      - { op: add_element, element: { id: "Jig:upper-namespace", name: "Uppercase namespace", kind: "service", trust_zone: "shared:existing" } }
+      - { op: add_element, element: { id: "jig:9-digit-start", name: "Digit after the colon", kind: "service", trust_zone: "shared:existing" } }
+      - { op: add_element, element: { id: "jig:two:colons", name: "Two colons", kind: "service", trust_zone: "shared:existing" } }
+      - { op: set_layer, file: "realization", id: "o1.double__underscore", value: { plane: "integration", class: "Adapter", swap_point: false, existing_tool_default: true } }
+      - { op: set_layer, file: "realization", id: "Jig:upper-namespace", value: { plane: "integration", class: "Adapter", swap_point: false, existing_tool_default: true } }
+      - { op: set_layer, file: "realization", id: "jig:9-digit-start", value: { plane: "integration", class: "Adapter", swap_point: false, existing_tool_default: true } }
+      - { op: set_layer, file: "realization", id: "jig:two:colons", value: { plane: "integration", class: "Adapter", swap_point: false, existing_tool_default: true } }
+    expect:
+      outcome: "error"
+      errors:
+        - { code: "FB-E-id", location: "FIG-PART-MAP o1.double__underscore" }
+        - { code: "FB-E-id", location: "FIG-PART-MAP Jig:upper-namespace" }
+        - { code: "FB-E-id", location: "FIG-PART-MAP jig:9-digit-start" }
+        - { code: "FB-E-id", location: "FIG-PART-MAP jig:two:colons" }
+      built: []
+
+  - name: "fixture-fb-svg-escaped-text.yaml"
+    description: "A part whose name holds markup, an ampersand and web addresses, with a class name of one long word: the SVG writes the name as text, refers to nothing outside the file, and sizes the box to the longest line (FB-14, FB-15)."
+    options: { figures: ["FIG-PART-MAP"] }
+    edits:
+      - { op: add_element, element: { id: "o1.marked-bridge", name: 'Bridge <image href="https://example.org/x.png"/> & url(https://example.org/y)', kind: "service", trust_zone: "shared:existing" } }
+      - { op: set_layer, file: "realization", id: "o1.marked-bridge", value: { plane: "integration", class: "Supercalifragilisticexpialidociousadapterclassname", swap_point: false, existing_tool_default: true } }
+      - { op: add_relationship, relationship: { id: "o1-r1", from: "o1.marked-bridge", to: "s1.tool-signal-intake", label: "Imported findings", carries: ["ScannerExport"], kind: "data", optional: false } }
+    expect:
+      outcome: "ok"
+      errors: []
+      built: ["FIG-PART-MAP"]
+      nodes:
+        FIG-PART-MAP: { contains: ["o1.marked-bridge"] }
+      text_contains:
+        FIG-PART-MAP: ["href=#quot;https://example.org/x.png#quot;/>"]
+      svg_text_contains:
+        FIG-PART-MAP: ["&lt;image", "href=&quot;https://example.org/x.png&quot;/&gt;", "&amp;", "Supercalifragilisticexpialidociousadapterclassname"]
+
+  - name: "fixture-fb-svg-ladder-producers.yaml"
+    description: "Four rungs and three producers, two of them on the same rung: each producer's edge reaches its rung, and the drawing keeps every box and label clear (FB-9, FB-15)."
+    options: { figures: ["FIG-PROVIDER-LADDER"] }
+    profile:
+      ai_resilience:
+        providers: ["hosted frontier provider", "internal open-weight serving"]
+        primary_provider_share: 0.8
+        self_hosting_capacity: "partial"
+        fallback_route_id: "internal-open-weight"
+        producer_rungs:
+          - { producer: "Test drafter", lowest_rung: "self-hosted" }
+          - { producer: "Scripted comparator", lowest_rung: "no-agent" }
+          - { producer: "Source-assisted reviewer", lowest_rung: "no-agent" }
+    expect:
+      outcome: "ok"
+      errors: []
+      warnings: []
+      nodes:
+        FIG-PROVIDER-LADDER:
+          count: 8
+          contains: ["frontier", "self-hosted", "no-agent", "manual", "control", "producer-test-drafter", "producer-scripted-comparator", "producer-source-assisted-reviewer"]
+      edges:
+        FIG-PROVIDER-LADDER:
+          contains: ["producer-test-drafter . self-hosted", "producer-scripted-comparator . no-agent", "producer-source-assisted-reviewer . no-agent", "control . manual"]

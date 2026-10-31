@@ -1,0 +1,46 @@
+name: ratchet
+title: "Ratchet: closed-loop security validation"
+schema: "0.4"
+packs:
+  - generic
+  - plan
+  - security
+  - premises
+security:
+  evidence_contracts:
+    - CandidateFinding
+    - ValidationArtifact
+    - ExecutionReceipt
+    - FindingDisposition
+    - LearnedItem
+    - SecretRevocation
+    - ConformanceRead
+    - shared:CandidateFinding
+    - shared:ValidationArtifact
+    - shared:ExecutionReceipt
+    - shared:FindingDisposition
+    - shared:LearnedItem
+    - shared:SecretRevocation
+    - shared:ConformanceRead
+  proof_contracts:
+    - OracleSpec
+    - RegressionSpec
+    - FailureClass
+    - RoadAssurance
+    - shared:OracleSpec
+    - shared:RegressionSpec
+    - shared:FailureClass
+    - shared:RoadAssurance
+  context_contracts:
+    - ContextSnapshot
+    - shared:ContextSnapshot
+ladder:
+  - none
+  - stand-in
+  - existing-tool
+  - built
+premises:
+  load_bearing: 5
+glossary:
+  zone: "A trust zone: parts that share one level of trust. A relationship that leaves a band crosses a trust boundary, which is where the security checks look hardest."
+  premise: "A belief Ratchet rests on, from its own premise register, graded by the evidence behind it, with what changes in the design if it turns out false."

@@ -1,0 +1,4292 @@
+# Real-model upgrade fixtures. Fixture editions are built by the edition recipe and shipped as upgrade-editions.yaml.
+# Attribution: the upgrade package and the model-check handover are specified in the design record.
+fixtures:
+  - name: "fixture-up-shipped.yaml"
+    description: "The shipped base and an unchanged scripted successor report the undated seam exception as a baseline finding."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+    expect:
+      outcome: "ok"
+      exit: 0
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: true
+      versions:
+        - "5.0.1-fixture"
+      target: "5.0.1-fixture"
+      organization_version: "5.0.1-fixture+example.1"
+    source: "specification"
+  - name: "fixture-up-same-version.yaml"
+    description: "Selecting the held edition writes nothing."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+    expect:
+      outcome: "ok"
+      exit: 0
+      errors: []
+      warnings: []
+      output_written: false
+    source: "specification"
+    options:
+      target: "5.0.0"
+  - name: "fixture-up-unsupported.yaml"
+    description: "The scripted unsupported held edition is refused before writing output."
+    files:
+      held/:
+        fixture_edition: "unsupported"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+    expect:
+      outcome: "error"
+      exit: 1
+      errors:
+        - "version.unsupported"
+      warnings: []
+      output_written: false
+    source: "specification"
+  - name: "fixture-up-removal-upstream.yaml"
+    description: "Changed evidence-flow removals conflict before the applier. Reopen the same file and id, preview the restated removals, then accept again; evidence custody is an error."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "successor"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: remove_relationship
+            id: r042
+          - op: remove_relationship
+            id: r071
+          - op: remove_relationship
+            id: r073
+          - op: remove_relationship
+            id: p23-r6
+          - op: remove_element
+            id: s5.protected-evidence-store
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "conflicted"
+      exit: 3
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: false
+      patches:
+        - id: "O01"
+          result: "conflicted"
+          conflicts:
+            - op: 0
+              code: "conflict.changed-upstream"
+              target: "r042"
+              keys:
+                - "label"
+              citation:
+                version: "5.0.1-fixture"
+            - op: 1
+              code: "conflict.changed-upstream"
+              target: "r071"
+              keys:
+                - "label"
+              citation:
+                version: "5.0.1-fixture"
+      conflict_report:
+        path: "conflicts/O01.md"
+        contains:
+          - "Reopen the same patch file and id"
+          - "Status proposed"
+          - "r042"
+          - "r071"
+      reopen:
+        patch: "O01-change.md"
+        finding:
+          code: "evidence-unpartitioned"
+          location: "VerifiedObservation"
+          sort: "judgment"
+    source: "specification"
+    reopen: true
+  - name: "fixture-up-removal-restated.yaml"
+    description: "The same removals restated against the successor apply with the custody finding as an error."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: remove_relationship
+            id: r042
+          - op: remove_relationship
+            id: r071
+          - op: remove_relationship
+            id: r073
+          - op: remove_relationship
+            id: p23-r6
+          - op: remove_element
+            id: s5.protected-evidence-store
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "findings"
+      exit: 3
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: true
+      patches:
+        - id: "O01"
+          result: "applies-with-findings"
+          findings:
+            - code: "evidence-unpartitioned"
+              location: "VerifiedObservation"
+              sort: "judgment"
+          removed_from_judged:
+            - set: "admin_parts"
+              rules:
+                - "MC-92"
+              items:
+                - "s5.protected-evidence-store"
+            - set: "admin_sessions"
+              rules:
+                - "MC-92"
+              items:
+                - "p23-r6"
+            - set: "evidence_sinks"
+              rules:
+                - "MC-104"
+              items:
+                - "r042"
+                - "r071"
+            - set: "evidence_store_inputs"
+              rules:
+                - "MC-105"
+              items:
+                - "r042"
+                - "r071"
+            - set: "partitioned_stores"
+              rules:
+                - "MC-93"
+              items:
+                - "s5.protected-evidence-store"
+            - set: "stores"
+              rules:
+                - "MC-93"
+              items:
+                - "s5.protected-evidence-store"
+    source: "specification"
+  - name: "fixture-up-clean.yaml"
+    description: "A real shipped part can retain an organization owner without changing any rule."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_element
+            id: s3.approval-console
+            set:
+              owner: Organization control team
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "ok"
+      exit: 0
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: true
+      patches:
+        - id: "O01"
+          result: "clean"
+      model:
+        elements:
+          s3.approval-console:
+            owner: "Organization control team"
+    source: "specification"
+  - name: "fixture-up-changed-upstream.yaml"
+    description: "A set and an unset of a field the successor changes both conflict."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "successor"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_relationship
+            id: r042
+            set:
+              label: Organization evidence flow
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "conflicted"
+      exit: 3
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: false
+      patches:
+        - id: "O01"
+          conflicts:
+            - code: "conflict.changed-upstream"
+              target: "r042"
+              keys:
+                - "label"
+              values:
+                label:
+                  held: "Observed results"
+                  new: "Observed results with custody recorded"
+                  patch: "Organization evidence flow"
+    source: "specification"
+  - name: "fixture-up-unset-upstream.yaml"
+    description: "Taking away a changed key conflicts with a null patch value."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "successor"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_relationship
+            id: r071
+            unset:
+              - label
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "conflicted"
+      exit: 3
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: false
+      patches:
+        - id: "O01"
+          conflicts:
+            - code: "conflict.changed-upstream"
+              target: "r071"
+              keys:
+                - "label"
+              values:
+                label:
+                  patch: null
+    source: "specification"
+  - name: "fixture-up-unset.yaml"
+    description: "An unset with expects on an unchanged shipped field applies."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_element
+            id: s3.approval-console
+            unset:
+              - owner
+            expects:
+              owner: a282ea57a202
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "ok"
+      exit: 0
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: true
+      model:
+        absent:
+          elements:
+            s3.approval-console:
+              - "owner"
+    source: "specification"
+  - name: "fixture-up-dependent.yaml"
+    description: "A patch depending on a conflicting patch conflicts without applying."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "successor"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_relationship
+            id: r042
+            set:
+              label: Organization evidence flow
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+      org/patches/O02-change.md: |
+        # O02: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_element
+            id: s3.approval-console
+            set:
+              owner: Organization control team
+        depends_on:
+          - O01
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "conflicted"
+      exit: 3
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: false
+      patches:
+        - id: "O01"
+          result: "conflicted"
+        - id: "O02"
+          conflicts:
+            - op: null
+              code: "conflict.dependency"
+              target: "O01"
+    source: "specification"
+  - name: "fixture-up-proposed.yaml"
+    description: "A reopened patch stays proposed and is never silently accepted."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: remove_relationship
+            id: r042
+          - op: remove_relationship
+            id: r071
+          - op: remove_relationship
+            id: r073
+          - op: remove_relationship
+            id: p23-r6
+          - op: remove_element
+            id: s5.protected-evidence-store
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        proposed
+    expect:
+      outcome: "ok"
+      exit: 0
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: true
+      patches:
+        - id: "O01"
+          status: "proposed"
+          reapplied: false
+      model:
+        element_ids_include:
+          - "s5.protected-evidence-store"
+    source: "specification"
+  - name: "fixture-up-untouched.yaml"
+    description: "Rerunning refuses the existing output and leaves the organization bytes intact."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+    expect:
+      first_run:
+        outcome: "ok"
+        exit: 0
+        errors: []
+        warnings:
+          - code: "checks.baseline"
+            location: "shared:secure-creation.default_exceptions[0]"
+        checks_baseline:
+          - code: "seam-exception-invalid"
+            location: "shared:secure-creation.default_exceptions[0]"
+        model_written: true
+        org_layer_byte_identical: true
+      second_run:
+        outcome: "error"
+        exit: 1
+        errors:
+          - "output.exists"
+        warnings: []
+        output_written: false
+        org_layer_byte_identical: true
+    source: "specification"
+    runs: 2
+  - name: "fixture-up-fields-preserved.yaml"
+    description: "Replacing typed fields while retaining every judged field and untrusted mark is allowed."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_contract
+            name: shared:ToolLead
+            set:
+              fields:
+                - name: lead_id
+                  type: id
+                  required: true
+                - name: form
+                  type: enum
+                  values:
+                    - hit
+                    - rule-summary
+                  required: true
+                - name: tool
+                  type: string
+                  required: true
+                - name: tool_version
+                  type: string
+                  required: true
+                - name: rule_id
+                  type: string
+                  required: true
+                - name: rule_version
+                  type: string
+                  required: true
+                - name: rule_renamed_from
+                  type: string
+                  required: false
+                - name: tool_class
+                  type: enum
+                  values:
+                    - sast
+                    - dast
+                    - sca
+                    - secrets
+                    - iac
+                    - container
+                    - linter
+                    - ai-review
+                    - bug-bounty
+                    - pentest
+                  required: true
+                - name: detection_layer
+                  type: enum
+                  values:
+                    - agent-edit
+                    - stop-gate
+                    - commit
+                    - push
+                    - pr
+                    - post-merge
+                    - external
+                  required: true
+                - name: target
+                  type: id
+                  required: true
+                - name: location
+                  type: string
+                  required: false
+                - name: severity
+                  type: string
+                  required: false
+                  description: As the tool reported it
+                - name: confidence
+                  type: string
+                  required: false
+                  description: As the tool reported it
+                - name: triage_verdict
+                  type: string
+                  required: false
+                  description: "The source loop's own triage label"
+                - name: observed_at
+                  type: date-time
+                  required: true
+                - name: fingerprint
+                  type: hash
+                  required: true
+                - name: obligation_mandated
+                  type: boolean
+                  required: true
+                - name: status
+                  type: enum
+                  values:
+                    - open
+                    - demonstrated
+                    - not-reproduced-in-sample
+                    - untested
+                  required: true
+                - name: demonstrated_path_ids
+                  type: list
+                  of: id
+                  required: false
+                - name: quarantined_classification
+                  type: string
+                  required: false
+                  description: Schema-bound output of the quarantined lead reader
+                - name: period
+                  type: string
+                  required: false
+                  description: Rule-summary form
+                - name: hit_count
+                  type: integer
+                  required: false
+                  description: Rule-summary form
+                - name: sample_lead_ids
+                  type: list
+                  of: id
+                  required: false
+                  description: Rule-summary form
+                - name: title
+                  type: text
+                  required: false
+                  untrusted: true
+                - name: description
+                  type: text
+                  required: false
+                  untrusted: true
+                - name: submitter_text
+                  type: text
+                  required: false
+                  untrusted: true
+                - name: tool_message
+                  type: text
+                  required: false
+                  untrusted: true
+                - name: evidence_snippet
+                  type: text
+                  required: false
+                  untrusted: true
+                - name: organization_tag
+                  type: string
+                  required: false
+                  untrusted: false
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "ok"
+      exit: 0
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: true
+      patches:
+        - id: "O01"
+          result: "clean"
+    source: "specification"
+  - name: "fixture-up-guard-exposed.yaml"
+    description: "A shipped item leaving exposed blocks the patch."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_relationship
+            id: p42-r1
+            set:
+              content: structured
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "conflicted"
+      exit: 3
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: false
+      guard_sets:
+        - "exposed"
+      patches:
+        - id: "O01"
+          result: "conflicted"
+    source: "specification"
+  - name: "fixture-up-guard-cannot_clear.yaml"
+    description: "A shipped item leaving cannot_clear blocks the patch."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_element
+            id: s4.model-data-gateway
+            set:
+              model_boundary: true
+              decision: deterministic
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "conflicted"
+      exit: 3
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: false
+      guard_sets:
+        - "cannot_clear"
+      patches:
+        - id: "O01"
+          result: "conflicted"
+    source: "specification"
+  - name: "fixture-up-guard-label_clearings.yaml"
+    description: "A shipped item leaving label_clearings blocks the patch."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_relationship
+            id: p42-r3
+            unset:
+              - content
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "conflicted"
+      exit: 3
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: false
+      guard_sets:
+        - "label_clearings"
+      patches:
+        - id: "O01"
+          result: "conflicted"
+    source: "specification"
+  - name: "fixture-up-guard-fix_brief_edges.yaml"
+    description: "A shipped item leaving fix_brief_edges blocks the patch."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_relationship
+            id: p41-r3
+            set:
+              carries:
+                []
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "conflicted"
+      exit: 3
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: false
+      guard_sets:
+        - "fix_brief_edges"
+      patches:
+        - id: "O01"
+          result: "conflicted"
+    source: "specification"
+  - name: "fixture-up-guard-learning_stores.yaml"
+    description: "A shipped item leaving learning_stores blocks the patch."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_element
+            id: s5.learning-store
+            unset:
+              - learning_store
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "conflicted"
+      exit: 3
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: false
+      guard_sets:
+        - "learning_stores"
+      patches:
+        - id: "O01"
+          result: "conflicted"
+    source: "specification"
+  - name: "fixture-up-guard-learning_releases.yaml"
+    description: "A shipped item leaving learning_releases blocks the patch."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_relationship
+            id: p40-r8
+            set:
+              kind: evidence
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "conflicted"
+      exit: 3
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: false
+      guard_sets:
+        - "learning_releases"
+      patches:
+        - id: "O01"
+          result: "conflicted"
+    source: "specification"
+  - name: "fixture-up-guard-drafters.yaml"
+    description: "A shipped item leaving drafters blocks the patch."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_contract
+            name: PatchCandidate
+            set:
+              produced_by:
+                - s2.hybrid-source-producer
+                - s4.response-proposal-gate
+                - s6.owner-change-connector
+                - people.purple-team
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "conflicted"
+      exit: 3
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: false
+      guard_sets:
+        - "drafters"
+      patches:
+        - id: "O01"
+          result: "conflicted"
+    source: "specification"
+  - name: "fixture-up-guard-drafter_inputs.yaml"
+    description: "A shipped item leaving drafter_inputs blocks the patch."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_relationship
+            id: r009
+            set:
+              carries:
+                []
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "conflicted"
+      exit: 3
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: false
+      guard_sets:
+        - "drafter_inputs"
+      patches:
+        - id: "O01"
+          result: "conflicted"
+    source: "specification"
+  - name: "fixture-up-guard-injection_appliers.yaml"
+    description: "A shipped item leaving injection_appliers blocks the patch."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_element
+            id: s3.local-enforcement-point
+            unset:
+              - applies_injection
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "conflicted"
+      exit: 3
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: false
+      guard_sets:
+        - "injection_appliers"
+      patches:
+        - id: "O01"
+          result: "conflicted"
+    source: "specification"
+  - name: "fixture-up-guard-restore_grants.yaml"
+    description: "A shipped item leaving restore_grants blocks the patch."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_relationship
+            id: p43-r1
+            set:
+              optional: true
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "conflicted"
+      exit: 3
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: false
+      guard_sets:
+        - "restore_grants"
+      patches:
+        - id: "O01"
+          result: "conflicted"
+    source: "specification"
+  - name: "fixture-up-guard-restore_uses.yaml"
+    description: "A shipped item leaving restore_uses blocks the patch."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_relationship
+            id: r080
+            set:
+              timing: cached
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "conflicted"
+      exit: 3
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: false
+      guard_sets:
+        - "restore_uses"
+      patches:
+        - id: "O01"
+          result: "conflicted"
+    source: "specification"
+  - name: "fixture-up-guard-brokers.yaml"
+    description: "A shipped item leaving brokers blocks the patch."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_element
+            id: s3.privileged-access-broker
+            set:
+              trust_zone: execution
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "conflicted"
+      exit: 3
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: false
+      guard_sets:
+        - "brokers"
+      patches:
+        - id: "O01"
+          result: "conflicted"
+    source: "specification"
+  - name: "fixture-up-guard-admin_parts.yaml"
+    description: "A shipped item leaving admin_parts blocks the patch."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_element
+            id: s7.dial-register
+            set:
+              trust_zone: execution
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "conflicted"
+      exit: 3
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: false
+      guard_sets:
+        - "admin_parts"
+      patches:
+        - id: "O01"
+          result: "conflicted"
+    source: "specification"
+  - name: "fixture-up-guard-admin_sessions.yaml"
+    description: "A shipped item leaving admin_sessions blocks the patch."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_relationship
+            id: p45-r30
+            set:
+              optional: true
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "conflicted"
+      exit: 3
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: false
+      guard_sets:
+        - "admin_sessions"
+      patches:
+        - id: "O01"
+          result: "conflicted"
+    source: "specification"
+  - name: "fixture-up-guard-stores.yaml"
+    description: "A shipped item leaving stores blocks the patch."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_element
+            id: s7.value-ledger
+            set:
+              kind: service
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "conflicted"
+      exit: 3
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: false
+      guard_sets:
+        - "stores"
+      patches:
+        - id: "O01"
+          result: "conflicted"
+    source: "specification"
+  - name: "fixture-up-guard-partitioned_stores.yaml"
+    description: "A shipped item leaving partitioned_stores blocks the patch."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_element
+            id: s5.protected-evidence-store
+            unset:
+              - partitioned_by
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "conflicted"
+      exit: 3
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: false
+      guard_sets:
+        - "partitioned_stores"
+      patches:
+        - id: "O01"
+          result: "conflicted"
+    source: "specification"
+  - name: "fixture-up-guard-reason_store_inputs.yaml"
+    description: "A shipped item leaving reason_store_inputs blocks the patch."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_relationship
+            id: p16-r1
+            set:
+              kind: control
+              carries:
+                []
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "conflicted"
+      exit: 3
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: false
+      guard_sets:
+        - "reason_store_inputs"
+      patches:
+        - id: "O01"
+          result: "conflicted"
+    source: "specification"
+  - name: "fixture-up-guard-orchestrators.yaml"
+    description: "A shipped item leaving orchestrators blocks the patch."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_element
+            id: s2.workflow-engine
+            unset:
+              - orchestrator
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "conflicted"
+      exit: 3
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: false
+      guard_sets:
+        - "orchestrators"
+      patches:
+        - id: "O01"
+          result: "conflicted"
+    source: "specification"
+  - name: "fixture-up-guard-memory_stores.yaml"
+    description: "A shipped item leaving memory_stores blocks the patch."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_element
+            id: s1.tool-lead-store
+            set:
+              kind: service
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "conflicted"
+      exit: 3
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: false
+      guard_sets:
+        - "memory_stores"
+      patches:
+        - id: "O01"
+          result: "conflicted"
+    source: "specification"
+  - name: "fixture-up-guard-controllers.yaml"
+    description: "A shipped item leaving controllers blocks the patch."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_relationship
+            id: p14-r1
+            set:
+              kind: data
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "conflicted"
+      exit: 3
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: false
+      guard_sets:
+        - "controllers"
+      patches:
+        - id: "O01"
+          result: "conflicted"
+    source: "specification"
+  - name: "fixture-up-guard-controller_feedback.yaml"
+    description: "A shipped item leaving controller_feedback blocks the patch."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_relationship
+            id: p54-r9
+            set:
+              optional: true
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "conflicted"
+      exit: 3
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: false
+      guard_sets:
+        - "controller_feedback"
+      patches:
+        - id: "O01"
+          result: "conflicted"
+    source: "specification"
+  - name: "fixture-up-guard-harnesses.yaml"
+    description: "A shipped item leaving harnesses blocks the patch."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_element
+            id: jig:harness-full-parity
+            unset:
+              - harness
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "conflicted"
+      exit: 3
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: false
+      guard_sets:
+        - "harnesses"
+      patches:
+        - id: "O01"
+          result: "conflicted"
+    source: "specification"
+  - name: "fixture-up-guard-harness_compensations.yaml"
+    description: "A shipped item leaving harness_compensations blocks the patch."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_relationship
+            id: jig:p55-r20
+            set:
+              optional: true
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "conflicted"
+      exit: 3
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: false
+      guard_sets:
+        - "harness_compensations"
+      patches:
+        - id: "O01"
+          result: "conflicted"
+    source: "specification"
+  - name: "fixture-up-guard-assumption_holders.yaml"
+    description: "A shipped item leaving assumption_holders blocks the patch."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_element
+            id: shared:ext.engineering-workflows
+            unset:
+              - assumptions
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "conflicted"
+      exit: 3
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: false
+      guard_sets:
+        - "assumption_holders"
+      patches:
+        - id: "O01"
+          result: "conflicted"
+    source: "specification"
+  - name: "fixture-up-guard-rule_routers.yaml"
+    description: "A shipped item leaving rule_routers blocks the patch."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_element
+            id: jig:hunk-router
+            unset:
+              - routes_by_rule
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "conflicted"
+      exit: 3
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: false
+      guard_sets:
+        - "rule_routers"
+      patches:
+        - id: "O01"
+          result: "conflicted"
+    source: "specification"
+  - name: "fixture-up-guard-router_model_inputs.yaml"
+    description: "A shipped item leaving router_model_inputs blocks the patch."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_relationship
+            id: jig:p55-r56
+            set:
+              from: jig:people.change-reviewer
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "conflicted"
+      exit: 3
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: false
+      guard_sets:
+        - "router_model_inputs"
+      patches:
+        - id: "O01"
+          result: "conflicted"
+    source: "specification"
+  - name: "fixture-up-guard-typed_contracts.yaml"
+    description: "A shipped item leaving typed_contracts blocks the patch."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_contract
+            name: shared:ToolLead
+            unset:
+              - fields
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "conflicted"
+      exit: 3
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: false
+      guard_sets:
+        - "typed_contracts"
+      patches:
+        - id: "O01"
+          result: "conflicted"
+    source: "specification"
+  - name: "fixture-up-guard-untrusted_fields.yaml"
+    description: "A shipped item leaving untrusted_fields blocks the patch."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_contract
+            name: shared:ToolLead
+            set:
+              fields:
+                - name: lead_id
+                  type: id
+                  required: true
+                - name: form
+                  type: enum
+                  values:
+                    - hit
+                    - rule-summary
+                  required: true
+                - name: tool
+                  type: string
+                  required: true
+                - name: tool_version
+                  type: string
+                  required: true
+                - name: rule_id
+                  type: string
+                  required: true
+                - name: rule_version
+                  type: string
+                  required: true
+                - name: rule_renamed_from
+                  type: string
+                  required: false
+                - name: tool_class
+                  type: enum
+                  values:
+                    - sast
+                    - dast
+                    - sca
+                    - secrets
+                    - iac
+                    - container
+                    - linter
+                    - ai-review
+                    - bug-bounty
+                    - pentest
+                  required: true
+                - name: detection_layer
+                  type: enum
+                  values:
+                    - agent-edit
+                    - stop-gate
+                    - commit
+                    - push
+                    - pr
+                    - post-merge
+                    - external
+                  required: true
+                - name: target
+                  type: id
+                  required: true
+                - name: location
+                  type: string
+                  required: false
+                - name: severity
+                  type: string
+                  required: false
+                  description: As the tool reported it
+                - name: confidence
+                  type: string
+                  required: false
+                  description: As the tool reported it
+                - name: triage_verdict
+                  type: string
+                  required: false
+                  description: "The source loop's own triage label"
+                - name: observed_at
+                  type: date-time
+                  required: true
+                - name: fingerprint
+                  type: hash
+                  required: true
+                - name: obligation_mandated
+                  type: boolean
+                  required: true
+                - name: status
+                  type: enum
+                  values:
+                    - open
+                    - demonstrated
+                    - not-reproduced-in-sample
+                    - untested
+                  required: true
+                - name: demonstrated_path_ids
+                  type: list
+                  of: id
+                  required: false
+                - name: quarantined_classification
+                  type: string
+                  required: false
+                  description: Schema-bound output of the quarantined lead reader
+                - name: period
+                  type: string
+                  required: false
+                  description: Rule-summary form
+                - name: hit_count
+                  type: integer
+                  required: false
+                  description: Rule-summary form
+                - name: sample_lead_ids
+                  type: list
+                  of: id
+                  required: false
+                  description: Rule-summary form
+                - name: title
+                  type: text
+                  required: false
+                  untrusted: false
+                - name: description
+                  type: text
+                  required: false
+                  untrusted: true
+                - name: submitter_text
+                  type: text
+                  required: false
+                  untrusted: true
+                - name: tool_message
+                  type: text
+                  required: false
+                  untrusted: true
+                - name: evidence_snippet
+                  type: text
+                  required: false
+                  untrusted: true
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "conflicted"
+      exit: 3
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: false
+      guard_sets:
+        - "untrusted_fields"
+      patches:
+        - id: "O01"
+          result: "conflicted"
+    source: "specification"
+  - name: "fixture-up-guard-agent_reach_inputs.yaml"
+    description: "A shipped item leaving agent_reach_inputs blocks the patch."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_relationship
+            id: shared:p30-r1
+            set:
+              to: s5.review-console
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "conflicted"
+      exit: 3
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: false
+      guard_sets:
+        - "agent_reach_inputs"
+      patches:
+        - id: "O01"
+          result: "conflicted"
+    source: "specification"
+  - name: "fixture-up-guard-held_kinds.yaml"
+    description: "A shipped item leaving held_kinds blocks the patch."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_finding_kind
+            id: path
+            unset:
+              - held
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "conflicted"
+      exit: 3
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: false
+      guard_sets:
+        - "held_kinds"
+      patches:
+        - id: "O01"
+          result: "conflicted"
+    source: "specification"
+  - name: "fixture-up-guard-evidence_contracts.yaml"
+    description: "A shipped item leaving evidence_contracts blocks the patch."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_contract
+            name: VerifiedObservation
+            set:
+              produced_by:
+                []
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "conflicted"
+      exit: 3
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: false
+      guard_sets:
+        - "evidence_contracts"
+      patches:
+        - id: "O01"
+          result: "conflicted"
+    source: "specification"
+  - name: "fixture-up-guard-evidence_sinks.yaml"
+    description: "A shipped item leaving evidence_sinks blocks the patch."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_relationship
+            id: r042
+            set:
+              carries:
+                []
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "conflicted"
+      exit: 3
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: false
+      guard_sets:
+        - "evidence_sinks"
+      patches:
+        - id: "O01"
+          result: "conflicted"
+    source: "specification"
+  - name: "fixture-up-guard-evidence_store_inputs.yaml"
+    description: "A shipped item leaving evidence_store_inputs blocks the patch."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_relationship
+            id: r071
+            set:
+              kind: data
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "conflicted"
+      exit: 3
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: false
+      guard_sets:
+        - "evidence_store_inputs"
+      patches:
+        - id: "O01"
+          result: "conflicted"
+    source: "specification"
+  - name: "fixture-up-guard-restricted_contracts.yaml"
+    description: "A shipped item leaving restricted_contracts blocks the patch."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_contract
+            name: GateCatchRate
+            unset:
+              - audience
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "conflicted"
+      exit: 3
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: false
+      guard_sets:
+        - "restricted_contracts"
+      patches:
+        - id: "O01"
+          result: "conflicted"
+    source: "specification"
+  - name: "fixture-up-guard-restricted_deliveries.yaml"
+    description: "A shipped item leaving restricted_deliveries blocks the patch."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_relationship
+            id: p54-r1
+            set:
+              carries:
+                []
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "conflicted"
+      exit: 3
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: false
+      guard_sets:
+        - "restricted_deliveries"
+      patches:
+        - id: "O01"
+          result: "conflicted"
+    source: "specification"
+  - name: "fixture-up-guard-coding_agent_controllers.yaml"
+    description: "A shipped item leaving coding_agent_controllers blocks the patch."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_relationship
+            id: jig:p55-r17
+            set:
+              optional: true
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "conflicted"
+      exit: 3
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: false
+      guard_sets:
+        - "coding_agent_controllers"
+      patches:
+        - id: "O01"
+          result: "conflicted"
+    source: "specification"
+  - name: "fixture-up-guard-seam_crossings.yaml"
+    description: "A shipped item leaving seam_crossings blocks the patch."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_element
+            id: ext.threat-intelligence
+            unset:
+              - module
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "conflicted"
+      exit: 3
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: false
+      guard_sets:
+        - "seam_crossings"
+      patches:
+        - id: "O01"
+          result: "conflicted"
+    source: "specification"
+  - name: "fixture-up-jig-repin.yaml"
+    description: "The successor pins a renamed Jig part and the organization patch follows its qualified id."
+    files:
+      held/:
+        fixture_edition: "namespaced-held"
+      new/:
+        fixture_edition: "namespaced-successor"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_element
+            id: jig:stop-gate
+            set:
+              owner: Organization creation team
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "ok"
+      exit: 0
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: true
+      patches:
+        - id: "O01"
+          result: "renamed"
+      patch_ops_after:
+        O01-change.md:
+          - op: "modify_element"
+            id: "jig:session-stop-gate"
+            set:
+              owner: "Organization creation team"
+      model:
+        elements:
+          "jig:session-stop-gate":
+            owner: "Organization creation team"
+      repins:
+        - namespace: "jig"
+          to: "0.1.1-fixture"
+    source: "specification"
+  - name: "fixture-up-shared-change.yaml"
+    description: "A shared part and a shared crossing changed upstream both reach organization patches."
+    files:
+      held/:
+        fixture_edition: "namespaced-held"
+      new/:
+        fixture_edition: "namespaced-successor"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_element
+            id: shared:ext.engineering-workflows
+            set:
+              responsibility: Organization engineering responsibilities.
+          - op: modify_relationship
+            id: shared:r002
+            set:
+              label: Organization handoff
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "conflicted"
+      exit: 3
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: false
+      patches:
+        - id: "O01"
+          conflicts:
+            - code: "conflict.changed-upstream"
+              target: "shared:ext.engineering-workflows"
+              keys:
+                - "responsibility"
+            - code: "conflict.changed-upstream"
+              target: "shared:r002"
+              keys:
+                - "label"
+      repins:
+        - namespace: "jig"
+          to: "0.1.1-fixture"
+    source: "specification"
+  - name: "fixture-up-closure-signoff.yaml"
+    description: "Rewording a shipped closure voids its organization sign-off, preserves the file and returns its grid cells to proposed."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "closure-successor"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/closures.yaml:
+        fixture_sign_off: true
+    expect:
+      outcome: "ok"
+      exit: 0
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: true
+      voided_sign_offs:
+        - file: "closures.yaml"
+          contract: "ReleaseAttestation"
+          letter: "T"
+      grid_proposed: true
+      preserve_closure_files: true
+      findings_report:
+        path: "upgrade-report.md"
+        contains:
+          - "Voided closure sign-offs"
+          - "ReleaseAttestation"
+          - "cells proposed"
+    source: "specification"
+  - name: "fixture-up-agent-steps.yaml"
+    description: "The readable changelog report keeps child steps below their parent."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+    expect:
+      outcome: "ok"
+      exit: 0
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: true
+      agent_steps:
+        - version: "5.0.1-fixture"
+          should_do:
+            - "Read the changed flows."
+            - "   Check custody."
+            - "   Check the receiving boundary."
+          changed_meaning: []
+      findings_report:
+        path: "upgrade-report.md"
+        contains:
+          - |-
+            - Read the changed flows.
+               - Check custody.
+               - Check the receiving boundary.
+    source: "specification"
+  - name: "fixture-up-merge-keys.yaml"
+    description: "Fixture merge mappings expand and explicit file keys override the merged ones."
+    files:
+      "<<":
+        held/:
+          fixture_edition: "held"
+        new/:
+          fixture_edition: "unchanged"
+        org/profile.yaml: |
+          profile: { name: Example, description: Organization fixture. }
+          exceptions: []
+        org/version.yaml: |
+          version: 5.0.0+example.2
+          upstream: 5.0.0
+          org: example
+          n: 2
+          history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_element
+            id: s3.approval-console
+            set:
+              owner: Organization control team
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "ok"
+      exit: 0
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: true
+      patches:
+        - id: "O01"
+          result: "clean"
+    source: "specification"
+  - name: "fixture-up-downgrade.yaml"
+    description: "A target before the held successor is refused."
+    files:
+      held/:
+        fixture_edition: "successor"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        upstream: 5.0.1-fixture
+        org: example
+    expect:
+      outcome: "error"
+      exit: 1
+      errors:
+        - "version.downgrade"
+      warnings: []
+      output_written: false
+    source: "specification"
+    options:
+      target: "5.0.0"
+  - name: "fixture-up-bad-kind.yaml"
+    description: "An unknown rename kind refuses the run before output."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      new/CHANGELOG.md: |
+        # Changelog
+
+        ## [5.0.1-fixture]
+
+        ### Renamed identifiers
+
+        ```yaml
+        renames:
+          - kind: widget
+            from: old
+            to: new
+        ```
+
+        ## [5.0.0]
+    expect:
+      outcome: "error"
+      exit: 1
+      errors:
+        - "changelog.kind"
+      warnings: []
+      output_written: false
+    source: "specification"
+  - name: "fixture-up-profile-field.yaml"
+    description: "A scripted successor rename moves a profile key without changing its answer."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: {name: Example}
+        held_boundary: { status: active, confirmed_by_role: Review team }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      new/CHANGELOG.md: |
+        # Changelog
+
+        ## [5.0.1-fixture]
+
+        ### Renamed identifiers
+
+        ```yaml
+        renames:
+          - kind: profile-field
+            from: held_boundary
+            to: phase_1_boundary
+        ```
+
+        ## [5.0.0]
+    expect:
+      outcome: "ok"
+      exit: 0
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: true
+      profile_key_order:
+        - "profile"
+        - "phase_1_boundary"
+        - "exceptions"
+      renames_applied_count: 1
+    source: "specification"
+  - name: "fixture-up-field-rename.yaml"
+    description: "A unit field rename keeps its value and affects no unrelated key."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      new/CHANGELOG.md: |
+        # Changelog
+
+        ## [5.0.1-fixture]
+
+        ### Renamed identifiers
+
+        ```yaml
+        renames:
+          - kind: work-unit-field
+            from: held_phase
+            to: phase
+        ```
+
+        ## [5.0.0]
+      org/units.yaml:
+        add:
+          - id: "org-check"
+            held_phase: 1
+    expect:
+      outcome: "ok"
+      exit: 0
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: true
+      output_values:
+        units.yaml:
+          - path:
+              - "add"
+              - "0"
+              - "phase"
+            value: 1
+          - path:
+              - "add"
+              - "0"
+              - "held_phase"
+            value: null
+    source: "specification"
+  - name: "fixture-up-expects-conflict.yaml"
+    description: "An earlier organization patch changing a stable upstream field still trips expects."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_element
+            id: s3.approval-console
+            set:
+              owner: Organization control team
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+      org/patches/O02-change.md: |
+        # O02: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_element
+            id: s3.approval-console
+            set:
+              owner: Organization review team
+            expects:
+              owner: a282ea57a202
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "conflicted"
+      exit: 3
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: false
+      patches:
+        - id: "O01"
+          result: "clean"
+        - id: "O02"
+          conflicts:
+            - code: "conflict.invalid"
+              applier_code: "op.expects-mismatch"
+    source: "specification"
+  - name: "fixture-up-mechanical-session.yaml"
+    description: "An organization control-zone store gets one proposed broker-session correction, previewed and resolving its error."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: add_element
+            element:
+              id: org.control-store
+              name: Organization evidence store
+              aliases:
+                []
+              system: S5
+              level: store
+              kind: store
+              responsibility: Keeps the organization evidence records.
+              role_class: evidence
+              trust_zone: control
+              owner: Evidence/findings product + security/risk owners
+              partitioned_by:
+                - jurisdiction
+                - line_of_business
+            layers:
+              realization:
+                plane: evidence
+                class: "Immutable object store (object lock, write-once)"
+                examples:
+                  - MinIO object locking
+                  - Ceph RGW object lock
+                swap_point: false
+                existing_tool_default: false
+              quality:
+                - T1
+                - queue-and-retry
+                - write-once
+              overlay:
+                services:
+                  - S3 Object Lock in compliance mode
+                  - AWS Backup Vault Lock
+                fit: managed
+                account: evidence
+                portability: open
+                residency: true
+                keeps: "Compliance-mode retention cannot be shortened by anyone, including the account root; the organization sets the retention."
+                note: Cross-Region replication for region-loss recovery copies evidence; point it only at Regions the profile allows.
+          - op: modify_contract
+            name: AdminSession
+            set:
+              consumed_by:
+                - s3.policy-decision-point
+                - s3.grant-approval-store
+                - s3.key-management
+                - s5.protected-evidence-store
+                - s4.request-data-gate
+                - s4.response-proposal-gate
+                - s3.protected-audit
+                - s3.action-control-service
+                - s5.proof-evidence-service
+                - s1.live-precondition-resolver
+                - s6.release-state-correlator
+                - s6.retest-regression-planner
+                - s6.road-conformance-check
+                - s6.developer-queue-filter
+                - s6.fix-cap-gate
+                - s7.promotion-review
+                - s7.assurance-incident-integration
+                - s5.fixture-oracle-registry
+                - s5.finding-ledger
+                - s6.change-closure-records
+                - s6.regression-catalog
+                - s1.consequence-register
+                - s5.path-impact-graph
+                - s3.gate-failure-policy
+                - s5.failure-class-registry
+                - s5.road-assurance-record
+                - s7.tool-portfolio-decisions
+                - s7.dial-register
+                - s6.fix-cap-refusal-log
+                - s5.learning-store
+                - s3.policy-release-pipeline
+                - s3.privileged-access-broker
+                - s6.kept-test-mirror
+                - org.control-store
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "ok"
+      exit: 0
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: true
+      patches:
+        - id: "O01"
+          result: "clean"
+          resolved:
+            - code: "admin-unbrokered"
+              location: "org.control-store"
+              resolved_by: "O02"
+        - id: "O02"
+          status: "proposed"
+          written_by_upgrade: true
+          result: "clean"
+      model:
+        relationships:
+          o02-r1:
+            from: "s3.privileged-access-broker"
+            to: "org.control-store"
+            label: "Administrative session under dual control"
+    source: "specification"
+  - name: "fixture-up-mechanical-partition.yaml"
+    description: "Partition keys replace a shipped reason through a proposed unset correction."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_element
+            id: s7.value-ledger
+            set:
+              partitioned_by:
+                - organization
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "ok"
+      exit: 0
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: true
+      patches:
+        - id: "O01"
+          result: "clean"
+          resolved:
+            - code: "store-partition"
+              location: "s7.value-ledger"
+              resolved_by: "O02"
+        - id: "O02"
+          written_by_upgrade: true
+          status: "proposed"
+      model:
+        absent:
+          elements:
+            s7.value-ledger:
+              - "unpartitioned"
+    source: "specification"
+  - name: "fixture-up-fix-chain.yaml"
+    description: "A dependent layer correction resolves the original patch at the end of its chain."
+    files:
+      held/:
+        fixture_edition: "held"
+      new/:
+        fixture_edition: "unchanged"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: add_element
+            element:
+              id: org.receipts
+              name: Organization receipts
+              aliases:
+                []
+              system: S4
+              level: store
+              kind: store
+              responsibility: Keeps organization route receipts.
+              role_class: evidence
+              trust_zone: reasoning
+              owner: AI platform/gateway + data-risk/security owners
+              unpartitioned: "Model usage, cost and references to inputs and outputs, never their content."
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+      org/patches/O02-change.md: |
+        # O02: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: set_layers
+            id: org.receipts
+            realization:
+              plane: model-access
+              class: Usage telemetry store
+              examples:
+                - OpenTelemetry into ClickHouse
+              swap_point: false
+              existing_tool_default: false
+            quality:
+              - T3
+              - continue-without
+              - usage gaps flagged in cost ledger
+            overlay:
+              services:
+                - CloudWatch
+                - Bedrock model invocation logging to S3
+              fit: managed
+              account: reasoning
+              portability: proprietary
+              note: Invocation logging is off by default; logs stay in the source Region and record the Region that served the request.
+        depends_on:
+          - O01
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "ok"
+      exit: 0
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: true
+      patches:
+        - id: "O01"
+          result: "clean"
+          resolved:
+            - code: "overlay-missing"
+              location: "org.receipts"
+              resolved_by: "O02"
+            - code: "quality-missing"
+              location: "org.receipts"
+              resolved_by: "O02"
+            - code: "realization-missing"
+              location: "org.receipts"
+              resolved_by: "O02"
+        - id: "O02"
+          result: "clean"
+    source: "specification"
+  - name: "fixture-up-pin-corrupt.yaml"
+    description: "A pinned Jig file differing from its recorded hash refuses the upgrade."
+    files:
+      held/:
+        fixture_edition: "namespaced-held"
+      new/:
+        fixture_edition: "namespaced-successor"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      new/pins/jig/model.yaml: "changed pinned bytes"
+    expect:
+      outcome: "error"
+      exit: 1
+      errors:
+        - "pin.mismatch"
+      warnings: []
+      output_written: false
+    source: "specification"
+  - name: "fixture-up-namespaced-unreadable.yaml"
+    description: "A re-pin refuses an invalid dependency before output."
+    files:
+      held/:
+        fixture_edition: "namespaced-held"
+      new/:
+        fixture_edition: "namespaced-unreadable"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+    expect:
+      outcome: "error"
+      exit: 1
+      errors:
+        - "pin.unreadable"
+      warnings: []
+      output_written: false
+    source: "specification"
+  - name: "fixture-up-namespaced-history.yaml"
+    description: "A re-pin refuses an invalid dependency before output."
+    files:
+      held/:
+        fixture_edition: "namespaced-held"
+      new/:
+        fixture_edition: "namespaced-history"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+    expect:
+      outcome: "error"
+      exit: 1
+      errors:
+        - "pin.history"
+      warnings: []
+      output_written: false
+    source: "specification"
+  - name: "fixture-up-namespaced-downgrade.yaml"
+    description: "A re-pin refuses an invalid dependency before output."
+    files:
+      held/:
+        fixture_edition: "namespaced-high-held"
+      new/:
+        fixture_edition: "namespaced-downgrade"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+    expect:
+      outcome: "error"
+      exit: 1
+      errors:
+        - "pin.downgrade"
+      warnings: []
+      output_written: false
+    source: "specification"
+  - name: "fixture-up-namespaced-shared-mismatch.yaml"
+    description: "A re-pin refuses an invalid dependency before output."
+    files:
+      held/:
+        fixture_edition: "namespaced-held"
+      new/:
+        fixture_edition: "namespaced-shared-mismatch"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+    expect:
+      outcome: "error"
+      exit: 1
+      errors:
+        - "pin.mismatch"
+      warnings: []
+      output_written: false
+    source: "specification"
+  - name: "fixture-up-jig-repin-two-steps.yaml"
+    description: "Two ordered Jig versions rename a relationship twice; the patch follows both."
+    files:
+      held/:
+        fixture_edition: "namespaced-held"
+      new/:
+        fixture_edition: "namespaced-multistep"
+      org/profile.yaml: |
+        profile: { name: Example, description: Organization fixture. }
+        exceptions: []
+      org/version.yaml: |
+        version: 5.0.0+example.2
+        upstream: 5.0.0
+        org: example
+        n: 2
+        history: []
+      org/patches/O01-change.md: |
+        # O01: Organization change
+
+        ## Why
+        The organization needs this change to fit its own approval practice.
+
+        ## Ops
+        ```yaml
+        ops:
+          - op: modify_relationship
+            id: jig:p55-r1
+            set:
+              label: Organization session entry
+        ```
+
+        ## Risk and threat-model delta
+        No new path reaches an authorization decision.
+
+        ## Feasibility note
+        One team builds it within one phase.
+
+        ## Exceptions needed
+        None.
+
+        ## Status
+        accepted by the security risk owner on 2030-01-15
+    expect:
+      outcome: "ok"
+      exit: 0
+      errors: []
+      warnings:
+        - code: "checks.baseline"
+          location: "shared:secure-creation.default_exceptions[0]"
+      checks_baseline:
+        - code: "seam-exception-invalid"
+          location: "shared:secure-creation.default_exceptions[0]"
+      model_written: true
+      patches:
+        - id: "O01"
+          result: "renamed"
+      patch_ops_after:
+        O01-change.md:
+          - op: "modify_relationship"
+            id: "jig:session-entry"
+            set:
+              label: "Organization session entry"
+      repins:
+        - namespace: "jig"
+          to: "0.1.2-fixture"
+    source: "specification"
