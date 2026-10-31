@@ -1,0 +1,392 @@
+# Profile checker fixture: evaluation date 2026-12-01, complete mode. Expected result in expected-results.yaml.
+# Ratchet edition 5.2.0. Generated; do not edit.
+profile: 
+  name: example-mission-critical
+  description: "Operator of essential services with life-safety software; continuous delivery on most services, strict change windows on control systems; bounded risk accepted to ship urgent safety fixes."
+existing_tools: 
+  STEP-1: issue tracker
+  STEP-2: asset inventory
+  STEP-3: null
+  STEP-4: enterprise IAM with just-in-time access
+  STEP-5: isolated lab environment
+  STEP-6: null
+  STEP-7: issue tracker
+  STEP-8: SCM and progressive delivery
+  STEP-9: deployment records
+  STEP-10: CI pipeline
+  STEP-11: null
+jurisdictions: 
+  - id: example-critical-infrastructure
+    incident_clocks: 
+      - event: covered cyber incident report
+        hours: 72
+        authority: "Example: national critical-infrastructure agency (overlay only)"
+delivery: 
+  deploy_cadence: continuous
+  starting_cadence_rung: scheduled
+  standard_change_preapproval: true
+ownership: 
+  q1_checking_team: second-line
+  q2_runtime_producer: red-team
+  q3_promotion_authority: security-leadership
+separation: 
+  producer_team: offensive security engineering
+  approver_team: operations security
+  fixture_oracle_owner_team: assurance
+  verifier_team: assurance
+  fix_author_team: service engineering
+  closure_acceptor_team: assurance
+  business_risk_owner_role: operations risk owner
+  security_risk_owner_role: security risk office
+  control_plane_operator_role: assurance control operations
+  platform_operator_role: platform engineering
+  team_definition: org-chart team with its own manager and on-call rotation
+  internal_audit_role: closure-acceptor
+ledger_write_path: intake-only
+road: 
+  owner_team: platform engineering
+  metrics_owner_team: assurance analytics
+  assets: 
+    developer_portal: null
+    base_images: hardened base images
+    container_platform_policy: null
+    api_auth_libraries: null
+    gateway: service mesh ingress
+    secure_defaults_linters: static analysis rule pack
+  conformance_basis: deployed-state
+  conformance_granularity: call-site
+  vet_each_version: true
+  covered_sample_share: 0.1
+  escape_hatch_reinstates_regressions: true
+  authorship_labeling: unlabeled
+  enforced_preferred: true
+  opt_in_coverage_requires_call_site_check: true
+tools: 
+  existing: 
+    sast: 
+      - name: CodeQL
+        mandated: false
+    dast: 
+      []
+    sca: 
+      - name: OSV-Scanner
+        mandated: true
+        obligation: software supply chain directive for operational systems
+    secrets: 
+      - name: Gitleaks
+        mandated: false
+    iac: 
+      []
+    container: 
+      - name: Trivy
+        mandated: false
+    linter: 
+      - name: static analysis rule pack
+        mandated: false
+    bug_bounty: 
+      []
+    pentest: 
+      - name: periodic red team engagement
+        mandated: false
+    threat_modeling: 
+      - name: OWASP Threat Dragon models
+        mandated: false
+    security_review: 
+      - name: safety and security case review
+        mandated: true
+        obligation: safety case approval before operational release
+  tool_owner_team: security engineering tools
+  yield_owner_team: assurance analytics
+  decision_owner_role: security risk office
+  confidence_bar_default: 0.6
+  sample_minimum_per_class: 25
+  leads_count_as_coverage: false
+  yield_requires_sampling: true
+  delivery_metrics_collected: 
+    - pipeline_stage_timings
+    - blocked_deploys
+    - change_fail_rate
+    - failed_deployment_recovery_time
+modules: 
+  consequence-gates: 
+    enabled: true
+    evidence: 
+      findings_with_reached_assets: 12
+  paved-road: 
+    enabled: false
+    evidence: 
+      classes_with_two_reproduced: 1
+  tool-portfolio: 
+    enabled: false
+    evidence: 
+      closed_cases_with_lead_provenance: 4
+      lead_text_quarantined: false
+  production-effects: 
+    enabled: false
+    evidence: 
+      phase_3_continue_decision: false
+      approved_production_profile: false
+  secure-creation: 
+    enabled: true
+    evidence: 
+      provenance_stamped_share: 0.9
+      provenance_share_required: 0.8
+      derived_checks_running: 2
+dials: 
+  - id: covered_sample_share
+    current: 0.1
+    turned_by_role: security risk office
+    last_turn_evidence: core default
+    below_bound_acceptance: null
+  - id: negative_challenge_sample_share
+    current: 0.1
+    turned_by_role: security risk office
+    last_turn_evidence: core default
+    below_bound_acceptance: null
+  - id: lead_sample_minimum_per_class
+    current: 25
+    turned_by_role: security risk office
+    last_turn_evidence: "small tool classes: two SAST tools only"
+    below_bound_acceptance: "RA-EXAMPLE-07 (security risk owner, expires after the first yield report)"
+  - id: held_lead_sample_share
+    current: 0.05
+    turned_by_role: security risk office
+    last_turn_evidence: core default
+    below_bound_acceptance: null
+  - id: seeded_proposal_rate
+    current: 0.04
+    turned_by_role: security risk office
+    last_turn_evidence: low approval volume; doubled so each approver sees a seed each month
+    below_bound_acceptance: null
+  - id: ship_through_renewal_cap
+    current: 1
+    turned_by_role: security risk office
+    last_turn_evidence: "life-safety paths: one renewal before review"
+    below_bound_acceptance: null
+  - id: approver_wip_limit
+    current: 10
+    turned_by_role: security risk office
+    last_turn_evidence: small approver pool
+    below_bound_acceptance: null
+  - id: verifier_wip_limit
+    current: 8
+    turned_by_role: security risk office
+    last_turn_evidence: small verifier pool
+    below_bound_acceptance: null
+  - id: gate_queue_age_hours
+    current: 24
+    turned_by_role: security risk office
+    last_turn_evidence: mission tempo
+    below_bound_acceptance: null
+  - id: handoffs_per_closed_loop_ceiling
+    current: 10
+    turned_by_role: security risk office
+    last_turn_evidence: phase 2 baseline
+    below_bound_acceptance: null
+  - id: regression_time_budget_minutes
+    current: 5
+    turned_by_role: security risk office
+    last_turn_evidence: continuous deploys
+    below_bound_acceptance: null
+  - id: confidence_bar_default
+    current: 0.6
+    turned_by_role: security risk office
+    last_turn_evidence: initial bar before measured yield
+    below_bound_acceptance: null
+  - id: posture_review_interval_months
+    current: 3
+    turned_by_role: security risk office
+    last_turn_evidence: quarterly review
+    below_bound_acceptance: null
+  - id: early_stop_min_closed_cases
+    current: 5
+    turned_by_role: security risk office
+    last_turn_evidence: core default
+    below_bound_acceptance: null
+  - id: approver_drift_threshold_pp
+    current: 10
+    turned_by_role: security risk office
+    last_turn_evidence: core default
+    below_bound_acceptance: null
+  - id: failover_drill_interval_days
+    current: 30
+    turned_by_role: security risk office
+    last_turn_evidence: core default
+    below_bound_acceptance: null
+  - id: typed_route_max_calibration_error
+    current: 0.05
+    turned_by_role: security risk office
+    last_turn_evidence: core default
+    below_bound_acceptance: null
+  - id: posture_expiry_hours
+    current: 168
+    turned_by_role: security risk office
+    last_turn_evidence: "core default: above the worst credible recovery time including region loss"
+    below_bound_acceptance: null
+  - id: window_bundle_lead_hours
+    current: 4
+    turned_by_role: security risk office
+    last_turn_evidence: core default
+    below_bound_acceptance: null
+models: 
+  eligible_routes: 
+    - id: on-prem-open-weight
+      kind: self-hosted
+      data_classes_allowed: 
+        - internal
+        - confidential
+        - restricted
+  data_residency: 
+    - national
+scale: 
+  services: 400
+  teams: 60
+  engineers: 350
+risk_appetite: moderate
+attestation: 
+  drafter_team: assurance testing team
+  asset_owner_role: operating division head
+  draft_sources: 
+    - business-impact-analysis
+    - continuity-tier
+    - service-catalog
+  retrigger: material-change
+  calendar_max_months: null
+  owner_minutes_target: 20
+unattested_default: crown-jewel
+crown_jewel_register: 
+  - asset: grid-control-plane
+    line_of_business: grid operations
+    tier: crown-jewel
+    impact_score: 95
+    drafted_by: assurance testing team
+    drafted_from: 
+      - business-impact-analysis
+      - continuity-tier
+    confirmed_by: grid operations division head
+    confirmed_on: 2026-08-15
+  - asset: field-telemetry
+    line_of_business: grid operations
+    tier: critical
+    impact_score: 70
+    drafted_by: assurance testing team
+    drafted_from: 
+      - continuity-tier
+    confirmed_by: grid operations division head
+    confirmed_on: 2026-08-15
+  - asset: customer-portal
+    line_of_business: customer service
+    tier: standard
+    impact_score: 30
+    drafted_by: assurance testing team
+    drafted_from: 
+      - service-catalog
+    confirmed_by: customer service division head
+    confirmed_on: 2026-08-15
+blocking_cost_register: 
+  - service: dispatch-safety-service
+    blocking_cost_tier: life-safety
+  - service: customer-portal
+    blocking_cost_tier: standard
+tier_overrides: null
+gate_failure_policy: 
+  key: tier
+  by_tier: 
+    crown-jewel: fail-closed
+    critical: fail-open-under-expiring-acceptance
+    standard: fail-open-with-record
+  scope_when_unavailable: declared-dependencies
+  score_threshold: 80
+  blocking_cost_adjustments: 
+    - blocking_cost_tier: life-safety
+      path_tier: crown-jewel
+      posture: fail-open-under-expiring-acceptance
+  override: 
+    acceptor_role: operations risk owner
+    concurrence_role: security risk office
+    max_expiry_hours: 12
+    replay_on_recovery: true
+fix_capacity: 
+  remediation_window_days: 60
+  saturation_window_weeks: 6
+ai_resilience: 
+  providers: 
+    - on-premises open-weight serving
+  primary_provider_share: 1
+  self_hosting_capacity: full
+  fallback_route_id: null
+  producer_rungs: 
+    - producer: source-assisted reviewer
+      lowest_rung: self-hosted
+    - producer: scripted comparator
+      lowest_rung: no-agent
+infrastructure_dependencies: 
+  - name: site identity provider
+    kind: idp
+    failure_posture: fail-closed
+  - name: site CI
+    kind: ci
+    failure_posture: queue-and-retry
+  - name: work tracker
+    kind: tracker
+    failure_posture: queue-and-retry
+  - name: operations SIEM
+    kind: siem
+    failure_posture: mark-unknown
+data_partitioning: 
+  keys: 
+    - jurisdiction
+    - line_of_business
+  cross_partition_reads: review-console-only
+phase_1_boundary: 
+  status: active
+  source: practice-target
+  confirmed_by_role: assurance
+  target_written_by_team: true
+  outsider_text_excluded: true
+  agent_egress_model_route_only: true
+  context_synthetic: true
+current_practice: 
+  history: 
+    period_start: 2025-07-01
+    period_end: 2026-06-30
+    sources: 
+      - "tracker query: security findings closed or open in the period"
+      - incident records
+      - bug bounty history
+    deployments: null
+    classes: 
+      - weakness_class: broken access control
+        findings: 14
+        reached_production: 3
+      - weakness_class: exposed secret
+        findings: 6
+        reached_production: null
+        note: Records do not say which were live in production.
+    confirmed_by: application security team
+  modules: 
+    - module: secure-creation
+      state: partial
+      owner: developer platform team
+      connects: Agent guardrails and protected-branch checks run; nothing flows back to the loop yet.
+      points: 
+        - point: derived-checks
+          wiring: conformant
+        - point: proven-classes
+          wiring: conformant
+        - point: change-provenance
+          wiring: connected
+          note: Stamps exported nightly; fields not yet mapped to the contract.
+        - point: creation-leads
+          wiring: none
+    - module: tool-portfolio
+      state: ad-hoc
+      owner: application security team
+      connects: Scanner exports land in a shared folder that someone reads before a release.
+      points: 
+        - point: leads-in
+          wiring: connected
+    - module: paved-road
+      state: established
+      owner: platform engineering
+      connects: The road is run apart from security; nothing links findings to road entries.

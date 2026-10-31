@@ -1,0 +1,38 @@
+fixtures:
+  - name: published-string-null-and-absent
+    document:
+      elements:
+        - id: org.example
+          responsibility: Approvers approve or deny one exact action.
+          owner: null
+    collection: elements
+    id: org.example
+    fields: [responsibility, owner, absent]
+    expects: {responsibility: b6ac893bc4c7, owner: 74234e98afe7, absent: e3b0c44298fc}
+  - name: named-contract-and-canonical-object
+    document:
+      contracts:
+        - name: shared:Example
+          fields: {b: 2, a: 1}
+    collection: contracts
+    id: shared:Example
+    fields: [fields]
+    expects: {fields: 43258cff783f}
+  - name: keyed-nested-record
+    document: {layers: {elements: {"org.example": {owner: null} } } }
+    collection: layers/elements
+    id: org.example
+    fields: [owner]
+    expects: {owner: 74234e98afe7}
+  - name: missing-record-is-not-an-absent-field
+    document: {elements: []}
+    collection: elements
+    id: org.missing
+    fields: [owner]
+    error: expected exactly one record
+  - name: ambiguous-record-is-refused
+    document: {elements: [{id: org.example}, {id: org.example}]}
+    collection: elements
+    id: org.example
+    fields: [owner]
+    error: expected exactly one record

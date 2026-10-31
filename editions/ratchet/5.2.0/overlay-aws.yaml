@@ -1,0 +1,1220 @@
+# Ratchet edition 5.2.0. Generated; do not edit.
+provider: aws
+version: 1
+as_of: 2026-10-16
+principles: 
+  - id: account-boundary
+    title: The account boundary is the trust-zone boundary
+    text: "Control, evidence, execution, reasoning and evaluation each get their own accounts. A service control policy on the reasoning OU denies every agent identity any action on control and evidence accounts, so a misconfigured role inside the reasoning account cannot reach a gate. IAM policies inside a single account cannot hold this line on their own."
+  - id: managed-not-ceded
+    title: Running a managed service does not hand AWS the rule
+    text: "Where AWS runs a rule-enforcing part, the organization keeps the policies, the key policies, the schemas and the right to change them, and grants that right only to the control-plane operator role. AWS supplies the engine; who may edit what the engine enforces stays with the organization."
+  - id: management-account
+    title: "The organization's management account is above every rule"
+    text: "Administrators of the AWS Organizations management account can change service control policies and so can undo every separation above. Treat that account as break-glass: two-person access, no standing users, alarms on any use, outside the reach of anyone who also proposes or judges tests."
+  - id: residency
+    title: "Residency is a configuration, and some defaults cross borders"
+    text: "Bedrock global cross-Region inference can process a request in any commercial Region, and cross-Region replication copies evidence wherever it points. A profile that lists data residency must use in-Region or geographic inference profiles only and replicate evidence only to Regions it allows; the overlay checker lists every part that can do this."
+  - id: shared-failure-domain
+    title: "Hold the fallback model route outside the primary provider's failure domain"
+    text: "If the frontier route runs on Bedrock and the self-hosted fallback runs on the same AWS Regions, one provider event can take out two rungs of the model degradation ladder. Either qualify a fallback outside AWS or record the shared failure domain as a concentration in the profile."
+  - id: cost-shape
+    title: Cost follows two shapes
+    text: "Per-request services (Verified Permissions, Lambda, Step Functions, Bedrock tokens, KMS calls) scale with test and deploy volume, which suits a loop that starts small. Standing services (MSK, Aurora, EKS, CloudHSM, Network Firewall endpoints) cost by the hour whether or not tests run. Regression gates in every pipeline turn deploy count into per-request cost; price that path first."
+  - id: swap-lock-in
+    title: Proprietary choices at swap points turn a swap into a rewrite
+    text: "Where the design marks a part as swappable behind a stable contract, an open choice (Kafka on MSK, PostgreSQL on Aurora, Cedar on Verified Permissions) keeps the swap cheap. A proprietary one (Step Functions definitions, DynamoDB data model, Bedrock Guardrails) makes leaving a rewrite. Both can be right, so the annex lists each proprietary swap point for the organization to choose on purpose."
+  - id: quotas
+    title: Quotas are part of the availability budget
+    text: "Per-account, per-Region quotas (Bedrock tokens per minute, Lambda concurrency, Verified Permissions request rate, KMS request rate) fail like an outage when hit. Raise them before load, alarm at a share of each, and treat a throttled control as down: it fails closed."
+elements: 
+  s1.context-service: 
+    services: 
+      - ECS on Fargate
+      - EKS
+    fit: managed-open
+    account: reasoning
+    portability: open
+    keeps: "The snapshot it serves is built and signed by the organization's compile job; the service only reads what the control side published."
+    note: Stateless; scales to zero cost on Fargate between runs.
+  s1.source-adapters: 
+    services: 
+      - AWS DMS
+      - MSK Connect with Debezium
+      - Amazon AppFlow
+    fit: managed-open
+    account: reasoning
+    portability: open
+    note: MSK Connect keeps Debezium connectors portable; AppFlow is proprietary and suits SaaS sources only.
+  s1.identity-validity-resolver: 
+    services: 
+      - AWS Entity Resolution
+      - Splink on AWS Glue
+    fit: managed
+    account: reasoning
+    portability: proprietary
+    keeps: Matching rules and their thresholds are versioned by the organization; a resolution change is a context change and is snapshotted.
+    note: Entity Resolution is per-record priced; Splink on Glue is open and cheaper at volume.
+  s1.context-compiler: 
+    services: 
+      - Amazon MWAA
+      - Step Functions
+      - AWS Batch
+    fit: managed-open
+    account: reasoning
+    portability: open
+    keeps: Output is content-addressed and signed with a control-account KMS key the compiler can use only through a narrow grant.
+    note: MWAA is Airflow; standing environment cost by the hour.
+  s1.live-precondition-resolver: 
+    services: 
+      - Lambda
+      - ElastiCache for Valkey
+    fit: managed-open
+    account: control
+    portability: open
+    keeps: "Runs in the control account; reads source systems with its own role, never through the reasoning account."
+    note: Short TTL; a cache miss that cannot reach the source fails closed.
+  s1.source-facts: 
+    services: 
+      - Aurora PostgreSQL
+      - Amazon Neptune
+    fit: managed-open
+    account: reasoning
+    portability: open
+    note: "Aurora PostgreSQL with temporal tables is the portable default; Neptune supports openCypher and Gremlin, so graph queries port, operational tooling does not."
+  s1.criterion-registry: 
+    services: 
+      - "the organization's Git host"
+      - S3 with versioning
+    fit: existing
+    account: reasoning
+    portability: open
+    keeps: "Branch protection and signed commits on the organization's Git host; agents get read-only access."
+  s1.normative-store: 
+    services: 
+      - "the organization's Git host"
+      - Verified Permissions policy store
+    fit: existing
+    account: reasoning
+    portability: open
+    keeps: "Normative intent is authored by people under branch protection; agents read it, never write it."
+  s1.snapshot-index: 
+    services: 
+      - Amazon ECR (OCI artifacts)
+      - S3
+    fit: managed-open
+    account: reasoning
+    portability: open
+    note: "ECR stores OCI artifacts through ORAS, so snapshots move with any OCI registry."
+  s1.consequence-register: 
+    services: 
+      - Aurora PostgreSQL
+      - DynamoDB
+    fit: managed-open
+    account: control
+    portability: open
+    keeps: "Tiers are written only through the attestation workflow by the business owner's role; the testing team drafts, it does not confirm."
+    note: Lives in the control account because gate posture reads it.
+  s1.tool-signal-intake: 
+    services: 
+      - AWS Security Hub (OCSF findings)
+      - Amazon Inspector
+      - Lambda normalizer
+    fit: managed
+    account: reasoning
+    portability: proprietary
+    note: Security Hub aggregates findings in OCSF; CodeGuru Security was discontinued 2025-11-20 and is not a source. A scanner version change still requalifies.
+  s1.tool-lead-store: 
+    services: 
+      - Aurora PostgreSQL
+    fit: managed-open
+    account: reasoning
+    portability: open
+    note: "Separate database from source facts, so a lead never reads as a fact."
+  s2.operator-interface: 
+    services: 
+      - Backstage on EKS
+      - "the organization's portal"
+    fit: self-run
+    account: reasoning
+    portability: open
+  s2.workflow-worker-app: 
+    services: 
+      - ECS on Fargate
+      - EKS
+    fit: managed-open
+    account: reasoning
+    portability: open
+  s2.request-dispatcher: 
+    services: 
+      - Amazon API Gateway
+      - Application Load Balancer with Envoy
+    fit: managed
+    account: reasoning
+    portability: proprietary
+    note: API Gateway request quotas apply per account and Region.
+  s2.workflow-engine: 
+    services: 
+      - Temporal on EKS
+      - AWS Step Functions
+      - Lambda durable functions
+    fit: self-run
+    account: reasoning
+    portability: open
+    note: "Swap point. Temporal keeps the contract portable; Step Functions (Amazon States Language) and Lambda durable functions are proprietary, so choosing them makes this swap a rewrite. Step Functions Standard bills per state transition."
+  s2.approved-producers: 
+    services: 
+      - Amazon ECR with AWS Signer or Sigstore cosign
+    fit: managed-open
+    account: reasoning
+    portability: open
+    keeps: Signing keys sit in the control account; the reasoning account can verify signatures but not sign.
+  s2.producer-adapters: 
+    services: 
+      - Bedrock AgentCore Runtime
+      - ECS tasks running the adapter SDK
+    fit: managed
+    account: reasoning
+    portability: proprietary
+    note: "AgentCore Runtime isolates each session in its own microVM; its agent framework stays the organization's. A model or framework change requalifies."
+  s2.hybrid-source-producer: 
+    services: 
+      - Amazon Inspector code scanning
+      - Semgrep or fuzzing harnesses on AWS Batch
+    fit: self-run
+    account: reasoning
+    portability: open
+  s2.runtime-assessment-producer: 
+    services: 
+      - ZAP or Nuclei on ECS
+    fit: self-run
+    account: reasoning
+    portability: open
+    note: "No AWS-native black-box scanner; it proposes only, execution happens in an execution cell."
+  s2.workflow-state-store: 
+    services: 
+      - Aurora PostgreSQL
+      - Amazon Keyspaces for Temporal
+    fit: managed-open
+    account: reasoning
+    portability: open
+  s2.artifact-exchange: 
+    services: 
+      - S3 with per-run prefixes
+      - S3 Access Points
+      - presigned URLs
+    fit: managed
+    account: reasoning
+    portability: open
+    note: "The S3 API is the de facto standard; per-run access points keep one run from reading another's artifacts."
+  s2.dispatch-queue: 
+    services: 
+      - Amazon MSK with Debezium outbox
+      - Amazon MQ for RabbitMQ
+      - SQS with a DynamoDB Streams outbox
+    fit: managed-open
+    account: reasoning
+    portability: open
+    note: Swap point. MSK and Amazon MQ keep it portable; SQS plus DynamoDB Streams is cheaper at low volume and proprietary. MSK is a standing hourly cost.
+  s2.quarantined-lead-reader: 
+    services: 
+      - Lambda behind the AI gateway with no tool bindings
+      - Bedrock structured outputs
+    fit: managed
+    account: reasoning
+    portability: proprietary
+    note: No IAM permissions beyond calling the gateway; schema-validated output only.
+  s2.proof-condition-drafter: 
+    services: 
+      - Lambda behind the AI gateway with no tool bindings
+      - Bedrock structured outputs
+    fit: managed
+    account: reasoning
+    portability: proprietary
+    note: "Its own route and role: no IAM permissions beyond calling the gateway, no access to the stores test-drafting agents use; drafts are shown to the scenario owner only."
+  s2.typed-decision-worker: 
+    services: 
+      - Lambda behind the AI gateway
+      - ECS on Fargate
+      - SageMaker endpoint for the small-classifier baseline
+    fit: managed
+    account: reasoning
+    portability: open
+    note: Typed routes such as System One models are hosted outside AWS today; route them through the same gateway and keep a fallback per decision type.
+  s3.action-control-service: 
+    services: 
+      - Bedrock AgentCore Gateway with Policy
+      - Envoy ext_authz on EKS
+    fit: managed
+    account: control
+    portability: proprietary
+    keeps: "Whether AgentCore Gateway or Envoy, the decision comes from the organization's Cedar policies in the control account, and tool calls that bypass the gateway are denied by network and IAM, not by convention."
+    note: "AgentCore Policy (GA 2026-03-03) checks each agent-to-tool call against Cedar outside the agent's code, which is this part's job. It is proprietary at the gateway, open at the policy language."
+  s3.action-broker: 
+    services: 
+      - Lambda
+      - ECS on Fargate
+    fit: managed-open
+    account: control
+    portability: open
+    keeps: "Action normalization code is the organization's; the hash it computes is what approval binds to."
+  s3.policy-decision-point: 
+    services: 
+      - Amazon Verified Permissions
+      - Open Policy Agent on EKS
+    fit: managed-open
+    account: control
+    portability: open
+    keeps: "Policy store, schema and every PutPolicy call are limited to the control-plane operator role through the release pipeline. Turn on CloudTrail data events for IsAuthorized; they are off by default, and without them decisions are not recorded."
+    note: "Verified Permissions runs Cedar, which is open source, so policies port. Per-request priced; check the request-rate quota before pipelines depend on it. A throttled decision fails closed."
+  s3.approval-service: 
+    services: 
+      - Step Functions with task tokens
+      - Temporal on EKS
+    fit: managed
+    account: control
+    portability: proprietary
+    keeps: Approval binds to the action hash; the approver identity comes from Identity Center in a permission set no producer holds.
+    note: "Systems Manager Change Manager closed to new customers 2025-11-07 and is not a candidate; connect to the organization's change management through an adapter."
+  s3.approval-console: 
+    services: 
+      - Backstage plugin on a separate Identity Center permission set
+      - AWS Verified Access
+    fit: self-run
+    account: control
+    portability: open
+    keeps: Reached only through Verified Access from approver identities; no producer network path.
+  s3.grant-approval-store: 
+    services: 
+      - DynamoDB with conditional writes
+      - Aurora DSQL
+      - Aurora PostgreSQL serializable
+    fit: managed
+    account: control
+    portability: proprietary
+    keeps: "Single-use consume is a conditional write the organization's code performs; grants are issued only by the approval service role."
+    note: "For a standby Region, use DynamoDB global tables in multi-Region strong consistency mode (GA 2025-06-30, chosen at creation and unchangeable); the default eventual mode could let a single-use grant be consumed twice across Regions, which the control-plane region-loss scenario forbids."
+  s3.protected-audit: 
+    services: 
+      - CloudTrail organization trail to S3 Object Lock in compliance mode
+      - CloudTrail Lake
+    fit: managed
+    account: control
+    portability: open
+    keeps: The log archive bucket sits in an account no Ratchet role administers; Object Lock compliance mode stops deletion even by the account root.
+    note: Turn on CloudTrail log file integrity validation. QLDB is retired (end of support 2025-07-31) and is not a ledger option.
+  s3.credential-lease-broker: 
+    services: 
+      - IAM roles with STS session policies
+      - EKS Pod Identity
+      - IAM Roles Anywhere
+      - Secrets Manager
+    fit: managed
+    account: control
+    portability: proprietary
+    keeps: Session policies scope each lease to one granted action and time window; the broker is the only principal allowed to assume execution roles.
+    note: "STS caps role session length; set it to the grant window, not the default."
+  s3.gate-failure-policy: 
+    services: 
+      - S3 with signed posture bundles
+      - AWS AppConfig
+    fit: managed
+    account: control
+    portability: open
+    keeps: "Postures are signed with a control-account KMS asymmetric key; deploy stages verify offline with the public key, so the gate answers without the control plane."
+    note: AppConfig adds staged rollout and automatic rollback for posture bundles.
+  s3.key-management: 
+    services: 
+      - AWS KMS
+      - KMS with CloudHSM key store
+      - KMS external key store
+    fit: managed
+    account: control
+    portability: proprietary
+    keeps: "Key policies name the control-plane operator role as sole administrator and grant use, never administration, to Ratchet services. An external key store keeps root keys outside AWS entirely, and the organization then owns their availability."
+    note: CloudHSM is a single-tenant hourly cost per HSM. Multi-Region keys simplify evidence restore in a second Region; scope them to Regions the profile allows.
+  s3.privileged-access-broker: 
+    services: 
+      - IAM Identity Center with temporary elevated access
+      - Systems Manager Session Manager with session logging
+    fit: managed
+    account: control
+    portability: proprietary
+    keeps: Elevation needs a second approver and expires; sessions are recorded to the log archive account.
+  s3.policy-release-pipeline: 
+    services: 
+      - "CodePipeline or the organization's CI"
+      - AppConfig staged deployment
+      - Cedar policy tests
+    fit: managed
+    account: control
+    portability: open
+    keeps: Only this pipeline holds write access to the policy store; a deny-diff review is a required stage.
+  s3.local-enforcement-point: 
+    services: 
+      - VPC with no internet gateway
+      - AWS Network Firewall
+      - Route 53 Resolver DNS Firewall
+      - security groups
+    fit: managed
+    account: execution
+    portability: proprietary
+    keeps: "Egress allow-lists come from the grant; the execution account's network is changed only by the control-plane operator role."
+    note: Network Firewall bills per endpoint hour; DNS Firewall closes the DNS exfiltration path that security groups leave open.
+  s3.bounded-runner: 
+    services: 
+      - Lambda (Firecracker)
+      - ECS on Fargate
+      - EC2 with Nitro isolation
+      - Bedrock AgentCore Code Interpreter
+    fit: managed
+    account: execution
+    portability: proprietary
+    keeps: Each run gets a fresh microVM or task with the leased credential only; the runner image is signed and pinned.
+    note: "Lambda and Fargate run on Firecracker microVMs; Lambda caps a run at 15 minutes, Fargate does not."
+  s3.source-build-cell: 
+    services: 
+      - CodeBuild in a VPC without internet
+      - EC2 build hosts
+    fit: managed
+    account: execution
+    portability: proprietary
+    keeps: "Dependencies come from a pinned internal mirror (CodeArtifact or the organization's); no runtime internet."
+  s3.staging-cell: 
+    services: 
+      - separate staging account with EKS or ECS
+      - AWS Fault Injection Service for drills
+    fit: managed-open
+    account: execution
+    portability: open
+    keeps: "Staging data is synthetic or classified for the cell; the cell account is reachable only through granted actions; targets under test run in the cell's own account on Fargate or on nodes no other cell shares."
+  s3.production-cell: 
+    services: 
+      - Systems Manager Automation with approval
+      - Lambda with leased credentials
+    fit: managed
+    account: execution
+    portability: proprietary
+    keeps: "Reversible actions only, each bound to a grant and the organization's change record."
+  s3.observation-receipt: 
+    services: 
+      - KMS asymmetric signing
+      - in-toto attestations
+    fit: managed-open
+    account: execution
+    portability: open
+  s3.local-audit-buffer: 
+    services: 
+      - Kinesis Data Firehose to the log archive bucket
+      - local hash-chained file with forward shipping
+    fit: managed
+    account: execution
+    portability: proprietary
+    keeps: Hash chain computed in the cell; the destination bucket is Object Lock in the log archive account.
+  s3.replay-verdict: 
+    services: 
+      - Lambda comparing against registered outcome hashes
+    fit: managed
+    account: execution
+    portability: open
+    keeps: Compares against hashes only; the proof condition itself never enters the cell.
+  s4.model-data-gateway: 
+    services: 
+      - LiteLLM on ECS
+      - Bedrock AgentCore Gateway
+      - API Gateway in front of Bedrock
+    fit: self-run
+    account: reasoning
+    portability: open
+    keeps: "It is the only egress to models: VPC endpoints and SCPs deny bedrock:Invoke* from every role except the gateway's."
+    note: "Swap point; LiteLLM keeps the route abstraction portable across Bedrock, self-hosted and other providers."
+  s4.request-data-gate: 
+    services: 
+      - Bedrock Guardrails sensitive information filters
+      - Amazon Comprehend PII detection
+      - Microsoft Presidio on Lambda
+    fit: managed
+    account: control
+    portability: proprietary
+    keeps: "Classification rules and the decision to block are the organization's; Guardrails is one detector among them, not the policy."
+    note: Guardrails is proprietary; keep a portable detector beside it so a swap does not lose the gate.
+  s4.route-budget-broker: 
+    services: 
+      - LiteLLM router and budgets
+      - Bedrock application inference profiles for cost tags
+    fit: self-run
+    account: reasoning
+    portability: open
+    keeps: Route eligibility is read from the qualification registry; the broker cannot add a route.
+    note: "Bedrock tokens-per-minute quotas are per Region and model; the broker's fallback must treat throttling as an outage."
+  s4.response-proposal-gate: 
+    services: 
+      - Lambda JSON Schema validation
+      - Bedrock Guardrails as an extra detector
+    fit: managed-open
+    account: control
+    portability: open
+    keeps: "Schema validation in the organization's code is the gate; a detector score never passes an output on its own."
+  s4.qualification-route-registry: 
+    services: 
+      - SageMaker Model Registry
+      - "the organization's Git host"
+    fit: managed
+    account: reasoning
+    portability: proprietary
+    keeps: "Route entries change only by promotion review's role, a release the registry verified itself, and the gateway's mismatch report; only key management's role writes the key references the registry verifies with. The verification runs in the organization's code, never as the registry service's own approval status."
+  s4.inference-endpoints: 
+    services: 
+      - Amazon Bedrock
+      - Bedrock Custom Model Import
+      - SageMaker endpoints
+      - vLLM on EKS with GPU nodes
+    fit: managed
+    account: reasoning
+    portability: proprietary
+    residency: true
+    note: Use in-Region or geographic cross-Region inference profiles under a residency constraint; global profiles may process anywhere. vLLM on EKS is the portable self-hosted rung. See the shared failure domain trade-off.
+  s4.route-usage-receipts: 
+    services: 
+      - CloudWatch
+      - Bedrock model invocation logging to S3
+    fit: managed
+    account: reasoning
+    portability: proprietary
+    note: Invocation logging is off by default; logs stay in the source Region and record the Region that served the request.
+  s5.proof-evidence-service: 
+    services: 
+      - ECS on Fargate
+      - Lambda
+    fit: managed-open
+    account: evidence
+    portability: open
+    keeps: "Sole writer to the evidence stores: bucket and table policies deny every other principal, including administrators of other Ratchet accounts."
+  s5.evidence-intake-validator: 
+    services: 
+      - Lambda with JSON Schema and in-toto verification
+      - SQS intake queue
+    fit: managed-open
+    account: evidence
+    portability: open
+    keeps: Agents can only send to the intake queue; the validator is the only consumer and the only path into the ledger.
+  s5.exposed-secret-intake: 
+    services: 
+      - Lambda computing a keyed fingerprint
+      - AWS KMS envelope encryption under a key per owning team
+    fit: managed-open
+    account: evidence
+    portability: open
+    keeps: "The function is the only consumer of secret scanner hits; it writes fingerprints onward and seals a value under the owning team's key only when a recipe calls for a probe."
+  s5.independent-verifier: 
+    services: 
+      - Step Functions or Temporal running reproduction harnesses in an execution account
+    fit: managed
+    account: evidence
+    portability: proprietary
+    keeps: "Runs under its own credential path and execution role, never one a producer used."
+  s5.repair-checks: 
+    services: 
+      - CodeBuild
+      - "the organization's CI"
+    fit: existing
+    account: evidence
+    portability: open
+    keeps: Runs the unmodified harness pinned by hash.
+  s5.disposition-review: 
+    services: 
+      - Step Functions with task tokens
+      - Temporal
+    fit: managed
+    account: evidence
+    portability: proprietary
+    keeps: Decider identity differs from proposer and proof-condition holder; Identity Center permission sets enforce it.
+  s5.review-console: 
+    services: 
+      - Backstage plugin behind AWS Verified Access
+    fit: self-run
+    account: evidence
+    portability: open
+    keeps: Reached only from reviewer identities; cross-partition reads are attributed.
+  s5.fixture-oracle-registry: 
+    services: 
+      - S3 bucket with a dedicated KMS key
+      - Secrets Manager
+      - "the organization's Git host"
+    fit: managed
+    account: evidence
+    portability: open
+    keeps: "The KMS key policy names no agent role, so an agent cannot decrypt the proof condition even if a bucket policy is wrong. Never index this bucket into a Bedrock knowledge base."
+  s5.protected-evidence-store: 
+    services: 
+      - S3 Object Lock in compliance mode
+      - AWS Backup Vault Lock
+    fit: managed
+    account: evidence
+    portability: open
+    residency: true
+    keeps: "Compliance-mode retention cannot be shortened by anyone, including the account root; the organization sets the retention."
+    note: Cross-Region replication for region-loss recovery copies evidence; point it only at Regions the profile allows.
+  s5.finding-ledger: 
+    services: 
+      - Aurora PostgreSQL with append-only tables and periodic hash digests to Object Lock
+    fit: managed-open
+    account: evidence
+    portability: open
+    keeps: Append-only enforced by grants and triggers; digests anchored in Object Lock make tampering detectable.
+    note: QLDB is retired; AWS itself points QLDB users to Aurora PostgreSQL.
+  s5.path-impact-graph: 
+    services: 
+      - Amazon Neptune
+      - Aurora PostgreSQL with Apache AGE (self-managed)
+    fit: managed-open
+    account: evidence
+    portability: open
+    keeps: Written only by the evidence service from verified paths.
+  s5.failure-class-registry: 
+    services: 
+      - Aurora PostgreSQL
+    fit: managed-open
+    account: evidence
+    portability: open
+    keeps: Versions append; a class is created only from verified findings.
+  s5.fix-brief-builder: 
+    services: 
+      - Step Functions or Temporal with templates
+      - Lambda
+    fit: managed-open
+    account: evidence
+    portability: open
+    keeps: "Reads proof conditions under the evidence identity only; the brief schema has no field for expected outcomes or outsider text, and no model endpoint is reachable from its role."
+  s5.learning-store: 
+    services: 
+      - Aurora PostgreSQL with append-only tables
+      - Lambda for the retrieval check
+    fit: managed-open
+    account: evidence
+    portability: open
+    keeps: "Only the disposition service's role can write; the retrieval check runs under the evidence identity and withholds items without provenance before anything reaches the context compiler."
+  s6.release-state-correlator: 
+    services: 
+      - "CodePipeline or the organization's CD"
+      - ECR image digests
+      - EventBridge
+    fit: managed
+    account: evidence
+    portability: proprietary
+    keeps: "Deployed state comes from the deploy system's own record, never from the team asserting closure."
+  s6.change-closure-records: 
+    services: 
+      - Aurora PostgreSQL append-only
+    fit: managed-open
+    account: evidence
+    portability: open
+    keeps: Closure needs two human acceptances and a deploy record; the table rejects a closure without them.
+  s6.retest-regression-planner: 
+    services: 
+      - EventBridge Scheduler
+      - Temporal schedules
+    fit: managed
+    account: evidence
+    portability: proprietary
+    keeps: Schedules are derived from the ledger; nobody edits them by hand.
+  s6.regression-catalog: 
+    services: 
+      - "the organization's Git host"
+      - Backstage catalog
+    fit: existing
+    account: evidence
+    portability: open
+    keeps: "Kept tests live in the owning team's repository; the catalog indexes them."
+  s6.fix-cap-refusal-log: 
+    services: 
+      - Aurora PostgreSQL append-only
+      - "the organization's tracker as the existing-tool rung"
+    fit: managed-open
+    account: evidence
+    portability: open
+    keeps: A refusal row is written before the finding is held back; reviews append and never edit the refusal.
+  s6.fix-cap-gate: 
+    services: 
+      - Verified Permissions or OPA rules over findings
+      - Lambda
+    fit: managed-open
+    account: control
+    portability: open
+    keeps: "Cap values and the consequence line are signed settings read by the gate, never code in the tracker; only the gate's identity can write a refusal."
+  s6.hardening-service: 
+    services: 
+      - "the organization's PR and review workflow"
+    fit: existing
+    account: reasoning
+    portability: open
+    note: "The fix-path drafting it directs runs in the reasoning account, where agent identities live. Changes reach the organization's release workflow as pull requests, so deploy credentials stay with that workflow."
+  s6.owner-change-connector: 
+    services: 
+      - Lambda webhooks
+      - EventBridge API destinations
+    fit: managed
+    account: reasoning
+    portability: proprietary
+    note: "Swap point; EventBridge makes the connector proprietary, a small Lambda keeps it cheap to replace."
+  s6.enterprise-adapters: 
+    services: 
+      - EventBridge
+      - Lambda
+      - AppFlow for SaaS trackers
+    fit: managed
+    account: existing
+    portability: proprietary
+  s6.developer-queue-filter: 
+    services: 
+      - Verified Permissions or OPA rules over findings
+      - Lambda
+    fit: managed-open
+    account: control
+    portability: open
+    keeps: "Routing rules and the confidence bar are signed settings in the dial register, not code in the tracker."
+  s6.paved-road-catalog: 
+    services: 
+      - Backstage on EKS
+      - AWS Service Catalog
+      - EC2 Image Builder golden images
+    fit: self-run
+    account: existing
+    portability: open
+    note: Service Catalog and Image Builder fit the AWS-specific road entries; Backstage keeps the portal portable.
+  s6.road-conformance-check: 
+    services: 
+      - AWS Config conformance packs
+      - Kyverno on EKS
+      - Amazon Inspector SBOM export
+    fit: managed
+    account: control
+    portability: proprietary
+    keeps: Conformance rules are versioned with the road entry; a rule change requalifies.
+  s5.road-assurance-record: 
+    services: 
+      - Aurora PostgreSQL append-only
+      - KMS-signed in-toto attestations
+    fit: managed-open
+    account: evidence
+    portability: open
+    keeps: Signed with a control-account key; the road team cannot sign its own assurance record.
+  s7.evaluation-operations: 
+    services: 
+      - ECS on Fargate
+    fit: managed-open
+    account: evaluation
+    portability: open
+  s7.snapshot-cohort-manager: 
+    services: 
+      - S3 versioning with lakeFS on EKS
+      - SageMaker datasets
+    fit: self-run
+    account: evaluation
+    portability: open
+  s7.matched-evaluation-executor: 
+    services: 
+      - Bedrock model evaluation
+      - SageMaker Processing
+      - AWS Batch
+    fit: managed
+    account: evaluation
+    portability: proprietary
+    note: "Swap point. Keep the harness in the organization's code and use Bedrock evaluation as one runner, so a model swap does not also change the yardstick."
+  s7.dial-register: 
+    services: 
+      - "the organization's Git host with signed commits"
+      - AppConfig
+    fit: existing
+    account: control
+    portability: open
+    keeps: Changes need the approval workflow; AppConfig only distributes what was approved.
+  s7.sampling-service: 
+    services: 
+      - AWS Batch
+      - Step Functions
+    fit: managed
+    account: evaluation
+    portability: open
+  s7.failover-drill: 
+    services: 
+      - EventBridge Scheduler with Step Functions
+      - AWS Fault Injection Service
+    fit: managed
+    account: evaluation
+    portability: proprietary
+    note: Drill the fallback route on the same seeded cases; include a Region and a Bedrock quota failure.
+  s7.reliability-monitor: 
+    services: 
+      - CloudWatch Application Signals SLOs
+      - Amazon Managed Service for Prometheus
+      - Amazon Managed Grafana
+    fit: managed-open
+    account: evaluation
+    portability: open
+    note: "The dead-man alarm must run outside AWS (or at least outside the monitored Regions and account), or a provider event silences the alarm with the system."
+  s7.value-ledger: 
+    services: 
+      - Amazon Athena over S3
+      - Amazon Redshift Serverless
+      - Amazon QuickSight
+    fit: managed
+    account: evaluation
+    portability: proprietary
+  s7.promotion-review: 
+    services: 
+      - Step Functions with task tokens
+      - Temporal
+    fit: managed
+    account: control
+    portability: proprietary
+    keeps: Promotion authority is separate from evaluation; the evaluation account cannot write the route registry.
+  s7.evaluation-artifacts: 
+    services: 
+      - Amazon SageMaker managed MLflow
+      - S3
+    fit: managed-open
+    account: evaluation
+    portability: open
+  s7.qualification-assurance-record: 
+    services: 
+      - Aurora PostgreSQL append-only
+    fit: managed-open
+    account: evaluation
+    portability: open
+  s7.flow-cost-telemetry: 
+    services: 
+      - AWS Cost and Usage Reports with cost allocation tags
+      - Athena
+    fit: managed
+    account: evaluation
+    portability: proprietary
+    note: Tag every Ratchet resource and Bedrock application inference profile with the business unit so cost per accepted fix can be computed.
+  s7.road-adoption-telemetry: 
+    services: 
+      - Athena over the flow store
+      - Managed Grafana
+    fit: managed-open
+    account: evaluation
+    portability: open
+  s7.assurance-incident-integration: 
+    services: 
+      - Amazon Security Lake (OCSF)
+      - Security Hub
+      - "the organization's SIEM"
+    fit: managed-open
+    account: control
+    portability: open
+    keeps: "Detection reconciliation reads the SOC's own record; Ratchet never marks a test as seen by detection itself."
+  s7.tool-yield-evaluator: 
+    services: 
+      - AWS Batch
+      - Athena
+    fit: managed
+    account: evaluation
+    portability: open
+  s7.tool-delivery-impact: 
+    services: 
+      - Athena over pipeline and tracker exports
+    fit: managed
+    account: evaluation
+    portability: open
+  s7.tool-portfolio-decisions: 
+    services: 
+      - "the organization's Git host"
+      - Aurora PostgreSQL
+    fit: existing
+    account: control
+    portability: open
+    keeps: Each decision is attested by its owner and recorded with the obligation it serves.
+  ext.estate: 
+    services: 
+      - "the organization's AWS accounts and other estates"
+    fit: existing
+    account: existing
+    portability: open
+  ext.soc-incident-response: 
+    services: 
+      - "the organization's SIEM"
+      - Amazon Security Lake
+      - Amazon GuardDuty
+    fit: existing
+    account: existing
+    portability: open
+  ext.hosted-frontier-endpoint: 
+    services: 
+      - Amazon Bedrock (in-Region or geographic inference profiles)
+      - a contracted provider outside AWS
+    fit: managed
+    account: existing
+    portability: proprietary
+    residency: true
+    note: Bedrock puts the frontier route inside the same provider as the rest of Ratchet; see the shared failure domain trade-off.
+  ext.threat-intelligence: 
+    services: 
+      - "the organization's threat intelligence platform"
+      - GuardDuty threat lists
+    fit: existing
+    account: existing
+    portability: open
+  ext.known-exploited-catalog: 
+    services: 
+      - "the public catalog's structured feed"
+      - fetched as is
+    fit: existing
+    account: existing
+    portability: open
+  ext.appsec-tooling: 
+    services: 
+      - "the organization's scanners"
+      - Amazon Inspector
+      - Amazon Q Developer code review
+    fit: existing
+    account: existing
+    portability: open
+    note: CodeGuru Security was discontinued 2025-11-20; AWS points to Q Developer and Inspector.
+  ext.security-review-practice: 
+    services: 
+      - "the organization's threat-modeling records"
+    fit: existing
+    account: existing
+    portability: open
+  people.accountable-authorities: 
+    services: 
+      - "IAM Identity Center group from the organization's identity provider"
+    fit: existing
+    account: identity
+    portability: open
+  people.engineering-owners: 
+    services: 
+      - IAM Identity Center group
+    fit: existing
+    account: identity
+    portability: open
+  people.independent-security-staff: 
+    services: 
+      - IAM Identity Center permission set disjoint from producer permission sets
+    fit: existing
+    account: identity
+    portability: open
+  people.risk-board-reporting: 
+    services: 
+      - IAM Identity Center group
+    fit: existing
+    account: identity
+    portability: open
+  people.risk-acceptance-owner: 
+    services: 
+      - IAM Identity Center group
+    fit: existing
+    account: identity
+    portability: open
+  people.line-of-business-owner: 
+    services: 
+      - IAM Identity Center group mapped from the business-unit hierarchy
+    fit: existing
+    account: identity
+    portability: open
+  people.security-risk-owner: 
+    services: 
+      - IAM Identity Center permission set disjoint from proposers
+    fit: existing
+    account: identity
+    portability: open
+  people.control-plane-operator: 
+    services: 
+      - IAM Identity Center permission set
+      - sole administrator of control and evidence accounts
+    fit: existing
+    account: identity
+    portability: open
+    note: Not the same people as the AWS Organizations management account administrators (see the management account trade-off).
+  people.scenario-owner: 
+    services: 
+      - IAM Identity Center permission set allowed to sign proof conditions
+      - disjoint from test-drafting roles
+    fit: existing
+    account: identity
+    portability: open
+  people.purple-team: 
+    services: 
+      - IAM Identity Center permission set disjoint from verifier and risk-owner permission sets
+    fit: existing
+    account: identity
+    portability: open
+  people.held-out-assessors: 
+    services: 
+      - IAM Identity Center permission set scoped to the approved exercise and disjoint from producer
+      - verifier and control-plane operator permission sets
+    fit: existing
+    account: identity
+    portability: open
+  s6.team-regression-suite: 
+    services: 
+      - The owning team repository and CI
+    fit: existing
+    account: existing
+    portability: open
+  s6.kept-test-mirror: 
+    services: 
+      - Security-owned inventory store
+    fit: existing
+    account: evidence
+    portability: open
+    keeps: Read-only source credentials never edit a repository or CI suite. Append-only enrollment and observations retain removed tests and unknown collection gaps. Administration uses the privileged access broker under dual control.
+  jig:secure-creation: 
+    services: 
+      - "the organization's secure-creation loop"
+      - AWS CodeBuild for push and pull-request checks
+    fit: existing
+    account: existing
+    portability: open
+  jig:context-plane: 
+    services: 
+      - "the organization's source control and developer portal"
+    fit: existing
+    account: existing
+    portability: open
+  jig:check-suite: 
+    services: 
+      - "the organization's policy repository"
+      - AWS CodeBuild for required checks
+    fit: existing
+    account: existing
+    portability: open
+  jig:inner-loop: 
+    services: 
+      - managed developer endpoints
+    fit: existing
+    account: existing
+    portability: open
+  jig:coding-agent: 
+    services: 
+      - "the organization's approved coding harnesses"
+    fit: existing
+    account: existing
+    portability: open
+  jig:harness-full-parity: 
+    services: 
+      - "the organization's approved coding harness"
+    fit: existing
+    account: existing
+    portability: open
+  jig:harness-no-pinning: 
+    services: 
+      - "the organization's approved coding harness"
+    fit: existing
+    account: existing
+    portability: open
+  jig:harness-no-stop-gate: 
+    services: 
+      - "the organization's approved coding harness"
+    fit: existing
+    account: existing
+    portability: open
+  jig:edit-checks: 
+    services: 
+      - "checks run by the harness's edit hooks on the endpoint"
+    fit: existing
+    account: existing
+    portability: open
+  jig:stop-gate: 
+    services: 
+      - "the harness's stop hook on the endpoint"
+    fit: existing
+    account: existing
+    portability: open
+  jig:quarantined-reader: 
+    services: 
+      - Amazon Bedrock with no tools and no knowledge base
+    fit: managed
+    account: existing
+    portability: proprietary
+  jig:reader-schema-gate: 
+    services: 
+      - AWS Lambda running a schema validator
+    fit: managed-open
+    account: existing
+    portability: open
+  jig:model-routes: 
+    services: 
+      - Amazon Bedrock
+      - a contracted provider outside AWS
+    fit: managed
+    account: existing
+    portability: proprietary
+    residency: true
+  jig:reader-model-route: 
+    services: 
+      - Amazon Bedrock under a separate role with no tools and no knowledge base
+    fit: managed
+    account: existing
+    portability: proprietary
+    residency: true
+  jig:repository: 
+    services: 
+      - "the organization's source control"
+      - AWS CodeArtifact as the dependency mirror
+    fit: existing
+    account: existing
+    portability: open
+  jig:change-boundary: 
+    services: 
+      - "the organization's source control"
+    fit: existing
+    account: existing
+    portability: open
+  jig:precommit-gate: 
+    services: 
+      - pre-commit hooks on a hook path locked by endpoint management
+    fit: existing
+    account: existing
+    portability: open
+  jig:provenance-stamper: 
+    services: 
+      - signed commit trailers
+      - AWS Signer
+    fit: existing
+    account: existing
+    portability: open
+  jig:protected-branch: 
+    services: 
+      - "the organization's source control branch protection"
+      - AWS CodeBuild for required checks
+    fit: existing
+    account: existing
+    portability: open
+  jig:pr-plane: 
+    services: 
+      - "the organization's pull-request checks"
+    fit: existing
+    account: existing
+    portability: open
+  jig:pr-analysis: 
+    services: 
+      - "the organization's static analysis in AWS CodeBuild"
+      - Amazon Inspector code scanning
+    fit: existing
+    account: existing
+    portability: open
+  jig:pr-triage: 
+    services: 
+      - Amazon Bedrock
+    fit: managed
+    account: existing
+    portability: proprietary
+  jig:ai-reviewer: 
+    services: 
+      - Amazon Q Developer code review
+      - a second model family through Amazon Bedrock
+    fit: managed
+    account: existing
+    portability: proprietary
+  jig:hunk-router: 
+    services: 
+      - code owners rules and a routing job in AWS CodeBuild
+    fit: existing
+    account: existing
+    portability: open
+  jig:hunk-risk-advisor: 
+    services: 
+      - Amazon Bedrock
+    fit: managed
+    account: existing
+    portability: proprietary
+  jig:autofix: 
+    services: 
+      - Amazon Q Developer
+      - Amazon Bedrock
+    fit: managed
+    account: existing
+    portability: proprietary
+  jig:measurement-plane: 
+    services: 
+      - Amazon Athena over the layer log
+      - Amazon QuickSight
+    fit: managed
+    account: existing
+    portability: open
+  jig:outside-text: 
+    services: 
+      - the public web
+      - read only through the quarantined reader
+    fit: existing
+    account: existing
+    portability: open
+  jig:people.creation-developer: 
+    services: 
+      - IAM Identity Center group
+    fit: existing
+    account: identity
+    portability: open
+  jig:people.change-reviewer: 
+    services: 
+      - IAM Identity Center group
+      - "with source control rules that bar a change's author from merging it"
+    fit: existing
+    account: identity
+    portability: open
+  jig:people.high-risk-reviewer: 
+    services: 
+      - IAM Identity Center group outside the authoring team
+    fit: existing
+    account: identity
+    portability: open
+  jig:people.creation-policy-owner: 
+    services: 
+      - IAM Identity Center group
+    fit: existing
+    account: identity
+    portability: open
+  shared:ext.engineering-workflows: 
+    services: 
+      - "the organization's tracker"
+      - SCM
+      - CI/CD and change management
+    fit: existing
+    account: existing
+    portability: open
+    note: Systems Manager Change Manager closed to new customers 2025-11-07.
+sources: 
+  - fact: QLDB end of support 2025-07-31
+    url: https://www.infoq.com/news/2024/07/aws-kill-qldb
+  - fact: Policy in Bedrock AgentCore GA 2026-03
+    url: https://aws.amazon.com/about-aws/whats-new/2026/03/policy-amazon-bedrock-agentcore-generally-available/
+  - fact: DynamoDB multi-Region strong consistency GA 2025-06-30
+    url: https://aws.amazon.com/about-aws/whats-new/2025/06/amazon-dynamo-db-global-tables-multi-region-strong-consistency-generally-available/
+  - fact: Bedrock global vs geographic cross-Region inference
+    url: https://docs.aws.amazon.com/bedrock/latest/userguide/global-cross-region-inference.html
+  - fact: "Verified Permissions IsAuthorized as CloudTrail data events, off by default"
+    url: https://docs.aws.amazon.com/verifiedpermissions/latest/userguide/monitoring-cloudtrail.html
+  - fact: Change Manager closed to new customers 2025-11-07
+    url: https://docs.aws.amazon.com/systems-manager/latest/userguide/change-manager.html
+  - fact: CodeGuru Security discontinued 2025-11-20
+    url: https://docs.aws.amazon.com/it_it/codeguru/latest/security-ug/end-of-support.html
+  - fact: Lambda durable functions GA 2025-12-02
+    url: https://aws.amazon.com/about-aws/whats-new/2025/12/lambda-durable-multi-step-applications-ai-workflows/
+  - fact: KMS external key stores
+    url: https://docs.aws.amazon.com/kms/latest/developerguide/keystore-external.html
+account_classes: 
+  control: "Control-zone parts: authorization, grants, credentials, keys, audit, policy release, model-boundary gates, registers that decide. Own OU; only the control-plane operator role administers it."
+  evidence: "Evidence-plane control-zone parts: intake, verification, ledger, proof conditions, evidence stores. Own account in the control OU, separate from control so one compromised role cannot both grant and record."
+  execution: "One account per execution cell class (source build, staging, production profile). No route to the reasoning account except the dispatch contract."
+  reasoning: "Context, orchestration, test-drafting agents and model access. Agent identities live here and nowhere else."
+  evaluation: "Cohorts, matched evaluation, telemetry and value reporting."
+  existing: "The organization's own systems and accounts; Ratchet connects to them through adapters."
+  identity: "The organization's identity source, federated into IAM Identity Center."
+zone_accounts: 
+  control: 
+    - control
+    - evidence
+  execution: 
+    - execution
+  reasoning: 
+    - reasoning
+  evaluation: 
+    - evaluation
+  shared:existing: 
+    - existing
+  shared:third-party: 
+    - existing

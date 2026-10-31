@@ -1,0 +1,188 @@
+# Ratchet edition 5.2.0. Generated; do not edit.
+phases: 
+  - phase: 1
+    name: The loop closes once
+    sections: 
+      - profile
+      - existing_tools
+      - separation.producer_team
+      - separation.approver_team
+      - separation.fixture_oracle_owner_team
+      - separation.verifier_team
+      - separation.fix_author_team
+      - separation.closure_acceptor_team
+      - ledger_write_path
+      - models
+      - crown_jewel_register
+      - delivery
+      - phase_1_boundary
+  - phase: 2
+    name: The evidence can be trusted
+    sections: 
+      - ownership
+      - separation.business_risk_owner_role
+      - separation.security_risk_owner_role
+      - separation.control_plane_operator_role
+      - separation.platform_operator_role
+      - separation.team_definition
+      - separation.internal_audit_role
+      - attestation
+      - unattested_default
+      - gate_failure_policy
+      - infrastructure_dependencies
+      - dials
+      - data_partitioning
+      - jurisdictions
+      - escapes
+  - phase: 3
+    name: "Ratchet is measured against today's process and a no-agent baseline"
+    sections: 
+      - scale
+      - risk_appetite
+      - fix_capacity
+      - fix_capacity.default_cap
+      - ai_resilience
+      - tools
+      - separation.evaluation_team
+  - phase: 4
+    name: A second team runs it
+    sections: 
+      - road
+      - modules
+      - blocking_cost_register
+  - phase: 5
+    name: It works in production
+    sections: 
+      []
+defaults: 
+  delivery.security_test_time_target_minutes: 
+    value: 10
+    from: the design model security_test_time
+  ledger_write_path: 
+    value: intake-only
+    from: "rule 3: the value the checker accepts without an exception"
+  gate_failure_policy.key: 
+    value: tier
+    from: core default
+  gate_failure_policy.by_tier: 
+    value: 
+      crown-jewel: fail-closed
+      critical: fail-closed
+      standard: fail-open-with-record
+    from: the design model deploy_gate core_posture_defaults
+  gate_failure_policy.scope_when_unavailable: 
+    value: declared-dependencies
+    from: the design model deploy_gate scope_when_unavailable
+  gate_failure_policy.score_threshold: 
+    value: null
+    from: core default
+  gate_failure_policy.override.replay_on_recovery: 
+    value: true
+    from: profile checker
+  road.conformance_basis: 
+    value: deployed-state
+    from: profile checker
+  road.conformance_granularity: 
+    value: call-site
+    from: profile checker
+  road.vet_each_version: 
+    value: true
+    from: profile checker
+  road.covered_sample_share: 
+    value: 0.1
+    from: the design model dials
+  road.escape_hatch_reinstates_regressions: 
+    value: true
+    from: profile checker
+  road.enforced_preferred: 
+    value: true
+    from: core default
+  road.opt_in_coverage_requires_call_site_check: 
+    value: true
+    from: core default
+  tools.leads_count_as_coverage: 
+    value: false
+    from: profile checker
+  tools.yield_requires_sampling: 
+    value: true
+    from: profile checker
+  tools.confidence_bar_default: 
+    value: 0.3
+    from: the design model dials
+  tools.sample_minimum_per_class: 
+    value: 50
+    from: the design model dials
+  tier_overrides: 
+    value: null
+    from: the design model tiers apply unchanged
+  build_or_buy: 
+    value: null
+    from: core default
+  dials: 
+    value: 
+      - id: covered_sample_share
+        current: 0.1
+        bound: null
+      - id: negative_challenge_sample_share
+        current: 0.1
+        bound: null
+      - id: lead_sample_minimum_per_class
+        current: 50
+        bound: null
+      - id: held_lead_sample_share
+        current: 0.05
+        bound: null
+      - id: seeded_proposal_rate
+        current: 0.02
+        bound: null
+      - id: ship_through_renewal_cap
+        current: 2
+        bound: null
+      - id: approver_wip_limit
+        current: 15
+        bound: null
+      - id: verifier_wip_limit
+        current: 10
+        bound: null
+      - id: gate_queue_age_hours
+        current: 48
+        bound: null
+      - id: handoffs_per_closed_loop_ceiling
+        current: 12
+        bound: null
+      - id: regression_time_budget_minutes
+        current: 10
+        bound: null
+      - id: confidence_bar_default
+        current: 0.3
+        bound: null
+      - id: posture_review_interval_months
+        current: 6
+        bound: null
+      - id: early_stop_min_closed_cases
+        current: 5
+        bound: null
+      - id: approver_drift_threshold_pp
+        current: 10
+        bound: null
+      - id: failover_drill_interval_days
+        current: 30
+        bound: null
+      - id: typed_route_max_calibration_error
+        current: 0.05
+        bound: null
+      - id: posture_expiry_hours
+        current: 168
+        bound: null
+      - id: window_bundle_lead_hours
+        current: 4
+        bound: null
+    from: the design model dials (defaults)
+conditions: 
+  - section: phase_1_boundary
+    field: agent_drafts_only
+    when: 
+      field: source
+      in: 
+        - discovery-finding
+        - recent-finding

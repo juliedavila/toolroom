@@ -1,0 +1,685 @@
+# Ratchet edition 5.2.0. Generated; do not edit.
+version: 1
+exception_policy: 
+  acceptor: business risk owner (separation.business_risk_owner_role)
+  concurrence: "security risk owner (separation.security_risk_owner_role), never the same role as the acceptor"
+  max_days: 180
+  suggested_days: 90
+  requires: 
+    - reason
+    - compensating_controls (at least one)
+    - reviewed_with (at least two roles)
+    - on_expiry (revert | review)
+  phase_1_only: 
+    acceptor: program decision owner (separation.program_decision_owner_role)
+    concurrence: "independent reviewer (separation.verifier_team), never the acceptor"
+    ends_at: "earlier of phase 1 exit and the risk owner's recorded review date"
+    review_field: risk_owner_review_on
+    exit_field: phase_1_exit_on
+    refused_when: both separation.business_risk_owner_role and separation.security_risk_owner_role are named
+    codes: 
+      - sep.producer-approver
+      - sep.tool-propose-authorize
+      - sep.oracle-producer
+      - sep.verifier-producer
+      - sep.fix-closure
+      - intake.ledger-direct-write
+  note: "An exception applies to every instance of its code in the profile unless scope narrows it. Exceptions appear in the tailored package and in every report that relies on the rule, so a reader always sees where the organization chose differently."
+roles: 
+  - business risk owner
+  - security risk owner
+  - engineering owner
+  - second line and audit
+  - control-plane operator
+families: 
+  proposal-not-permission: 
+    should_never: Whoever proposes an action should never be the one who authorizes it.
+    protects: 
+      - I1
+    why: "An agent, or the team that runs it, can be wrong or manipulated. Authorization outside the proposer is what makes a wrong proposal harmless. It bounds what a part may do and cannot say whether the authority model it enforces is right: an application's own authorization, such as a view-only role that can approve invoices, needs verification against what was intended, and that is what the loop does."
+    legitimate_reasons: 
+      - A small organization with one security team during the first phase
+      - A short migration while the approval console moves to a separate identity realm
+    perspectives: 
+      business risk owner: "Fewer handoffs and faster tests; in exchange, owns the chance that a manipulated proposal runs with real effects."
+      security risk owner: Loses the one control that holds when the agent is wrong; expect to be asked how a bad action was stopped.
+      engineering owner: Faster turnaround on tests against their service; also absorbs any unintended effect on it.
+      second line and audit: "Cannot show that actions were authorized independently, which most control frameworks expect."
+      control-plane operator: "Grants now come from the same identities that ask for them; audit trails still record, but nothing stops."
+    compensating_controls: 
+      - Restrict excepted actions to read-only or reversible classes
+      - A second person reviews a daily sample of self-authorized actions
+      - Tighter egress and time windows on every grant
+    failure_scenarios: 
+      - F12
+      - F13
+      - F53
+      - F56
+      - F76
+      - F78
+    codes: 
+      sep.producer-approver: The team that runs the agents also approves their actions.
+      sep.tool-propose-authorize: One tool both proposes and authorizes actions.
+      cadence.continuous-without-preapproval: Continuous regression runs without a standing permission issued under standard-change preapproval.
+      dial.producer-turned: The team that runs the agents turns a dial or sets a design limit.
+      admin.execution-by-producer: A fail-closed execution part is administered by the team that runs the agents.
+      admin.cpo-is-producer: The control-plane operator is the team that runs the agents.
+      limit.grant-beyond-design: "A standing permission, batch approval, earned-autonomy grant or dial lets an agent act, or a judgment stand, without a person's approval beyond the design limit for its producer or judgment type, or at or above the consequence line."
+  proof-condition: 
+    should_never: The agent that proposes or runs a test should never be able to read its proof condition.
+    protects: 
+      - I2
+    why: "An agent that can see the proof condition can pass a test without doing the work, and every result it produces stops meaning anything."
+    legitimate_reasons: 
+      - "A team too small to hold the proof condition apart during the first phase, with seeded cases only"
+    perspectives: 
+      business risk owner: "Saves a role; in exchange, results may report fixes and findings that are not real."
+      security risk owner: Loses the ability to tell real detection from leakage; measured agent value becomes unreliable.
+      engineering owner: May receive confident findings that do not reproduce.
+      second line and audit: Test evidence is no longer independent of the thing it tests.
+      control-plane operator: Must enforce separate storage and keys by hand where the roles merge.
+    compensating_controls: 
+      - Use only seeded cases whose answers are published after the run
+      - Rotate proof conditions after each run
+      - Independent re-test of every positive result
+    failure_scenarios: 
+      - F11
+    codes: 
+      sep.oracle-producer: The proof condition is owned by the team that runs the agents.
+  intake-only: 
+    should_never: "Nothing should ever enter the record except through intake, and a lead should never count as coverage."
+    protects: 
+      - I3
+    why: The record is what an organization believes about its exposure. Direct writes and leads counted as coverage let unverified claims become facts.
+    legitimate_reasons: 
+      - "An existing tracker that cannot route through intake yet, during a time-boxed migration"
+    perspectives: 
+      business risk owner: Faster reporting; the cost is a record that may overstate what was tested.
+      security risk owner: Coverage and closure numbers lose their meaning; regulators and boards may be shown claims nobody verified.
+      engineering owner: Fewer duplicate tickets in the short run; more disputes later about what was really found.
+      second line and audit: Cannot trace a recorded finding back to verified evidence.
+      control-plane operator: Two write paths to protect instead of one.
+    compensating_controls: 
+      - Label every direct write as unverified and exclude it from coverage reports
+      - Reconcile direct writes against intake weekly
+      - Sample direct writes for independent reproduction
+    failure_scenarios: 
+      - F12
+      - F33
+    codes: 
+      intake.ledger-direct-write: Findings can be written to the ledger directly.
+      leads.as-coverage: Existing tool leads count as coverage.
+  independent-acceptance: 
+    should_never: No one should ever grade their own work.
+    protects: 
+      - I4
+    why: "Independence is what makes a closed finding believable. Whoever proposes, holds the answer, fixes or builds should not also decide that it worked."
+    legitimate_reasons: 
+      - Too few people to separate every pair at the first phase
+      - A shared leader above separate teams during a reorganization
+      - A tool vendor that also reports its own yield until a second source exists
+    perspectives: 
+      business risk owner: Fewer people involved and faster closure; accepts that some fixes will be graded by their authors.
+      security risk owner: Loses independent evidence for audits and regulators; expect closed findings to be questioned.
+      engineering owner: Fewer handoffs; owns the rework when a self-accepted fix turns out to be wrong.
+      second line and audit: Closure and measurement are no longer independently attested.
+      control-plane operator: "Identity separation is enforced by the profile, so merged roles mean merged permissions."
+    compensating_controls: 
+      - Independent re-test of a sample of closures (10 percent suggested)
+      - Rotate the accepting person across teams
+      - Report self-graded closures separately
+    failure_scenarios: 
+      - F25
+      - F28
+      - F37
+      - F42
+      - F47
+    codes: 
+      sep.verifier-producer: The verifier is the team that runs the agents.
+      sep.fix-closure: The team that writes a fix also accepts its closure.
+      ownership.broken-separation: "ownership.q1_checking_team is one-team (one team runs the agents and the checks), or ownership.q3_promotion_authority is evaluation-team (evaluation promotes its own results); 28 of the 64 combinations do one or both"
+      sep.business-risk-owner: The business risk owner also proposes or verifies.
+      sep.security-risk-owner: The security risk owner also proposes.
+      tools.owner-grades-own: "A tool's owner also computes that tool's yield."
+      tools.decision-conflicted: Tool portfolio decisions are made by the team that runs the agents or owns the tool.
+      road.owner-verifies: The paved-road owner verifies its own retirement claims.
+      road.owner-metrics: The paved-road owner computes its own road metrics.
+      attest.self-confirmed: "An asset's consequence tier is drafted and confirmed by the same party."
+      attest.owner-drafts: The asset owner drafts its own consequence tiers.
+      admin.cpo-is-verifier: The control-plane operator is also the verifier.
+      sep.evaluator-conflicted: "The evaluation team is also the verifier, the paved-road owner, the tool owner or the portfolio decision owner, so an automated verifier or evaluator would grade work its own team does."
+      creation.author-merges: "In the secure-creation loop, a change can be merged by its author: the coding agent or the person whose session produced it."
+      creation.catch-layer-conflicted: The team that assigns the layer that should have caught a defect is the secure-creation owner or the paved-road owner.
+      creation.drift-reporter-is-reviewer: "The team that reports reviewers' approval drift on agent-written changes is the team of reviewers it reports on."
+      sep.purple-team-decides: "The purple team, whose AI proposes kept tests, re-proof results and detections, is also the verifier team, the team that owns proof conditions, the security risk owner or the team that accepts detections, so it would accept or grade what its own AI proposes."
+  loosening-controls: 
+    should_never: "A control should never loosen without an attributed, expiring decision and a replay afterward."
+    protects: 
+      - I8
+    why: "Every control will be loosened at some point under delivery pressure. What keeps that safe is knowing who decided, until when, and checking what slipped through."
+    legitimate_reasons: 
+      - A business-critical release window
+      - "A tier whose failure behavior the organization's own continuity plan sets differently"
+    perspectives: 
+      business risk owner: Keeps deploys moving; owns what ships while the control is loose.
+      security risk owner: "Needs the replay to find what slipped through; without it, a temporary exception becomes permanent exposure."
+      engineering owner: Ships on time; may later have to roll back what the replay finds.
+      second line and audit: Expects every loosening to be attributable and time-bound.
+      control-plane operator: Implements the looser posture and must be able to restore it.
+    compensating_controls: 
+      - Shorter expiry than the default
+      - Replay owed on recovery for everything that shipped
+      - Notify the security risk owner on each use
+    failure_scenarios: 
+      - F14
+      - F16
+      - F40
+      - F41
+      - F56
+    codes: 
+      shipthrough.acceptor-not-business-owner: Ship-through on a held gate is accepted by someone other than the business risk owner.
+      shipthrough.acceptor-conflicted: "Ship-through is accepted by a proposing, fix-writing or verifying team."
+      shipthrough.no-concurrence: Ship-through acceptor and concurrence are the same role.
+      shipthrough.no-replay: Fail-open events owe no replay on recovery.
+      gate.crown-jewel-open-with-record: A gate on a crown-jewel path fails open with a record alone.
+      dial.bound-looser: "A dial's bound is set looser than the core bound."
+      tier.failure-mode-override: "A quality tier's failure behavior is changed."
+      modules.alignment-overdue: "A module interface point has sat below aligned longer than the alignment limit allows (the organization's dial, or the 180-day exception ceiling while the dial is unset)."
+  control-administration: 
+    should_never: "A control should never share administration with what it guards, and a bought control should never leave the organization's hands."
+    protects: 
+      - I1
+      - I7
+    why: "A control administered by the people or systems it constrains fails together with them. Whatever is bought, the organization keeps the policy, approvals and keys."
+    legitimate_reasons: 
+      - A managed service the organization cannot administer separately yet
+      - A platform team that runs everything until the assurance unit is staffed
+    perspectives: 
+      business risk owner: Uses one team or vendor instead of two; accepts that one compromise can reach both sides.
+      security risk owner: The control-plane boundary becomes a matter of trust in one team or vendor.
+      engineering owner: Little day-to-day change; larger blast radius when that team or vendor errs.
+      second line and audit: Segregation of administrative duties is a common audit expectation.
+      control-plane operator: Holds more access than the design intends; every action should be recorded and reviewed.
+    compensating_controls: 
+      - Just-in-time administration with a second approver
+      - Session recording reviewed by the security risk owner
+      - Contractual control of keys and policy for bought parts
+    failure_scenarios: 
+      - F55
+      - F59
+      - F68
+    codes: 
+      admin.control-plane-operator: A fail-closed control is administered by someone other than the control-plane operator.
+      admin.cpo-is-platform: One role operates both the control plane and the shared platform.
+      bought.without-org-controls: "A bought part that enforces a rule is not under the organization's control."
+      model.t0-placement: A fail-closed control sits outside the control or execution zone (architecture exception).
+  model-boundary: 
+    should_never: "Model output should never reach a grant or a decision, and attacker text, private data and a way out should never meet in one agent route."
+    protects: 
+      - I7
+      - I1
+    why: "Prompt injection is not solved; it is contained. These boundaries are what contain it, and a model judgment is still a judgment about input an attacker can shape."
+    legitimate_reasons: 
+      - A vendor agent platform whose internals cannot be split yet
+      - An early experiment on synthetic data only
+    perspectives: 
+      business risk owner: Adopts tools faster; owns the chance that injected text drives a real decision.
+      security risk owner: "The main defense against injection becomes the model's own behavior, which cannot be relied on."
+      engineering owner: Agents may file or close work based on manipulated input.
+      second line and audit: Decisions cannot be shown to rest on deterministic checks.
+      control-plane operator: Gates that were deterministic now depend on model calls and their providers.
+    compensating_controls: 
+      - Synthetic or public data only on the excepted route
+      - Human review of every action or decision the route touches
+      - Strict output schemas and allow-lists
+    failure_scenarios: 
+      - F21
+      - F39
+      - F45
+      - F69
+    codes: 
+      model.trifecta: "An agent route holds untrusted content, non-public data and a way out (architecture exception; detected in phase 1 from phase_1_boundary)."
+      model.phase1-boundary-unconfirmed: The phase 1 boundary is confirmed by someone other than the independent reviewer.
+      model.quarantine: The part that builds agent context receives untrusted free text (architecture exception).
+      model.boundary: A gate on the model path is not deterministic or sits outside the control zone (architecture exception).
+      model.advisory: "A model judgment feeds authorization, coverage, a verdict, closure, promotion or a tier attestation (architecture exception)."
+  degradation: 
+    should_never: "Controls should never depend on a model, and an outage should never produce fallback credentials or a false all-clear."
+    protects: 
+      - I10
+      - I6
+    why: "Providers fail, change policy or become unavailable. The loop can slow down when that happens; it must not become unsafe."
+    legitimate_reasons: 
+      - An identity provider whose outage behavior the organization cannot change
+      - A SIEM migration window
+    perspectives: 
+      business risk owner: Avoids stalls during outages; owns what runs while visibility or identity is degraded.
+      security risk owner: Outages become the moment when checks pass by default.
+      engineering owner: Fewer blocked pipelines during outages.
+      second line and audit: Evidence gathered during outages may not be trustworthy.
+      control-plane operator: Must track and unwind anything issued in degraded mode.
+    compensating_controls: 
+      - Mark everything done in degraded mode for replay
+      - Cap the duration of degraded operation
+      - Alert the security risk owner when degraded mode starts
+    failure_scenarios: 
+      - F48
+      - F49
+      - F50
+      - F54
+    codes: 
+      model.ai-free-control-plane: A control or execution part depends on the model path (architecture exception).
+      infra.idp-not-fail-closed: An identity provider outage does not stop new grants and leases.
+      infra.siem-continue-without: Detection checks continue without the SIEM and report passed.
+  measurement-honesty: 
+    should_never: "Coverage should never be claimed from declarations, unsampled data or unvetted versions."
+    protects: 
+      - I5
+      - I3
+    why: The paved road and the tool portfolio earn lighter testing only where coverage is proven. Claimed coverage that was never checked is how blind spots grow.
+    legitimate_reasons: 
+      - "A road entry with a long, clean history that the organization chooses to trust by declaration for a period"
+    perspectives: 
+      business risk owner: Less testing cost; owns the gaps a declaration hides.
+      security risk owner: Road and tool metrics stop being evidence.
+      engineering owner: Lighter scanning on code believed to be on the road.
+      second line and audit: Coverage reports rest on assertions.
+      control-plane operator: No direct change.
+    compensating_controls: 
+      - Keep a small sample even where coverage is declared
+      - Re-vet on every road entry version
+      - Report declared and proven coverage separately
+    failure_scenarios: 
+      - F27
+      - F30
+      - F34
+      - F36
+      - F37
+    codes: 
+      tools.unsampled-yield: Tool yield is computed without a pre-registered sample.
+      road.conformance-declared: "Road conformance is read from declarations, not deployed state."
+      road.service-granularity: "Road conformance is judged per service, not per call site."
+      road.unvetted-version: A road entry version confers coverage before it is vetted.
+      road.zero-sample: Covered call sites are never sampled.
+      road.escape-hatch-free: Leaving the road does not reinstate per-service regressions.
+      road.opt-in-without-check: An opt-in road entry confers coverage without a per-call-site check.
+  evidence-partitioning: 
+    should_never: Evidence should never be read across jurisdictions or business lines outside the review console.
+    protects: 
+      - I5
+    why: Partitioning keeps evidence lawful to hold and keeps one compromise from exposing everything.
+    legitimate_reasons: 
+      - A single legal entity with no cross-border data constraints
+    perspectives: 
+      business risk owner: Simpler reporting across the organization.
+      security risk owner: A single read path can expose every partition.
+      engineering owner: No direct change.
+      second line and audit: Data residency and access obligations may be breached.
+      control-plane operator: Fewer keys to manage; larger blast radius per key.
+    compensating_controls: 
+      - Attribute and review every cross-partition read
+      - Separate keys per partition even if reads are open
+    failure_scenarios: 
+      - F66
+    codes: 
+      partition.cross-reads: Reads across evidence partitions bypass the review console.
+      partition.no-jurisdiction-key: Evidence is not partitioned by jurisdiction although several jurisdictions apply.
+  sequencing: 
+    should_never: A pluggable module should never switch on before its entry evidence exists.
+    protects: 
+      - I8
+    why: "Modules add parts, work and claims. Switching one on early spends effort on capability the loop cannot yet support or measure."
+    legitimate_reasons: 
+      - A mandate that requires the capability by a date
+    perspectives: 
+      business risk owner: Gets the capability sooner; pays for it before it can be shown to work.
+      security risk owner: Results from the module may not be trustworthy yet.
+      engineering owner: More process before the core loop is settled.
+      second line and audit: Claims from the module rest on thin evidence.
+      control-plane operator: More parts to run earlier.
+    compensating_controls: 
+      - "Label the module's outputs provisional until entry evidence exists"
+      - Review at the next phase
+    failure_scenarios: 
+      - F44
+    codes: 
+      modules.before-evidence: A module is switched on before its entry evidence.
+conditions: 
+  sep.producer-approver: separation.producer_team equals separation.approver_team
+  sep.tool-propose-authorize: existing_tools.STEP-3 is set and equals existing_tools.STEP-4
+  cadence.continuous-without-preapproval: delivery.starting_cadence_rung is continuous and delivery.standard_change_preapproval is false
+  dial.producer-turned: "the turned_by_role of a core dial (the first entry for each core dial id) equals separation.producer_team, or any agent_limits.limits[].set_by_role equals separation.producer_team"
+  admin.execution-by-producer: "a build_or_buy entry's administered_by equals separation.producer_team for a part it covers in the execution zone whose quality tier is T0"
+  admin.cpo-is-producer: separation.control_plane_operator_role equals separation.producer_team
+  limit.grant-beyond-design: "agent_limits.consequence_line is answered, and an agent_limits.grants[] entry has no limit with the same applies_to and subject, or its max_tier is above that limit's max_tier, or its max_tier is at or above agent_limits.consequence_line, or it names an environment or action class the limit does not list (tiers rank standard, critical, crown-jewel)"
+  sep.oracle-producer: separation.fixture_oracle_owner_team equals separation.producer_team
+  intake.ledger-direct-write: ledger_write_path is set and is not intake-only
+  leads.as-coverage: tools.leads_count_as_coverage is true
+  sep.verifier-producer: separation.verifier_team equals separation.producer_team
+  sep.fix-closure: separation.closure_acceptor_team equals separation.fix_author_team
+  ownership.broken-separation: "the ownership answers put the agents and the checks under one team, or let evaluation promote its own results (ownership.q1_checking_team, q2_runtime_producer, q3_promotion_authority)"
+  sep.business-risk-owner: separation.business_risk_owner_role equals separation.producer_team or separation.verifier_team
+  sep.security-risk-owner: separation.security_risk_owner_role equals separation.producer_team
+  tools.owner-grades-own: tools.tool_owner_team equals tools.yield_owner_team
+  tools.decision-conflicted: tools.decision_owner_role equals separation.producer_team or tools.tool_owner_team
+  road.owner-verifies: road.owner_team equals separation.verifier_team
+  road.owner-metrics: road.owner_team equals road.metrics_owner_team
+  attest.self-confirmed: "a crown_jewel_register entry's confirmed_by equals its drafted_by"
+  attest.owner-drafts: attestation.drafter_team equals attestation.asset_owner_role
+  admin.cpo-is-verifier: separation.control_plane_operator_role equals separation.verifier_team
+  shipthrough.acceptor-not-business-owner: gate_failure_policy.override.acceptor_role is set and differs from separation.business_risk_owner_role
+  shipthrough.acceptor-conflicted: "gate_failure_policy.override.acceptor_role equals separation.producer_team, fix_author_team or verifier_team"
+  shipthrough.no-concurrence: gate_failure_policy.override.concurrence_role equals gate_failure_policy.override.acceptor_role
+  shipthrough.no-replay: gate_failure_policy.override is set and its replay_on_recovery is false
+  gate.crown-jewel-open-with-record: "gate_failure_policy.by_tier.crown-jewel is fail-open-with-record, or a gate_failure_policy.blocking_cost_adjustments entry with path_tier crown-jewel has posture fail-open-with-record"
+  dial.bound-looser: "a dials[] entry sets a bound looser than the core bound for that dial (lower where the safe direction is up, higher where it is down; core bounds are in the quality data)"
+  tier.failure-mode-override: "tier_overrides sets failure_mode, intent or name for any tier"
+  admin.control-plane-operator: "a build_or_buy entry's administered_by differs from separation.control_plane_operator_role for a part it covers that is a fail-closed control in the control zone or a model-boundary gate"
+  admin.cpo-is-platform: separation.control_plane_operator_role equals separation.platform_operator_role
+  bought.without-org-controls: "a build_or_buy entry has choice buy and organization_controls not true, and covers a part that enforces a rule (classified should-never). A part entry covers its part; a plane entry covers each part of the plane except a part whose own entry has a choice that is one of build, buy, reuse or undecided, since that entry overrides the plane's for it."
+  model.t0-placement: "architecture exception: declared by the organization, not detected from the profile; applies when a fail-closed control actually sits outside the control or execution zone"
+  model.trifecta: "while phase_1_boundary.status is active: with source practice-target (the default), any of target_written_by_team, outsider_text_excluded, agent_egress_model_route_only or context_synthetic is false; with source discovery-finding or recent-finding, agent_drafts_only or agent_egress_model_route_only is false; afterwards an architecture exception, declared rather than detected, that applies when an agent route in the organization's actual architecture holds untrusted content, non-public data and a way out together"
+  model.phase1-boundary-unconfirmed: phase_1_boundary.status is active and phase_1_boundary.confirmed_by_role is set and differs from separation.verifier_team
+  model.quarantine: "architecture exception: declared, not detected; applies when the part that builds agent context actually receives untrusted free text"
+  model.boundary: "architecture exception: declared, not detected; applies when a gate on the model path actually calls a model or sits outside the control zone"
+  model.advisory: "architecture exception: declared, not detected; applies when a model judgment actually feeds authorization, coverage, a verdict, closure, promotion or a tier attestation"
+  model.ai-free-control-plane: "architecture exception: declared, not detected; applies when a control or execution part actually depends on a model route"
+  infra.idp-not-fail-closed: an infrastructure_dependencies entry of kind idp has failure_posture other than fail-closed
+  infra.siem-continue-without: an infrastructure_dependencies entry of kind siem has failure_posture continue-without
+  tools.unsampled-yield: tools.yield_requires_sampling is false
+  road.conformance-declared: road.conformance_basis is declared
+  road.service-granularity: road.conformance_granularity is service
+  road.unvetted-version: road.vet_each_version is false
+  road.zero-sample: road.covered_sample_share is 0 or less
+  road.escape-hatch-free: road.escape_hatch_reinstates_regressions is false
+  road.opt-in-without-check: road.opt_in_coverage_requires_call_site_check is false
+  partition.cross-reads: data_partitioning.cross_partition_reads is set and is not review-console-only
+  partition.no-jurisdiction-key: jurisdictions lists more than one and data_partitioning.keys does not include jurisdiction
+  sep.evaluator-conflicted: "separation.evaluation_team equals separation.verifier_team, road.owner_team, tools.tool_owner_team or tools.decision_owner_role. Checked whenever both are named, at any phase; the verifier and evaluator roles first run as systems in phase 3, and separation.evaluation_team is a phase 3 readiness section, so phase 3 cannot start until it is named"
+  creation.author-merges: modules.secure-creation.merged_by is change-author or coding-agent
+  creation.catch-layer-conflicted: modules.secure-creation.catch_layer_assigner_team equals modules.secure-creation.owner_team or road.owner_team
+  creation.drift-reporter-is-reviewer: modules.secure-creation.drift_reporter_team equals modules.secure-creation.reviewer_team
+  sep.purple-team-decides: "separation.purple_team equals separation.verifier_team, separation.fixture_oracle_owner_team, separation.security_risk_owner_role or, when it is named, separation.detection_owner_team"
+  modules.alignment-overdue: "a current_practice.modules[].points[] entry below aligned records a since date more than the alignment limit's whole days before the evaluation date; the limit is module_alignment_max_days current in the dial register when it is a number, and otherwise the exception ceiling (exception_policy.max_days, 180 days)"
+  modules.before-evidence: "a modules entry is enabled before its entry evidence: consequence-gates needs findings_with_reached_assets of at least 10 and at least 80 percent of the crown-jewel register confirmed; paved-road needs classes_with_two_reproduced of at least 3; tool-portfolio needs closed_cases_with_lead_provenance of at least 20 and lead_text_quarantined true; production-effects needs phase_3_continue_decision and approved_production_profile both true; secure-creation needs provenance_share_required answered, provenance_stamped_share at least that share, and derived_checks_running of at least 1"
+consistency_checks: 
+  - "Every value matches its schema type and enumeration, and no answer is left as a FILL placeholder once the profile is called complete."
+  - The ownership answers name a combination the reference ownership scenarios cover.
+  - "A gate policy keyed on impact_score sets score_threshold, and every registered asset has an impact_score."
+  - "Shares (confidence_bar_default, road.covered_sample_share, ai_resilience.primary_provider_share) are between 0 and 1."
+  - A tool marked mandated names the obligation that mandates it.
+  - A typed model route lists the decision types it serves.
+  - The fallback route is one of the eligible model routes.
+  - "A self-hosted fallback, or a producer whose lowest rung is self-hosted, has self-hosting capacity behind it."
+  - tier_overrides names known tiers and known targets only.
+  - "build_or_buy keys are part ids or plane names, and each choice is build, buy, reuse or undecided."
+  - modules names known modules only.
+  - "The module inventory names only interface points its module declares, and no point that ends at a part coding agents can reach, at the part that builds agent context, or at a producer is connected without being conformant."
+  - "Once a dial register exists, it lists every core dial that has a default; a dial past its bound carries its own recorded risk acceptance."
+  - "A value that also lives in the dial register (covered sample share, lead sample minimum, confidence bar) has the same value in both places."
+  - Every exception names a known rule code and meets the exception policy.
+  - "A kept test's longest quarantine (kept_test_quarantine_max_days in the dial register) is no longer than the exception ceiling, because a quarantined kept test is an open exception."
+  - "Each stable team id (separation.team_ids) names one team: two team names never share an id."
+  - "Once the past-findings baseline is frozen (current_practice.history.frozen), its figures match the latest version: the freeze, or the last dated amendment."
+  - "A window bundle's longest life (window_bundle_max_hours in the dial register) is no longer than the posture expiry (posture_expiry_hours), because a window bundle sees a revocation only when it expires."
+  - "The role that confirms escapes (escapes.confirmer_role) is none of the roles that detect them (escapes.detection_sources[].detecting_role), because an escape counts only once someone apart from its detector reproduces it."
+  - "The role that confirms escapes is neither the producer team nor the program decision owner, whose results the escape rate judges, because an unconfirmed escape counts nowhere."
+  - "In the trusted-agent notice mode for attack injection, a trusted agent (injection.trusted_agent_role) is named, is on the detection side, one of the roles that detect escapes or the detection owner team when any is named, and is not the team that runs the agents, and is recorded as able to stop the exercise. Once the section is answered, a null trusted agent or stop power means none, which contradicts the mode; a placeholder leaves the section unanswered, and an unanswered section runs no injection past the pipeline."
+  - Attack injection may reach production (injection.allowed_environments) only while the production-effects module is enabled and with a maximum exposure window (injection.production_max_exposure_minutes).
+  - "Attack injection that may reach any environment past deployment has a ceiling from a stop or a grant's expiry to the environment restored (injection.stop_restore_max_minutes)."
+  - "Once gate_seeding is declared, each human gate the rules name (approver, proof-holder, decider) has one entry with seeding on, a nonzero catch-rate floor, a named breach action, seed categories whose refresh date has not lapsed, a seeding owner outside the gate's own team, per-person catch rates kept from managers and performance reviews, and a breach the system computes; the approver gate's seed rate is the seeded_proposal_rate dial."
+schema_codes: 
+  schema.required: "A required value is missing, or null where the schema does not allow null."
+  schema.type: A value has the wrong type.
+  schema.enum: A value is not one of the allowed values.
+  schema.minimum: A number is below its minimum.
+check_codes: 
+  check.unanswered: A value still holds a FILL placeholder in a profile checked as complete.
+  check.exception-invalid: An exception fails the exception policy; every failing reason is listed in one finding.
+  check.build-or-buy-key: A build_or_buy key names neither a part nor a plane.
+  check.build-or-buy-choice: "A build_or_buy entry is not an object, or its choice is not build, buy, reuse or undecided."
+  check.tier-override: "tier_overrides names an unknown tier, or a key outside that tier's targets."
+  check.ownership-unknown: The ownership answers pass the schema but are missing from the ownership verdict table.
+  check.module-unknown: modules names an unknown module.
+  check.interface-point-unknown: The module inventory names an interface point its module does not declare.
+  check.interface-agent-reach: "A module interface point that ends at a part coding agents can reach, at the part that builds agent context, or at a producer, is connected but not conformant."
+  check.dial-missing: A dial register exists but lacks a core dial that has a default.
+  check.dial-past-bound: "A dial's current value is past its bound without a recorded risk acceptance."
+  check.dial-register-mismatch: "A value that also lives in the dial register differs from the dial's current value."
+  check.impact-score-threshold: The gate policy keys on impact_score but sets no score_threshold.
+  check.impact-score-missing: The gate policy keys on impact_score and a registered asset has no impact_score.
+  check.latency-below-budget: "The deploy gate's added-latency objective is below the regression time budget, and no dependency-scoped or post-deploy handling is recorded."
+  check.share-range: "A share (confidence bar, covered sample share, primary provider share) is above 1."
+  check.mandated-obligation: A tool marked mandated names no obligation.
+  check.typed-route-decision-types: A typed model route lists no decision types.
+  check.fallback-route-unknown: The fallback route is not one of the eligible model routes.
+  check.self-hosting-capacity: A self-hosted fallback or lowest rung has no self-hosting capacity behind it.
+  check.quarantine-past-ceiling: The longest kept-test quarantine in the dial register is longer than the exception ceiling.
+  check.team-id-invalid: "Two team names share one stable id, or a team's id is not a non-empty string."
+  check.baseline-changed: "The frozen baseline's figures changed with no dated amendment recording the change."
+  check.bundle-past-posture-expiry: The longest window bundle life in the dial register is longer than the posture expiry.
+  check.limit-not-security-risk-owner: "A design limit was set by a role other than the security risk owner (and other than the producer team, which dial.producer-turned refuses)."
+  check.consequence-line-not-business-risk-owner: The consequence line was set by a role other than the business risk owner.
+  check.limit-duplicate-subject: Two design limits name the same applies_to and subject.
+  check.escape-confirmer-detects: escapes.confirmer_role equals the detecting_role of an escapes.detection_sources entry.
+  check.escape-confirmer-conflicted: escapes.confirmer_role equals separation.producer_team or separation.program_decision_owner_role.
+  check.injection-trusted-agent-producer: injection.notice_mode is trusted-agent and injection.trusted_agent_role equals separation.producer_team.
+  check.injection-trusted-agent-not-detection: "injection.notice_mode is trusted-agent and injection.trusted_agent_role is none of the answered escapes.detection_sources[].detecting_role values and separation.detection_owner_team, while at least one of them is answered."
+  check.injection-trusted-agent-cannot-stop: "injection.notice_mode is trusted-agent and injection.trusted_agent_can_stop is false, or, once the injection section is answered with no placeholder, anything but true."
+  check.injection-trusted-agent-unnamed: "injection.notice_mode is trusted-agent, the injection section is answered with no placeholder, and injection.trusted_agent_role is null or absent."
+  check.injection-production-without-effects: injection.allowed_environments lists production while modules.production-effects.enabled is not true.
+  check.injection-production-exposure-unset: "The injection section is answered with no placeholder, injection.allowed_environments lists production, and injection.production_max_exposure_minutes is null or absent."
+  check.injection-restore-ceiling-unset: "The injection section is answered with no placeholder, injection.allowed_environments is not empty, and injection.stop_restore_max_minutes is null or absent."
+  check.fix-cap-self-agreed: "An owning team's fix cap names the team itself as the security role that agreed it, so no one from security agreed it."
+  check.fix-cap-duplicate-team: Two fix caps name the same owning team.
+  check.fix-cap-default-not-sponsor: The default fix cap was set by a role other than the program decision owner.
+  check.gate-seeding-missing: "gate_seeding is declared and names no entry for a human gate the rules name (approver, proof-holder or decider)."
+  check.gate-seeding-duplicate: Two gate_seeding entries name the same gate.
+  check.gate-seeding-off: "A gate_seeding entry's seed rate or catch-rate floor is zero, so no known-bad item reaches the gate or no catch rate can breach."
+  check.gate-seed-rate-not-dial: "The approver gate's seed_rate differs from the seeded_proposal_rate dial, which holds that rate (one register)."
+  check.gate-seeds-lapsed: "A gate_seeding entry's categories_refresh_by date is before the evaluation date, so its seed categories have lapsed."
+  check.gate-seeding-owner-in-line: "A gate_seeding entry's seeding_owner_role equals the team that holds that gate, so the seeding owner sits inside the gate's own reporting line."
+  check.gate-results-to-manager: A gate_seeding entry sends per-person catch rates to a manager or a performance review.
+  check.gate-breach-by-person: A gate_seeding entry has a person decide whether a catch-rate floor is breached; the system computes the breach.
+warning_codes: 
+  warn.internal-audit-operating: Internal audit takes an operating role (verifier or closure acceptor).
+  warn.hosted-route-restricted: A hosted model route allows restricted or secret data.
+  warn.phase1-leg-unanswered: A phase 1 boundary condition is unanswered while phase 1 starts from a real finding.
+  warn.ownership-shared-leader: "The ownership answers separate the checks by team, but some share a leader."
+  warn.ownership-third-party: "The runtime producer is a vendor, which adds a third-party boundary."
+  warn.risk-owners-same: The business and security risk owners are the same role.
+  warn.register-gap: Some crown-jewel register entries are unconfirmed or their confirmation is stale.
+  warn.no-crown-jewel: The register lists assets but none at tier crown-jewel.
+  warn.shipthrough-no-concurrence: Ship-through names an acceptor but no concurrence role.
+  warn.shipthrough-concurrence-not-sro: Ship-through concurrence is not the security risk owner.
+  warn.gate-all-deploys: An unavailable gate holds every deploy.
+  warn.critical-not-fail-closed: Gates on critical paths do not fail closed.
+  warn.crown-jewel-under-acceptance: Gates on crown-jewel paths fail open under an expiring acceptance.
+  warn.adjustment-crown-jewel: A blocking-cost adjustment lets a crown-jewel path fail open under an expiring acceptance.
+  warn.score-threshold-unused: score_threshold is set while the gate policy keys on tier.
+  warn.tool-decision-not-sro: Tool portfolio decisions are made by someone other than the security risk owner.
+  warn.no-stage-timings: "Delivery metrics are collected, but not pipeline stage timings."
+  warn.no-tools: The tools section is answered and lists no existing tool.
+  warn.road-owner-is-producer: The paved-road owner is the team that runs the agents.
+  warn.authorship-unlabeled: Changes are not labeled human-written or agent-generated.
+  warn.no-road-assets: The road section is answered and every road asset is null.
+  warn.enforced-not-preferred: Enforced road entries are not preferred over opt-in ones.
+  warn.fallback-hosted: The fallback model route is hosted.
+  warn.no-self-hosted-rung: There is no self-hosting capacity.
+  warn.producer-frontier-only: A producer has no rung below the frontier route.
+  warn.provider-concentration: One provider carries nearly all model requests and there is no self-hosted rung.
+  warn.no-idp: "Infrastructure dependencies are listed, but no identity provider."
+  warn.build-or-buy-unset: build_or_buy is not set while existing tools are named.
+  warn.dial-past-bound-accepted: A dial is past its bound under a recorded risk acceptance.
+  warn.dial-turned-not-sro: "A dial past its bound was turned by someone other than the security risk owner, except a dial whose owner is the organization's choice (the early-stop minimum)."
+  warn.dial-not-core: The dial register lists a dial that is not a core dial.
+  warn.exception-applied: A valid exception turned a should-never refusal into a warning.
+  warn.exception-unused: A valid exception covers nothing in the profile.
+  warn.module-dependency-off: A module is on while a module it depends on is off.
+  warn.interface-below-conformant: The module inventory records interface points below conformant.
+  warn.interface-below-aligned: The module inventory records interface points that are conformant but not aligned.
+  warn.phase1-runner-scoped-role: "Phase 1 limits the runner with a scoped role, which is not bound to the exact approved action."
+  warn.kept-test-lane-unset: Kept tests can move their time-based runs to the scheduled lane (a quiet period is set) but the lane has no interval.
+  warn.kept-test-quarantine-cap-unset: "Kept-test dials are set but the quarantine count cap is not, so quarantined kept tests are counted but not capped."
+  warn.kept-test-reprove-unset: "Kept-test dials are set but the re-proof interval is not, so no kept test is re-proved on a cadence."
+  warn.escapes-unset: "escapes is missing (absent, null or a placeholder) or is not a mapping while the security risk owner is named, so the escape rate has no operational definition and phase 2 cannot start."
+  warn.injection-unannounced: "injection.notice_mode is unannounced, so nobody on the detection side can tell an injected weakness from a real attack or stop the exercise."
+  warn.injection-detection-side-unset: "injection.notice_mode is trusted-agent, the injection section is answered with no placeholder, the trusted agent is named, and no escapes detecting role and no separation.detection_owner_team is answered, so the trusted agent cannot be checked against the detection side."
+  warn.threshold-set-by-producer: "A threshold in thresholds was set by the producer team, which would set the bar its own agents are judged against."
+  warn.fix-cap-default-unset: "The fix-capacity section is answered but no default fix cap is set, so an owning team with no cap of its own is uncapped, nothing above its capacity is refused or logged, and phase 3 readiness waits for the default."
+  warn.gate-seeding-unset: "gate_seeding is absent or null while the dial register is settled (answered, no placeholder), so no human gate's seeding, catch-rate floor or breach action is declared."
+  warn.dial-unset: "The dial register is settled and holds no number for negative_recheck_floor_above_line, in_tier_max_wait_days or approval_requests_per_approver_hour, so that dial's fallback holds: the negative-challenge share, no draw by age, or the approver's work-in-progress limit alone."
+ownership_verdicts: 
+  questions: 
+    q1: q1_checking_team
+    q2: q2_runtime_producer
+    q3: q3_promotion_authority
+  answers: 
+    q1: 
+      - one-team
+      - sibling
+      - second-line
+      - split
+    q2: 
+      - platform
+      - red-team
+      - vendor
+      - product
+    q3: 
+      - ai-governance
+      - security-leadership
+      - joint-board
+      - evaluation-team
+  checks: 
+    - authorize
+    - runtime-authorize
+    - verify
+    - runtime-verify
+    - close
+    - evaluate
+    - promote
+    - model-gate
+  broken: 
+    - when: 
+        q1: 
+          - one-team
+      checks: 
+        - authorize
+        - verify
+        - evaluate
+    - when: 
+        q1: 
+          - one-team
+        q2: 
+          - platform
+      checks: 
+        - runtime-authorize
+        - runtime-verify
+    - when: 
+        q3: 
+          - evaluation-team
+      checks: 
+        - promote
+  shared: 
+    - when: 
+        q1: 
+          - sibling
+      checks: 
+        - authorize
+        - verify
+        - evaluate
+    - when: 
+        q1: 
+          - sibling
+          - one-team
+        q2: 
+          - platform
+          - red-team
+      checks: 
+        - runtime-authorize
+        - runtime-verify
+    - when: 
+        q1: 
+          - split
+      checks: 
+        - verify
+        - evaluate
+    - when: 
+        q1: 
+          - split
+        q2: 
+          - platform
+          - red-team
+      checks: 
+        - runtime-verify
+    - when: 
+        q1: 
+          - split
+        q2: 
+          - product
+      checks: 
+        - runtime-authorize
+    - when: 
+        q1: 
+          - sibling
+          - split
+          - one-team
+        q3: 
+          - security-leadership
+      checks: 
+        - promote
+    - when: 
+        q1: 
+          - second-line
+        q3: 
+          - ai-governance
+      checks: 
+        - promote
+  third_party: 
+    q2: 
+      - vendor
+  verdicts: 
+    broken: breaks separation of duties
+    shared: "separated by team, shared leader on some checks"
+    independent: fully independent checks
+rule_enforcing_parts: 
+  parts: 
+    s5.fixture-oracle-registry: 
+      - I2
+    s5.protected-evidence-store: 
+      - I2
+      - I5
+    s5.evidence-intake-validator: 
+      - I3
+    s5.finding-ledger: 
+      - I3
+      - I5
+    s5.independent-verifier: 
+      - I4
+    s5.disposition-review: 
+      - I4
+    s5.review-console: 
+      - I4
+    s6.change-closure-records: 
+      - I4
+      - I5
+    s4.request-data-gate: 
+      - I7
+    s4.response-proposal-gate: 
+      - I1
+      - I3
+  criteria: 
+    - role_class: control
+      invariants: 
+        - I1
+        - I6
+    - trust_zone: control
+      invariants: 
+        - I1
+        - I6
+    - quality_tier: T0
+      invariants: 
+        - I6
+    - load_bearing: true
+      invariants: 
+        - I7

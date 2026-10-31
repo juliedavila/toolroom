@@ -1,0 +1,1662 @@
+# Ratchet edition 5.2.0. Generated; do not edit.
+# The premise register: every claim the design rests on, the same register the evidence ledger (A1) and the
+# six-pager's premise view render. Per claim: load says what rests on it (parts by name, systems by their id in
+# model.yaml, phases PH-1 to PH-5, work units U-n, design changes), if_it_flips where the design bends if it turns
+# out false, untested whether the edition marks it untested (strength none or weak, and verdict neither holds nor
+# drop), measured_by the work units whose results settle it, rests_on the design items load names as ids in
+# model.yaml (parts: part or system ids; relationships: relationship ids; a design change gives the parts and
+# relationships it drew or changed; both empty when load names only phases, units or nothing in the design). A
+# dropped claim (verdict drop) has nothing resting on it, whatever its load says, and its rests_on lists are empty.
+edition: 5.2.0
+premise_groups: 
+  - AI capability
+  - People and organization
+  - Delivery and system
+  - Economics
+  - Capacity
+  - Flow regimes
+  - Kept tests
+claims: 
+  - id: CL-01
+    statement: "Bounded LLM agents find real, validated security defects in enterprise systems at a rate worth paying for."
+    type: empirical
+    premise_group: AI capability
+    verdict: honest bet
+    strength: weak
+    strength_reason: Only one live-environment study (11 findings); the rest are benchmarks the review says do not reach production grade.
+    untested: true
+    load: "The whole producer side (S2, S4) and every claim past PH-2. If false, the program is an expensive way to run a manual process."
+    falsifier: "Over a pre-registered cohort, the agent arm yields no more validated findings per unit cost than the scripted comparator or the current process."
+    if_it_flips: "Agents stop drafting tests at the phase 3 decision and the scripted, no-agent loop carries Ratchet. The loop, the four rules and the kept tests stay."
+    extrapolation: "From benchmarks and one university network to large enterprise estates with heterogeneous stacks, active defenses and business logic."
+    measured_by: 
+      - U-55
+      - U-67
+      - U-63
+    evidence: 
+      - source: systematic literature search synthesis (2026)
+        published: false
+      - source: "Lin et al., 2025, ARTEMIS"
+        url: https://arxiv.org/abs/2512.09882
+      - source: "Fatouros et al., 2026 (abstract only)"
+        url: https://doi.org/10.3390/jcp6050159
+    rests_on: 
+      parts: 
+        - S2
+        - S4
+      relationships: 
+        []
+  - id: CL-02
+    statement: "Agent findings are noisy and unstable, so no candidate counts until someone independent reproduces it."
+    type: empirical
+    premise_group: AI capability
+    verdict: holds
+    strength: moderate
+    strength_reason: Three independent settings agree on direction; each is small or narrow.
+    untested: false
+    load: "Independent verification (S5), intake-only ledger, the verifier as a separate team."
+    falsifier: "Independent reproduction confirms nearly all agent candidates over a sizable sample, so the verification cost buys little."
+    if_it_flips: "Independent reproduction moves from every finding to a sample, through the earned-autonomy settings in the organization's profile. The two-tier record stays."
+    extrapolation: Small fixtures and one live study; enterprise noise could well be higher.
+    measured_by: 
+      - U-12
+      - U-35
+      - U-36
+      - U-60
+    evidence: 
+      - source: "Lin et al., 2025, ARTEMIS"
+        url: https://arxiv.org/abs/2512.09882
+      - source: "Snyk VulnBench JS, arXiv 2606.15762"
+        url: https://arxiv.org/abs/2606.15762
+      - source: "William Li et al., 2026"
+        url: https://arxiv.org/abs/2605.24949
+    rests_on: 
+      parts: 
+        - S5
+        - s2.workflow-state-store
+        - s5.finding-ledger
+      relationships: 
+        - r062
+        - r066
+        - r088
+        - r089
+        - r090
+        - r108
+        - r109
+  - id: CL-03
+    statement: "Source (whitebox) access improves detection far more than how the agents are orchestrated, so early producers should spend on source access before orchestration."
+    type: empirical
+    premise_group: AI capability
+    verdict: holds
+    strength: moderate
+    strength_reason: One well-controlled study; large effect sizes; small target set.
+    untested: false
+    load: "Design change 11 MVP cut (orchestration deferred), hybrid source producer priority, access requests."
+    falsifier: "In the organization's own cohort, the hybrid source arm shows no detection gain over the blackbox arm on matched cases."
+    if_it_flips: "Early spending shifts from source access toward orchestration, and the organization reorders its access requests in its own plan."
+    extrapolation: "20 seeded targets to enterprise codebases; whitebox here means one agent with full source for one target, far short of an estate."
+    measured_by: 
+      - U-55
+      - U-56
+      - U-67
+    evidence: 
+      - source: "David & Gervais, 2026"
+        url: https://arxiv.org/abs/2604.18718
+    rests_on: 
+      parts: 
+        - s1.identity-validity-resolver
+        - s1.snapshot-index
+        - s2.operator-interface
+        - s2.approved-producers
+        - s2.hybrid-source-producer
+        - s2.runtime-assessment-producer
+        - s2.dispatch-queue
+        - s3.production-cell
+        - s4.route-budget-broker
+        - s5.independent-verifier
+        - s5.repair-checks
+        - s5.finding-ledger
+        - s7.snapshot-cohort-manager
+        - s7.matched-evaluation-executor
+      relationships: 
+        []
+  - id: CL-04
+    statement: "Independent agents beat centrally coordinated ones, and by analogy an organization should not centralize validation in one team."
+    type: empirical
+    premise_group: AI capability
+    verdict: drop
+    strength: weak
+    strength_reason: Agent-level result with overlapping intervals; the organizational reading is analogy the source does not make.
+    untested: false
+    load: "Cited as analogy support for design change 05 (ownership split) in the architecture review and the earlier design record's 'Design · S2 producers' row."
+    falsifier: Not falsifiable as an organizational claim from this evidence.
+    if_it_flips: "Nothing bends: the claim was dropped and no part of the design rests on it. Separation between teams rests on the claim about independent assurance."
+    extrapolation: From software agent topology to human team structure. No warrant.
+    measured_by: 
+      []
+    evidence: 
+      - source: "David & Gervais, 2026"
+        url: https://arxiv.org/abs/2604.18718
+    rests_on: 
+      parts: 
+        []
+      relationships: 
+        []
+  - id: CL-05
+    statement: Authorization enforced outside the model prevents unauthorized effects even when the agent is manipulated (a proposal is never permission).
+    type: empirical
+    premise_group: AI capability
+    verdict: holds
+    strength: strong
+    strength_reason: Several independent mechanisms reach near-zero on benchmarks; the failure it prevents is observed in deployed systems.
+    untested: false
+    load: "S3 action control, exact-action grants, design change 06 replays through S3; the program's core safety argument."
+    falsifier: A seeded manipulated proposal produces an effect outside its grant in a target log.
+    if_it_flips: "The core safety argument fails. Agents lose any path to running actions until a stronger control outside the model exists, and the loop runs on people and scripts."
+    extrapolation: Benchmarks with simulated tools to real cells; attacks through a permitted channel (puppet attack) and output content stay open.
+    measured_by: 
+      - U-08
+      - U-29
+      - U-31
+      - U-48
+    evidence: 
+      - source: "Muruaga, 2026, APC (abstract only)"
+        url: https://arxiv.org/abs/2608.15888
+      - source: "Ji et al., 2026, SEAgent"
+        url: https://arxiv.org/abs/2601.11893
+      - source: "Li & Gao, 2025"
+        url: https://arxiv.org/abs/2510.16558
+    rests_on: 
+      parts: 
+        - S3
+      relationships: 
+        - r096
+        - r097
+        - r105
+        - r110
+  - id: CL-06
+    statement: "Model-level defenses (alignment, instruction hierarchy, detectors) cannot be the primary control for agents that read hostile content."
+    type: empirical
+    premise_group: AI capability
+    verdict: holds
+    strength: strong
+    strength_reason: "Independent adaptive-attack studies agree; the conclusion is a negative one, which benchmarks support well."
+    untested: false
+    load: The decision to put every control outside the model; S4 gates serve as data controls and carry no safety role.
+    falsifier: An adaptive evaluation against a current model-level defense holds attack success near zero.
+    if_it_flips: "The rule that a proposal is never permission stays, since it costs little. The quarantine on attacker-writable text could relax for a route whose model defense passes the same adaptive test."
+    extrapolation: "Little needed: red-team agents read adversarial surfaces by design."
+    measured_by: 
+      []
+    evidence: 
+      - source: "Wen et al., 2025, RL-Hammer"
+        url: https://arxiv.org/abs/2510.04885
+      - source: "Zhan et al., 2025"
+        url: https://arxiv.org/abs/2503.00061
+    rests_on: 
+      parts: 
+        - S4
+      relationships: 
+        []
+  - id: CL-07
+    statement: "Isolation protects actions but not judgments, so model-made negative calls (reject, dedup, not applicable) never count as coverage."
+    type: empirical
+    premise_group: AI capability
+    verdict: holds
+    strength: moderate
+    strength_reason: The gap is documented; that it is exploited against triage specifically is shown only by proof of concept.
+    untested: false
+    load: "Design change 07, the negative-challenge sampler, the not-coverage flag, the coverage metric."
+    falsifier: Planted true findings behind adversarial content are never suppressed by model triage over a large sample.
+    if_it_flips: "Model triage decisions could count toward coverage after sampled checks, and the sampling of negative calls thins out."
+    extrapolation: "Proof of concept to a motivated intruder planting content; plausible, unmeasured."
+    measured_by: 
+      - U-40
+      - U-62
+      - U-410
+    evidence: 
+      - source: "Debenedetti et al., 2025, CaMeL"
+        url: https://arxiv.org/abs/2503.18813
+      - source: "Mayoral-Vilches and Rynning, 2025"
+        url: https://arxiv.org/abs/2508.21669
+      - source: literature synthesis (2026)
+        published: false
+    rests_on: 
+      parts: 
+        - s4.response-proposal-gate
+        - s5.disposition-review
+      relationships: 
+        - p07-r1
+        - p07-r2
+        - p07-r3
+  - id: CL-08
+    statement: "Keeping expected answers out of the agent's reach stops the system from grading itself."
+    type: engineering-practice
+    premise_group: AI capability
+    verdict: holds
+    strength: weak
+    strength_reason: No comparative study in the package; the argument is close to definitional.
+    untested: false
+    load: "Design change 01, the fixture and oracle owner, the hash-only pattern."
+    falsifier: A run that could read the expected value shows no difference in reported success from runs that could not.
+    if_it_flips: "The proof condition could sit closer to the testing agent, which simplifies the fixture owner's role. The separation is cheap, so most organizations would keep it."
+    extrapolation: Vendor practice to an internal program.
+    measured_by: 
+      - U-04
+      - U-25
+      - U-61
+    evidence: 
+      - source: "XBOW canary docs, r278"
+        url: https://docs.xbow.com/console/how-to/validate-with-canaries/
+    rests_on: 
+      parts: 
+        - s1.criterion-registry
+      relationships: 
+        - r070
+        - r072
+        - r073
+        - r095
+  - id: CL-09
+    statement: "Human approval gates erode with familiarity and volume, so their health has to be measured."
+    type: empirical
+    premise_group: People and organization
+    verdict: holds
+    strength: moderate
+    strength_reason: "Three different settings point the same way; one is observational, one survey, one student experiment."
+    untested: false
+    load: "Design change 03 consoles, gate-health telemetry, scoped risk-escalating policy, reviewer WIP limits."
+    falsifier: Seeded known-bad proposals are caught at a steady high rate as approval volume and approver tenure rise.
+    if_it_flips: "Gate monitoring thins out, and the organization lowers the rate of seeded proposals in its own profile."
+    extrapolation: Code review and SOC triage to exact-action approval; rising approval may partly reflect better agent output.
+    measured_by: 
+      - U-57
+    evidence: 
+      - source: "Habituation at the Gate, arXiv 2606.22721"
+        url: https://arxiv.org/abs/2606.22721
+      - source: "Tilbury and Flowerday, 2026"
+        url: https://doi.org/10.1108/ics-08-2025-0318
+      - source: "Papotti et al., 2024"
+        url: https://doi.org/10.1007/s10664-024-10506-z
+    rests_on: 
+      parts: 
+        - s2.operator-interface
+        - s3.approval-console
+        - s5.review-console
+      relationships: 
+        - p03-r1
+        - p03-r2
+        - p03-r3
+        - p03-r4
+  - id: CL-10
+    statement: Seeding gates with known-bad proposals measures gate health.
+    type: engineering-practice
+    premise_group: People and organization
+    verdict: "weak, reword"
+    strength: weak
+    strength_reason: No source in the package or the targeted checks evaluates seeded catch trials for approval gates.
+    untested: true
+    load: PH-3 gate-health telemetry; the only planned check on human gates.
+    falsifier: "Seeded catch rate stays high while real out-of-scope approvals still occur, or reviewers learn to spot the seeds."
+    if_it_flips: "Seeded proposals stop counting as a gate-health measure, and the organization declares another check on its approval gates in its own patches."
+    extrapolation: Inference from vigilance and alarm-fatigue practice in other fields; no source cited here.
+    measured_by: 
+      - U-57
+    evidence: 
+      []
+    rests_on: 
+      parts: 
+        []
+      relationships: 
+        []
+  - id: CL-11
+    statement: "Fixing one demonstrated path often fails to close the weakness, so closure needs varied-path verification of the constraint."
+    type: empirical
+    premise_group: Delivery and system
+    verdict: holds
+    strength: moderate
+    strength_reason: "Large open-source samples; the rates are real but modest (7%), so the claim is 'often enough to verify', not 'usually'."
+    untested: false
+    load: "Design change 10 two closure states, varied-path fixtures, verified retirement for road entries."
+    falsifier: Varied-path fixtures almost never find a surviving path after a path-broken closure.
+    if_it_flips: "Closure needs only the demonstrated path, and varied-path checks run on a sample."
+    extrapolation: Open source to enterprise code; static detection in Bandara may overcount.
+    measured_by: 
+      - U-79
+      - U-110
+    evidence: 
+      - source: "Li and Paxson, CCS 2017"
+        url: https://www.icir.org/vern/papers/patch-study.ccs17.pdf
+      - source: "Bandara et al., SCAM 2020"
+        url: https://conferences.computer.org/icsme/pdfs/SCAM2020-CdP3rS7mSlqVWzF3cXW7H/924800a187/924800a187.pdf
+      - source: "Huan Li et al., 2026"
+        url: https://arxiv.org/abs/2609.22573
+    rests_on: 
+      parts: 
+        - s6.retest-regression-planner
+        - s6.change-closure-records
+      relationships: 
+        - p10-r1
+  - id: CL-12
+    statement: "A reviewed regression test kept in the owning team's pipeline stops a fixed defect from coming back."
+    type: engineering-practice
+    premise_group: Kept tests
+    verdict: holds
+    strength: weak
+    strength_reason: "Strong practitioner consensus, but no study in the package measures security regression reintroduction with and without such tests."
+    untested: false
+    load: "STEP-10, the cadence ladder, PH-1 and PH-2 exit tests, road-level regressions."
+    falsifier: Reintroductions of fixed classes occur at the same rate in services with and without the replay stage.
+    if_it_flips: The ratchet loses its central mechanism. The weight against reintroduction shifts to secure defaults on the paved road and to retests in the deployed state.
+    extrapolation: General test practice to security paths with fixtures that can rot.
+    measured_by: 
+      - U-17
+      - U-46
+      - U-115
+    evidence: 
+      []
+    rests_on: 
+      parts: 
+        - shared:ext.engineering-workflows
+      relationships: 
+        []
+  - id: CL-13
+    statement: A security regression stage in the deploy path will not materially slow delivery.
+    type: empirical
+    premise_group: Delivery and system
+    verdict: honest bet
+    strength: weak
+    strength_reason: Nothing in the package measures it; reviewer 3 on the adversarial review panel raised the risk.
+    untested: true
+    load: "Service owners' consent; the deploy-gate service level; PH-2 guardrail exit test."
+    falsifier: Lead time for changes or deploy frequency on services under test moves outside the pre-agreed tolerance.
+    if_it_flips: "The gate narrows to deploys that touch declared dependencies, or moves after deploy for some weakness classes, within tolerances the service owners set."
+    extrapolation: None available.
+    measured_by: 
+      - U-22
+      - U-49
+      - U-129
+      - U-138
+    evidence: 
+      []
+    rests_on: 
+      parts: 
+        []
+      relationships: 
+        []
+  - id: CL-14
+    statement: "Exploitability scores are a weak basis for priority. Ordering by consequence, demonstrated paths and attacker-side signals should work better, which is inference until it is measured."
+    type: empirical
+    premise_group: People and organization
+    verdict: holds
+    strength: moderate
+    strength_reason: "Strong for the first sentence: a case-control study and exploitation-rate data show severity scores order fixes poorly, and the scores' owner says a base score should not be used alone to assess risk. Scores do rate most exploited vulnerabilities high; they fail on precision, because most of what they rate high is never exploited. The second sentence is graded inference: no study links demonstrated or reachable paths to later exploitation or loss."
+    untested: false
+    load: "Design change 14 gate posture, intake prioritization, why model-inferred exploitability is excluded."
+    falsifier: "In the organization's own incident history, losses concentrate on paths the consequence register rated standard."
+    if_it_flips: Exploitability scores could rejoin intake priority beside consequence. The consequence register stays the key for gate posture.
+    extrapolation: Public CVE prioritization to internal path prioritization.
+    measured_by: 
+      - U-89
+      - U-127
+      - U-130
+      - U-132
+    evidence: 
+      - source: "Allodi & Massacci, 2013"
+        url: https://doi.org/10.1145/2630069
+      - source: "Jacobs et al., 2019"
+        url: https://arxiv.org/abs/1908.04856
+      - source: "Koscinski et al., 2025"
+        url: https://arxiv.org/abs/2508.13644
+      - source: "FIRST, CVSS v3.1 User Guide"
+        url: https://www.first.org/cvss/v3.1/user-guide
+      - source: literature synthesis (2026)
+        published: false
+    rests_on: 
+      parts: 
+        - people.line-of-business-owner
+        - people.security-risk-owner
+        - people.risk-acceptance-owner
+        - ext.threat-intelligence
+        - s1.source-adapters
+        - s1.source-facts
+        - s1.snapshot-index
+        - s1.consequence-register
+        - s1.context-compiler
+        - s5.disposition-review
+        - s5.path-impact-graph
+        - s3.gate-failure-policy
+        - s3.policy-decision-point
+        - s6.regression-catalog
+        - s6.enterprise-adapters
+        - s6.retest-regression-planner
+        - s7.flow-cost-telemetry
+        - shared:ext.engineering-workflows
+      relationships: 
+        - p14-r1
+        - p14-r2
+        - p14-r3
+        - p14-r4
+        - p14-r5
+        - p14-r6
+        - p14-r7
+        - p14-r8
+        - p14-r9
+        - p14-r10
+        - p14-r11
+        - shared:p14-r12
+        - p14-r13
+        - p14-r14
+        - p14-r15
+        - p14-r16
+        - p14-r17
+        - p14-r18
+        - r021
+        - r057
+        - p19-r1
+  - id: CL-15
+    statement: Business owners will attest consequence tiers at low effort when the testing team drafts them from existing material.
+    type: organizational
+    premise_group: People and organization
+    verdict: honest bet
+    strength: none
+    strength_reason: "The authors' judgment from enterprise experience; no study."
+    untested: true
+    load: Design change 14 consequence register; every gate posture keys on it.
+    falsifier: "Owner minutes per attestation climb, or the unattested count grows quarter over quarter."
+    if_it_flips: "Consequence tiers come from a default rule with owner exceptions in place of attestation, and the unattested default in the profile carries more weight."
+    extrapolation: n/a
+    measured_by: 
+      - U-126
+      - U-131
+    evidence: 
+      []
+    rests_on: 
+      parts: 
+        - people.line-of-business-owner
+        - people.security-risk-owner
+        - people.risk-acceptance-owner
+        - ext.threat-intelligence
+        - s1.source-adapters
+        - s1.source-facts
+        - s1.snapshot-index
+        - s1.consequence-register
+        - s1.context-compiler
+        - s5.disposition-review
+        - s5.path-impact-graph
+        - s3.gate-failure-policy
+        - s3.policy-decision-point
+        - s6.regression-catalog
+        - s6.enterprise-adapters
+        - s6.retest-regression-planner
+        - s7.flow-cost-telemetry
+        - shared:ext.engineering-workflows
+      relationships: 
+        - p14-r1
+        - p14-r2
+        - p14-r3
+        - p14-r4
+        - p14-r5
+        - p14-r6
+        - p14-r7
+        - p14-r8
+        - p14-r9
+        - p14-r10
+        - p14-r11
+        - shared:p14-r12
+        - p14-r13
+        - p14-r14
+        - p14-r15
+        - p14-r16
+        - p14-r17
+        - p14-r18
+        - r021
+        - r057
+        - p19-r1
+  - id: CL-16
+    statement: "Holding only deploys that touch a regression's declared dependencies keeps a gate outage's blast radius small."
+    type: engineering-practice
+    premise_group: Delivery and system
+    verdict: honest bet
+    strength: none
+    strength_reason: "Inference; depends on how many deploys touch declared dependencies, which nobody has measured."
+    untested: true
+    load: Design change 14 amendment; the deploy-gate service level the program owes service teams.
+    falsifier: "Held deploys per outage hour approach total deploys per hour, because declared dependencies are broad."
+    if_it_flips: "Dependency declarations get stricter, or the gate fails open for some tiers through the gate failure policy in the profile."
+    extrapolation: n/a
+    measured_by: 
+      - U-129
+    evidence: 
+      []
+    rests_on: 
+      parts: 
+        - people.line-of-business-owner
+        - people.security-risk-owner
+        - people.risk-acceptance-owner
+        - ext.threat-intelligence
+        - s1.source-adapters
+        - s1.source-facts
+        - s1.snapshot-index
+        - s1.consequence-register
+        - s1.context-compiler
+        - s5.disposition-review
+        - s5.path-impact-graph
+        - s3.gate-failure-policy
+        - s3.policy-decision-point
+        - s6.regression-catalog
+        - s6.enterprise-adapters
+        - s6.retest-regression-planner
+        - s7.flow-cost-telemetry
+        - shared:ext.engineering-workflows
+      relationships: 
+        - p14-r1
+        - p14-r2
+        - p14-r3
+        - p14-r4
+        - p14-r5
+        - p14-r6
+        - p14-r7
+        - p14-r8
+        - p14-r9
+        - p14-r10
+        - p14-r11
+        - shared:p14-r12
+        - p14-r13
+        - p14-r14
+        - p14-r15
+        - p14-r16
+        - p14-r17
+        - p14-r18
+        - r021
+        - r057
+        - p19-r1
+  - id: CL-17
+    statement: "One manual loop, end to end on existing tools, reveals the binding constraints (agreements, handoffs) faster than building components first."
+    type: engineering-practice
+    premise_group: People and organization
+    verdict: holds
+    strength: weak
+    strength_reason: Practice and argument; the time boxes are my inference.
+    untested: false
+    load: "PH-1 walking skeleton, the 2 and 6 week time boxes, the composable-unit model."
+    falsifier: "The phase 1 retrospective shows queue time concentrated in steps a component build would have removed, not in agreements."
+    if_it_flips: "Phase 1 builds its first components beside the manual loop, and the weeks the organization plans for it change."
+    extrapolation: General software practice to a cross-team security loop with many approvals.
+    measured_by: 
+      - U-01
+      - U-18
+    evidence: 
+      - source: source research synthesis (2026)
+        published: false
+      - source: structured adversarial review of the design (2026)
+        published: false
+    rests_on: 
+      parts: 
+        []
+      relationships: 
+        []
+  - id: CL-18
+    statement: "Remediation throughput is the binding constraint, ahead of validation capability, so validation must be gated on fix capacity."
+    type: organizational
+    premise_group: People and organization
+    verdict: honest bet
+    strength: moderate
+    strength_reason: "Two large vendor datasets show remediation running behind discovery in organizations of every size: about one in ten open vulnerabilities closed a month across nearly 300 organizations, and flaws left open past a year in 71% of organizations. Neither is peer reviewed, neither measures this loop, and the same remediation study finds that keeping up with the exploited subset is possible when an organization knows which to fix first, though most barely keep up and about a third gain ground, so the grade stays moderate."
+    untested: false
+    load: "Capacity-gated dispatch, WIP caps, the diagnosis reviewer 4 on the adversarial review panel says is missing; if true and ignored, the program adds findings without reducing risk."
+    falsifier: The phase 1 and phase 2 flow ledgers show fix queue time is a small share of loop time.
+    if_it_flips: "Fix queue time turns out to be a small share of loop time, so the opening leads with trust or with how sweeps decay in place of capacity, and dispatch stops waiting on fix capacity. The saturation setting in the profile stays unused."
+    extrapolation: "From scanner-reported vulnerabilities across whole estates (data from 2019) and application flaws in one vendor's scans to validated findings with a demonstrated path in this loop. Both show remediation lagging discovery; neither shows that it binds ahead of validation capability, which is the part only the flow ledger can settle."
+    measured_by: 
+      - U-18
+      - U-21
+      - U-63
+      - U-64
+    evidence: 
+      - source: structured adversarial review of the design (2026)
+        published: false
+      - source: "Cyentia Institute, 2019, Prioritization to Prediction Vol. 3"
+        url: https://www.cyentia.com/wp-content/uploads/2026/05/Kenna-Prioritization_to_Prediction-v3.pdf
+      - source: "Veracode, 2024, State of Software Security 2024"
+        url: https://www.veracode.com/press-release/veracode-reveals-critical-security-debt-can-be-reduced-by-75percent-with-speed-of-remediation
+    rests_on: 
+      parts: 
+        []
+      relationships: 
+        []
+  - id: CL-19
+    statement: "Coverage that follows cooperation misses where losses concentrate, and reconciling scenarios against incident and loss history corrects it."
+    type: organizational
+    premise_group: People and organization
+    verdict: "weak, reword"
+    strength: weak
+    strength_reason: Mechanism is plausible; the link to losses is argument.
+    untested: true
+    load: "Risk-prioritized intake, incident-candidate scenarios, untested exposure reporting."
+    falsifier: Incident reconciliation finds losses no more concentrated in low-cooperation services than in tested ones.
+    if_it_flips: "Coverage is reconciled against incident history less often, and intake follows cooperation with less correction."
+    extrapolation: Benchmark access effect to organizational cooperation.
+    measured_by: 
+      - U-51
+      - U-89
+      - U-97
+    evidence: 
+      - source: literature synthesis (2026)
+        published: false
+      - source: structured adversarial review of the design (2026)
+        published: false
+    rests_on: 
+      parts: 
+        []
+      relationships: 
+        []
+  - id: CL-20
+    statement: "Asking 'what would have caught this first' in every incident review improves scenario selection."
+    type: organizational
+    premise_group: People and organization
+    verdict: honest bet
+    strength: weak
+    strength_reason: "Supported by resilience doctrine, thin empirically."
+    untested: true
+    load: "PH-2-STEP-11b manual trigger, PH-5 incident feed, design change 08."
+    falsifier: "Over a year, incident-sourced scenarios yield no more validated findings than other scenarios."
+    if_it_flips: "The incident review question becomes optional, and scenario selection leans on its other sources."
+    extrapolation: General resilience theory to this loop.
+    measured_by: 
+      - U-51
+      - U-97
+    evidence: 
+      - source: literature synthesis (2026)
+        published: false
+    rests_on: 
+      parts: 
+        - s7.assurance-incident-integration
+      relationships: 
+        - p08-r1
+        - p08-r2
+        - p08-r3
+        - p08-r4
+        - p08-r5
+  - id: CL-21
+    statement: "A bounded STPA-Sec pass over Ratchet's own control structure finds hazards that component-level tests miss."
+    type: empirical
+    premise_group: Delivery and system
+    verdict: honest bet
+    strength: weak
+    strength_reason: "All case studies, 14 of 20 abstract-only, no inter-analyst reliability."
+    untested: true
+    load: The structured adversarial review of the design recommends it as a readiness step.
+    falsifier: The pass finds no hazard that the failure catalog or the architecture review did not already hold.
+    if_it_flips: "The hazard analysis of Ratchet's own control structure drops from phase 2, and the failure catalog carries that load alone."
+    extrapolation: Cyber-physical cases to a software validation program.
+    measured_by: 
+      []
+    evidence: 
+      - source: "Lee & Madnick, 2021"
+        url: https://doi.org/10.3390/electronics10101220
+      - source: "Khan & Madnick, 2022"
+    rests_on: 
+      parts: 
+        []
+      relationships: 
+        []
+  - id: CL-22
+    statement: Enforced paved-road abstractions sharply reduce the classes they target for code that provably uses them; residual risk sits at the boundary with off-road code.
+    type: empirical
+    premise_group: Delivery and system
+    verdict: "weak, reword"
+    strength: moderate
+    strength_reason: No study in the package measures class retirement by safe-by-construction libraries; the q4 link is analogy.
+    untested: false
+    load: "Design change 16's entire value case, road-level regression replacing per-service regressions, the compounding return."
+    falsifier: On-road and off-road code show the same reintroduction rate and findings per change.
+    if_it_flips: "Paved-road entries stop replacing per-service regression tests, and the compounding return in the value case shrinks to what kept tests deliver."
+    extrapolation: From agent authorization to application libraries.
+    measured_by: 
+      - U-110
+      - U-113
+      - U-115
+    evidence: 
+      - source: source research synthesis (2026)
+        published: false
+      - source: literature synthesis (2026)
+        published: false
+    rests_on: 
+      parts: 
+        - s5.disposition-review
+        - s5.independent-verifier
+        - s5.path-impact-graph
+        - s5.failure-class-registry
+        - s5.road-assurance-record
+        - s1.source-facts
+        - s1.context-compiler
+        - s6.change-closure-records
+        - s6.owner-change-connector
+        - s6.paved-road-catalog
+        - s6.regression-catalog
+        - s6.retest-regression-planner
+        - s6.road-conformance-check
+        - s2.request-dispatcher
+        - ext.estate
+        - s7.road-adoption-telemetry
+        - s7.flow-cost-telemetry
+        - s7.snapshot-cohort-manager
+      relationships: 
+        - p16-r1
+        - p16-r2
+        - p16-r3
+        - p16-r4
+        - p16-r5
+        - p16-r6
+        - p16-r7
+        - p16-r8
+        - p16-r9
+        - p16-r10
+        - p16-r11
+        - p16-r12
+        - p16-r13
+        - p16-r14
+        - p16-r15
+        - p16-r16
+        - p16-r17
+        - p16-r18
+        - p16-r19
+        - p16-r20
+  - id: CL-23
+    statement: "Per-call-site conformance plus a tested sample makes analysis tailoring safe, with no blind spot where the road is bypassed."
+    type: engineering-practice
+    premise_group: Delivery and system
+    verdict: honest bet
+    strength: none
+    strength_reason: Design inference; the cited result shows the failure mode and says nothing on whether this fix works.
+    untested: true
+    load: "Design change 16 amendment: downgrading scanner rules and labeling classes covered for agents."
+    falsifier: The covered-code sample finds escapes at a rate above the off-road baseline.
+    if_it_flips: "Scanner rules stay on for code on the paved road, and no weakness class is labeled covered for agents."
+    extrapolation: n/a
+    measured_by: 
+      - U-134
+      - U-136
+    evidence: 
+      - source: "Huan Li et al., 2026"
+        url: https://arxiv.org/abs/2609.22573
+    rests_on: 
+      parts: 
+        - s5.disposition-review
+        - s5.independent-verifier
+        - s5.path-impact-graph
+        - s5.failure-class-registry
+        - s5.road-assurance-record
+        - s1.source-facts
+        - s1.context-compiler
+        - s6.change-closure-records
+        - s6.owner-change-connector
+        - s6.paved-road-catalog
+        - s6.regression-catalog
+        - s6.retest-regression-planner
+        - s6.road-conformance-check
+        - s2.request-dispatcher
+        - ext.estate
+        - s7.road-adoption-telemetry
+        - s7.flow-cost-telemetry
+        - s7.snapshot-cohort-manager
+      relationships: 
+        - p16-r1
+        - p16-r2
+        - p16-r3
+        - p16-r4
+        - p16-r5
+        - p16-r6
+        - p16-r7
+        - p16-r8
+        - p16-r9
+        - p16-r10
+        - p16-r11
+        - p16-r12
+        - p16-r13
+        - p16-r14
+        - p16-r15
+        - p16-r16
+        - p16-r17
+        - p16-r18
+        - p16-r19
+        - p16-r20
+  - id: CL-24
+    statement: "Scanner output given to agents mainly improves false-positive filtering, and improves discovery on benchmarks; it stays unreliable as evidence."
+    type: empirical
+    premise_group: AI capability
+    verdict: holds
+    strength: moderate
+    strength_reason: Context helps agents in a benchmark where the context was accurate; real scanner leads are noisier.
+    untested: false
+    load: "Design change 17 leads intake, lead provenance, the lead-not-fact rule."
+    falsifier: Lead-seeded runs show no higher validated-finding rate than unseeded runs on matched cases.
+    if_it_flips: Scanner leads stop feeding agents and intake runs from scenarios alone. Leads still never count as evidence.
+    extrapolation: Accurate injected context to noisy SAST and DAST output.
+    measured_by: 
+      - U-117
+      - U-118
+      - U-121
+    evidence: 
+      - source: "Liwei Yu et al., 2026"
+        url: https://arxiv.org/abs/2606.25332
+      - source: literature synthesis (2026)
+        published: false
+    rests_on: 
+      parts: 
+        - ext.appsec-tooling
+        - ext.security-review-practice
+        - s1.tool-signal-intake
+        - s1.tool-lead-store
+        - s1.context-compiler
+        - s1.normative-store
+        - s5.evidence-intake-validator
+        - s5.disposition-review
+        - s5.path-impact-graph
+        - s7.tool-yield-evaluator
+        - s7.snapshot-cohort-manager
+        - s2.request-dispatcher
+        - s7.tool-portfolio-decisions
+        - s6.owner-change-connector
+        - s6.developer-queue-filter
+        - shared:ext.engineering-workflows
+        - s7.tool-delivery-impact
+        - s7.flow-cost-telemetry
+        - s6.road-conformance-check
+      relationships: 
+        - p17-r1
+        - p17-r2
+        - p17-r3
+        - p17-r4
+        - p17-r5
+        - p17-r6
+        - p17-r7
+        - p17-r8
+        - p17-r9
+        - p17-r10
+        - p17-r11
+        - p17-r12
+        - p17-r13
+        - p17-r14
+        - p17-r15
+        - shared:p17-r16
+        - shared:p17-r17
+        - p17-r18
+        - p17-r19
+        - p17-r20
+  - id: CL-25
+    statement: "Yield and miss rate measured per rule or class on the organization's own code justify integrate, migrate or deprecate decisions."
+    type: economic
+    premise_group: Economics
+    verdict: honest bet
+    strength: weak
+    strength_reason: The evidence supports the sampling safeguard and is silent on decision quality.
+    untested: true
+    load: Design change 17 portfolio decisions.
+    falsifier: "A deprecated tool's class shows up later in incidents or held-out challenges."
+    if_it_flips: Tool portfolio decisions wait on held-out challenges and incident history in place of per-rule yield.
+    extrapolation: n/a
+    measured_by: 
+      - U-121
+      - U-123
+      - U-138
+    evidence: 
+      - source: "Bullough et al., 2017"
+        url: https://arxiv.org/abs/1707.08015
+    rests_on: 
+      parts: 
+        - ext.appsec-tooling
+        - ext.security-review-practice
+        - s1.tool-signal-intake
+        - s1.tool-lead-store
+        - s1.context-compiler
+        - s1.normative-store
+        - s5.evidence-intake-validator
+        - s5.disposition-review
+        - s5.path-impact-graph
+        - s7.tool-yield-evaluator
+        - s7.snapshot-cohort-manager
+        - s2.request-dispatcher
+        - s7.tool-portfolio-decisions
+        - s6.owner-change-connector
+        - s6.developer-queue-filter
+        - shared:ext.engineering-workflows
+        - s7.tool-delivery-impact
+        - s7.flow-cost-telemetry
+        - s6.road-conformance-check
+      relationships: 
+        - p17-r1
+        - p17-r2
+        - p17-r3
+        - p17-r4
+        - p17-r5
+        - p17-r6
+        - p17-r7
+        - p17-r8
+        - p17-r9
+        - p17-r10
+        - p17-r11
+        - p17-r12
+        - p17-r13
+        - p17-r14
+        - p17-r15
+        - shared:p17-r16
+        - shared:p17-r17
+        - p17-r18
+        - p17-r19
+        - p17-r20
+  - id: CL-26
+    statement: Agent-assisted validation is cheaper per accepted closure than the current process once full costs are counted.
+    type: economic
+    premise_group: Economics
+    verdict: honest bet
+    strength: weak
+    strength_reason: "Evidence prices inference or tester hours, never verification, review, fix and retest, which dominate the program's cost."
+    untested: true
+    load: "The 'better, faster, cheaper' business case; PH-3 continue or stop."
+    falsifier: "Phase 3 reports the agent arm's cost per accepted closure, with failures in the denominator, at or above the current process."
+    if_it_flips: "The scripted loop carries Ratchet, and the business case rests on fewer escapes and faster fixes in place of lower cost."
+    extrapolation: Agent hourly cost to full loop cost including human gates.
+    measured_by: 
+      - U-55
+      - U-63
+      - U-67
+    evidence: 
+      - source: "Lin et al., 2025, ARTEMIS"
+        url: https://arxiv.org/abs/2512.09882
+      - source: "David & Gervais, 2025"
+        url: https://arxiv.org/abs/2508.20816
+    rests_on: 
+      parts: 
+        []
+      relationships: 
+        []
+  - id: CL-27
+    statement: Enough closures accrue within about two quarters to read a comparison.
+    type: empirical
+    premise_group: Delivery and system
+    verdict: "weak, reword"
+    strength: weak
+    strength_reason: "No data; the reviewer's estimate cuts against the claim."
+    untested: true
+    load: PH-3 time box and the continue or stop decision.
+    falsifier: Phase 3 prints no-conclusion at the time box because closures fall below the pre-registered minimum.
+    if_it_flips: "The comparison window stretches, or the set of cases widens, before the continue or stop decision."
+    extrapolation: n/a
+    measured_by: 
+      - U-52
+      - U-67
+    evidence: 
+      - source: structured adversarial review of the design (2026)
+        published: false
+    rests_on: 
+      parts: 
+        []
+      relationships: 
+        []
+  - id: CL-28
+    statement: "Independent assurance needs separation between people and teams as well as between agents, because checks run by one team fail together."
+    type: organizational
+    premise_group: People and organization
+    verdict: holds
+    strength: moderate
+    strength_reason: Correlated-failure evidence is classic and replicated in other forms; its application to teams is reasoned and unmeasured.
+    untested: false
+    load: "Design change 05, the ownership scenarios, two risk owners, profile separation rules."
+    falsifier: Checks owned by one team catch seeded faults as often as checks split across teams.
+    if_it_flips: Small organizations consolidate roles through the exception path with less to justify. The four rules still apply.
+    extrapolation: N-version software and defense ensembles to organizational checks.
+    measured_by: 
+      - U-14
+      - U-36
+      - U-45
+    evidence: 
+      - source: source research synthesis (2026)
+        published: false
+      - source: "Knight and Leveson, 1986"
+        url: https://doi.org/10.1109/TSE.1986.6312924
+      - source: "Abdelnabi et al., 2025, LLMail-Inject"
+        url: https://arxiv.org/abs/2506.09956
+    rests_on: 
+      parts: 
+        - s1.context-service
+        - s2.workflow-worker-app
+        - s3.action-control-service
+        - s4.model-data-gateway
+        - s4.inference-endpoints
+        - s5.proof-evidence-service
+        - s6.hardening-service
+        - s6.owner-change-connector
+        - s6.release-state-correlator
+        - s6.change-closure-records
+        - s7.evaluation-operations
+      relationships: 
+        []
+  - id: CL-29
+    statement: Tests can earn continuous cadence through a trust gate without raising the rate of harmful runs.
+    type: engineering-practice
+    premise_group: Delivery and system
+    verdict: honest bet
+    strength: none
+    strength_reason: Design reasoning; no study.
+    untested: true
+    load: "Design change 13 cadence ladder, the pre-authorized replay class."
+    falsifier: Harmful or out-of-scope runs rise after tests step up to continuous mode.
+    if_it_flips: "Kept tests stay on a scheduled cadence, and the step up to continuous runs waits for a stronger trust gate."
+    extrapolation: n/a
+    measured_by: 
+      - U-47
+      - U-48
+    evidence: 
+      []
+    rests_on: 
+      parts: 
+        - s3.approval-service
+        - s6.retest-regression-planner
+      relationships: 
+        []
+  - id: CL-30
+    statement: "Model and tool changes can silently change control behavior, so routes need requalification on change."
+    type: empirical
+    premise_group: AI capability
+    verdict: holds
+    strength: moderate
+    strength_reason: Model dependence is shown across backbones; silent drift without a version bump is asserted in the stress test without evidence.
+    untested: false
+    load: "Route qualification, requalification on change, grant invalidation on tool change."
+    falsifier: Requalification runs after model changes almost never change outcomes.
+    if_it_flips: Requalification runs on a schedule in place of on every model or tool change.
+    extrapolation: Benchmarks to hosted routes.
+    measured_by: 
+      - U-58
+      - U-87
+      - U-103
+    evidence: 
+      - source: "Zhou et al., 2026, MCPShield"
+        url: https://arxiv.org/abs/2602.14281
+      - source: "Hao & Tan, 2026"
+        url: https://arxiv.org/abs/2604.21477
+    rests_on: 
+      parts: 
+        []
+      relationships: 
+        []
+  - id: CL-31
+    statement: "Closure must be retested in the deployed state, because a merged fix or closed ticket is not a deployed fix."
+    type: engineering-practice
+    premise_group: Delivery and system
+    verdict: holds
+    strength: weak
+    strength_reason: Practice and logic; no rate of merged-but-undeployed fixes is cited.
+    untested: false
+    load: "STEP-9 digest-correlated retest, three-acceptance closure."
+    falsifier: Digest-correlated retests essentially never disagree with merge-time closure.
+    if_it_flips: "Retests in the deployed state run on a sample, and closure can rest on the merge record for most findings."
+    extrapolation: n/a
+    measured_by: 
+      - U-16
+      - U-43
+    evidence: 
+      - source: structured design review (2026)
+        published: false
+    rests_on: 
+      parts: 
+        []
+      relationships: 
+        []
+  - id: CL-32
+    statement: Sending developers only demonstrated findings and high-confidence leads cuts triage toil without letting more defects through.
+    type: economic
+    premise_group: Economics
+    verdict: honest bet
+    strength: moderate (toil) / none (safety)
+    strength_reason: Shows a filter can cut workload at small coverage loss in prioritization; not measured for developer queues.
+    untested: true
+    load: "Design change 17 developer-queue filter, covered-lead downgrade."
+    falsifier: "Sampled held leads contain validated defects at a rate that, scaled up, exceeds what developers were fixing before."
+    if_it_flips: "The lead threshold drops, more leads reach developers, and the triage toil returns as a cost the value case must carry."
+    extrapolation: Vulnerability prioritization to scanner lead routing.
+    measured_by: 
+      - U-121
+      - U-122
+      - U-138
+    evidence: 
+      - source: "Shimizu & Hashimoto, 2025"
+        url: https://arxiv.org/abs/2506.01220
+    rests_on: 
+      parts: 
+        - ext.appsec-tooling
+        - ext.security-review-practice
+        - s1.tool-signal-intake
+        - s1.tool-lead-store
+        - s1.context-compiler
+        - s1.normative-store
+        - s5.evidence-intake-validator
+        - s5.disposition-review
+        - s5.path-impact-graph
+        - s7.tool-yield-evaluator
+        - s7.snapshot-cohort-manager
+        - s2.request-dispatcher
+        - s7.tool-portfolio-decisions
+        - s6.owner-change-connector
+        - s6.developer-queue-filter
+        - shared:ext.engineering-workflows
+        - s7.tool-delivery-impact
+        - s7.flow-cost-telemetry
+        - s6.road-conformance-check
+      relationships: 
+        - p17-r1
+        - p17-r2
+        - p17-r3
+        - p17-r4
+        - p17-r5
+        - p17-r6
+        - p17-r7
+        - p17-r8
+        - p17-r9
+        - p17-r10
+        - p17-r11
+        - p17-r12
+        - p17-r13
+        - p17-r14
+        - p17-r15
+        - shared:p17-r16
+        - shared:p17-r17
+        - p17-r18
+        - p17-r19
+        - p17-r20
+  - id: CL-33
+    statement: "Frontier AI models are measurably improving at finding and exploiting weaknesses in controlled cyber evaluations, and the rate of improvement has itself increased since late 2024."
+    type: empirical
+    premise_group: AI capability
+    verdict: holds
+    strength: moderate-strong
+    strength_reason: "Direction is shown longitudinally by an independent government evaluator using a fixed suite, and agrees with the step change across model generations in academic benchmarks. AISI itself calls time horizons inexact predictors and evaluations an imperfect measure of real-world impact."
+    untested: false
+    load: "Thesis opening: why leaders now worry about the whole vulnerability backlog rather than the exploited subset."
+    falsifier: Successive frontier releases show flat or falling success on a fixed held-out exploitation suite.
+    if_it_flips: "The opening's urgency softens. The loop, the rules and the phases stay unchanged."
+    extrapolation: From self-contained tasks and undefended ranges to defended production estates.
+    measured_by: 
+      []
+    evidence: 
+      - source: "UK AI Security Institute, 2026"
+        url: https://aisi.gov.uk/blog/how-fast-is-autonomous-ai-cyber-capability-advancing
+      - source: "UK AI Security Institute, 2025, Frontier AI Trends Report"
+        url: https://aisi.gov.uk/frontier-ai-trends-report
+      - source: "Fang et al., 2024"
+        url: https://arxiv.org/abs/2404.08144
+    rests_on: 
+      parts: 
+        []
+      relationships: 
+        []
+  - id: CL-34
+    statement: "AI systems now find previously unknown, real vulnerabilities in widely used software, though reproduction and exploitation from scratch remain unreliable."
+    type: empirical
+    premise_group: AI capability
+    verdict: holds
+    strength: moderate
+    strength_reason: "Several independent real-world discoveries (vendor, government competition, academic, bug bounty), but counts are small against the scale of software, partly vendor self-reported, and success at reproduction from a description is about one in five."
+    untested: false
+    load: "Thesis opening; supports that the reachable backlog is growing, not only the known one."
+    falsifier: AI-attributed CVEs and resolved bounty reports stay flat as a share of the total over successive years.
+    if_it_flips: "Intake volume is sized lower, and fix-path investment shifts toward the finders the organization already runs."
+    extrapolation: "From open-source C, Java and web targets to proprietary enterprise stacks."
+    measured_by: 
+      []
+    evidence: 
+      - source: "Google Project Zero, 2024, Big Sleep"
+        url: https://googleprojectzero.blogspot.com/2024/10/from-naptime-to-big-sleep.html
+      - source: "DARPA, 2025, AIxCC results"
+        url: https://www.darpa.mil/news/2025/aixcc-results
+      - source: "Wang et al., 2025, CyberGym"
+        url: https://arxiv.org/abs/2506.02548
+      - source: "XBOW, 2025"
+        url: https://xbow.com/blog/top-1-how-xbow-did-it/
+    rests_on: 
+      parts: 
+        []
+      relationships: 
+        []
+  - id: CL-35
+    statement: "AI agents have exploited real vulnerabilities in live intrusion campaigns, with heavy autonomy but unreliable output."
+    type: empirical
+    premise_group: AI capability
+    verdict: honest bet
+    strength: weak
+    strength_reason: "One documented campaign, reported by the model's own vendor, with a handful of confirmed intrusions and no independent replication of the technical detail. Real, but a single case."
+    untested: true
+    load: "Thesis opening, only if it claims attackers already use this in the wild."
+    falsifier: No further documented AI-executed exploitation in independent incident reporting through 2027.
+    if_it_flips: The opening drops the statement that attackers already use AI exploitation in the wild. Nothing else in the design rests on it.
+    extrapolation: One campaign to the general threat environment.
+    measured_by: 
+      []
+    evidence: 
+      - source: "Anthropic, 2025, threat report"
+        url: https://assets.anthropic.com/m/ec212e6566a0d47/original/Disrupting-the-first-reported-AI-orchestrated-cyber-espionage-campaign.pdf
+    rests_on: 
+      parts: 
+        []
+      relationships: 
+        []
+  - id: CL-36
+    statement: "The record (the evidence store and the finding ledger) keeps up with run volume on the organization's own infrastructure."
+    type: engineering-practice
+    premise_group: Capacity
+    verdict: honest bet
+    strength: none
+    strength_reason: Design reasoning; no study and no load test yet.
+    untested: true
+    load: The evidence plane and the finding ledger as run volume grows; every measure reads from the record.
+    falsifier: Write backlog in the evidence store or query time on the finding ledger grows with run volume past the service levels the organization sets for its record.
+    if_it_flips: "A local engineering problem: the organization patches its own storage and partitioning, and the same checks judge the patch."
+    extrapolation: n/a
+    measured_by: 
+      []
+    evidence: 
+      []
+    rests_on: 
+      parts: 
+        - s5.finding-ledger
+      relationships: 
+        []
+  - id: CL-37
+    statement: "Kept regression tests fit the pipeline's time budget as they accumulate."
+    type: engineering-practice
+    premise_group: Capacity
+    verdict: honest bet
+    strength: none
+    strength_reason: Design reasoning; no study.
+    untested: true
+    load: "The regression stage in the deploy path; a ratchet only adds tests, so success itself tests this premise."
+    falsifier: "The regression stage's run time per deploy grows past the time budget each service sets, even with dependency-scoped replay."
+    if_it_flips: "Kept tests run by dependency, retire when a cheaper kept check covers their weakness class, or move their time-based runs to a slower lane. The ratchet then depends on its retirement rule."
+    extrapolation: n/a
+    measured_by: 
+      []
+    evidence: 
+      []
+    rests_on: 
+      parts: 
+        []
+      relationships: 
+        []
+  - id: CL-38
+    statement: Model access cost and rate limits fit the volume of runs the organization intends.
+    type: economic
+    premise_group: Capacity
+    verdict: honest bet
+    strength: none
+    strength_reason: Design reasoning; no study.
+    untested: true
+    load: Model access for every agent role; the cost side of the value case.
+    falsifier: Model spend or rate-limit refusals cap runs below the planned volume over a quarter.
+    if_it_flips: "Routing and budget limits tighten, and the scripted loop takes more of the load through the fallback ladder in the profile."
+    extrapolation: n/a
+    measured_by: 
+      []
+    evidence: 
+      []
+    rests_on: 
+      parts: 
+        []
+      relationships: 
+        []
+  - id: CL-39
+    statement: "Reviewers' capacity for independent reproduction grows with finding volume."
+    type: organizational
+    premise_group: Capacity
+    verdict: honest bet
+    strength: none
+    strength_reason: Design reasoning; no study.
+    untested: true
+    load: "Independent reproduction before any finding enters the record; the reviewers' queue."
+    falsifier: "Candidates wait longer for independent reproduction as volume rises, and queue age per reviewer climbs quarter over quarter."
+    if_it_flips: "Intake throttles to reviewer capacity, or earned autonomy moves some weakness classes to sampled reproduction sooner."
+    extrapolation: n/a
+    measured_by: 
+      []
+    evidence: 
+      []
+    rests_on: 
+      parts: 
+        - s5.independent-verifier
+      relationships: 
+        []
+  - id: CL-40
+    statement: "While discovery outruns fixes, fixes aimed at a whole weakness class reduce escapes faster than fixes aimed at single findings."
+    type: organizational
+    premise_group: Flow regimes
+    verdict: honest bet
+    strength: none
+    strength_reason: Forward-looking premise; no study.
+    untested: true
+    load: "The backlog regime: where fix effort goes while the queue grows; secure defaults and paved-road entries as the lever."
+    falsifier: "Over a period when the security backlog grows, services that received class-level fixes show no lower security escapes per deployment than services that received finding-level fixes."
+    if_it_flips: "Fix effort goes finding by finding in risk order, and paved-road investment waits. The fix-capacity saturation setting still governs intake."
+    extrapolation: n/a
+    measured_by: 
+      []
+    evidence: 
+      []
+    rests_on: 
+      parts: 
+        - s6.paved-road-catalog
+      relationships: 
+        []
+  - id: CL-41
+    statement: "Once fixes keep pace with discovery, steering discovery toward untested surface finds more novel weaknesses than re-mining weakness classes already covered."
+    type: organizational
+    premise_group: Flow regimes
+    verdict: honest bet
+    strength: none
+    strength_reason: Forward-looking premise; no study.
+    untested: true
+    load: "The balanced regime: where discovery effort goes once the backlog stops growing."
+    falsifier: Runs steered toward low-coverage surface yield no more validated novel findings per run than runs on covered weakness classes.
+    if_it_flips: "Discovery stays spread across covered classes, and the deferred rule that would steer discovery toward low-coverage areas stays deferred."
+    extrapolation: n/a
+    measured_by: 
+      []
+    evidence: 
+      []
+    rests_on: 
+      parts: 
+        []
+      relationships: 
+        []
+  - id: CL-42
+    statement: "As novel findings near zero, AI discovery drifts toward noise, so the cost per validated novel finding rises and independent reproduction matters more."
+    type: economic
+    premise_group: Flow regimes
+    verdict: honest bet
+    strength: none
+    strength_reason: Forward-looking premise; no study.
+    untested: true
+    load: "The near-zero regime: discovery spending and the reproduction sample rate."
+    falsifier: Cost per validated novel finding and the invalid share of agent candidates stay flat as novel findings become rare.
+    if_it_flips: "Discovery spending can hold steady near zero, and reproduction stays at the sample rate earned autonomy already set."
+    extrapolation: n/a
+    measured_by: 
+      []
+    evidence: 
+      []
+    rests_on: 
+      parts: 
+        []
+      relationships: 
+        []
+  - id: CL-43
+    statement: "As novel findings near zero, security fixes become the main stream of security changes and the main source of new defects, so the change fail rate of security fixes becomes the key safety measure; the floor resets for a weakness class whenever new technology brings new classes."
+    type: organizational
+    premise_group: Flow regimes
+    verdict: honest bet
+    strength: none
+    strength_reason: Forward-looking premise; no study.
+    untested: true
+    load: "The near-zero regime: the remediation change fail rate beside DORA's measures, and the per-class view of arrival against verified fixes."
+    falsifier: "The change fail rate of security fixes stays at or below the service's overall change fail rate, and failed security fixes cause a small share of new findings."
+    if_it_flips: "The remediation change fail rate stays one measure among the others, and the organization weights its reporting toward escapes and discovery cost. New weakness classes are still tracked one class at a time."
+    extrapolation: n/a
+    measured_by: 
+      []
+    evidence: 
+      []
+    rests_on: 
+      parts: 
+        []
+      relationships: 
+        []
+  - id: CL-44
+    statement: A cheaper kept check that covers a weakness class (a paved-road entry or a secure-creation check) protects as well as the kept regression test it retires.
+    type: engineering-practice
+    premise_group: Kept tests
+    verdict: honest bet
+    strength: none
+    strength_reason: Design reasoning; no study.
+    untested: true
+    load: "Retiring kept regression tests when a cheaper kept check covers their class; the regression stage's time budget."
+    falsifier: "After kept regression tests retire in favor of a cheaper check, their weakness classes are reintroduced at a higher rate than while the tests ran."
+    if_it_flips: "A kept regression test retires only on direct evidence about its own weakness, and the regression stage grows, with only quiet tests' time-based runs moving to a slower lane."
+    extrapolation: n/a
+    measured_by: 
+      - U-204
+      - jig:U-438
+      - U-449
+    evidence: 
+      []
+    rests_on: 
+      parts: 
+        - people.purple-team
+        - s6.hardening-service
+        - s6.retest-regression-planner
+        - s6.regression-catalog
+        - people.security-risk-owner
+        - s5.independent-verifier
+        - s7.flow-cost-telemetry
+        - ext.soc-incident-response
+        - s7.sampling-service
+      relationships: 
+        - p33-r1
+        - p33-r2
+        - p33-r3
+        - p33-r4
+        - p33-r5
+        - p33-r6
+        - p33-r7
+  - id: CL-45
+    statement: Re-proving a kept regression test against its fix reverted finds tests that no longer detect their weakness.
+    type: engineering-practice
+    premise_group: Kept tests
+    verdict: honest bet
+    strength: none
+    strength_reason: "Design reasoning; mutation testing practice points this way, with no study of security regression tests."
+    untested: true
+    load: Scheduled re-proof of kept regression tests; trust that a passing regression stage means the fixes still hold.
+    falsifier: Scheduled re-proof against the reverted fix almost never finds a kept test that passes when it should fail.
+    if_it_flips: "Re-proof runs less often, at an interval the organization sets in its profile, and the time saved goes to discovery."
+    extrapolation: n/a
+    measured_by: 
+      - U-203
+    evidence: 
+      []
+    rests_on: 
+      parts: 
+        - people.purple-team
+        - s6.hardening-service
+        - s6.retest-regression-planner
+        - s6.regression-catalog
+        - people.security-risk-owner
+        - s5.independent-verifier
+        - s7.flow-cost-telemetry
+        - ext.soc-incident-response
+        - s7.sampling-service
+      relationships: 
+        - p33-r1
+        - p33-r2
+        - p33-r3
+        - p33-r4
+        - p33-r5
+        - p33-r6
+        - p33-r7
+  - id: CL-46
+    statement: Bounding what an agent may touch limits what its errors cost better than its accuracy record does.
+    type: engineering-practice
+    premise_group: AI capability
+    verdict: honest bet
+    strength: none
+    strength_reason: Design reasoning from authorization and blast-radius practice; no study of agent actions.
+    untested: true
+    load: Design limits on each agent route and judgment type; the rule that the record widens scope only inside the limit.
+    falsifier: "In phase 2, a route's recent accuracy before each action forecasts what its wrong actions cost (time to recover and incident severity) better than the tier its limit allows and the action's class."
+    if_it_flips: "The organization lets an accurate record widen limits further, through its own patches, while the design limit still caps what no record can reach."
+    extrapolation: n/a
+    measured_by: 
+      - U-222
+    evidence: 
+      []
+    rests_on: 
+      parts: 
+        - people.security-risk-owner
+        - people.risk-acceptance-owner
+        - s1.consequence-register
+        - s7.dial-register
+        - s3.policy-decision-point
+        - s3.approval-service
+        - s7.promotion-review
+        - s5.evidence-intake-validator
+        - s3.protected-audit
+        - s5.independent-verifier
+        - ext.soc-incident-response
+        - s7.flow-cost-telemetry
+      relationships: 
+        - p35-r1
+        - p35-r2
+        - p35-r3
+        - p35-r4
+        - p35-r5
+        - p35-r6
+        - p35-r7
+        - p35-r8
+        - p35-r9
+        - p35-r10
+        - p35-r11
+  - id: CL-47
+    statement: "A finding that arrives with a reproducing test, a drafted fix and an owned gate costs the owning team less than one that arrives as a ticket."
+    type: engineering-practice
+    premise_group: Capacity
+    verdict: honest bet
+    strength: none
+    strength_reason: Design reasoning; no study measures owning-team effort per security finding with and without a prepared fix path.
+    untested: true
+    load: Security paying for the fix path; owning teams choosing that path over their queue.
+    falsifier: "Owning teams spend as many hours per accepted finding that arrived with a fix path as they did per finding before, or decline most drafted fixes."
+    if_it_flips: Security stops drafting fixes for the classes where teams decline them and puts that effort into secure defaults for those classes.
+    extrapolation: n/a
+    measured_by: 
+      - U-240
+    evidence: 
+      []
+    rests_on: 
+      parts: 
+        - s6.hardening-service
+        - s6.owner-change-connector
+        - s6.fix-cap-gate
+        - people.engineering-owners
+        - people.security-risk-owner
+        - s6.fix-cap-refusal-log
+        - s7.dial-register
+        - s1.consequence-register
+        - s7.flow-cost-telemetry
+      relationships: 
+        - p36-r1
+        - p36-r2
+        - p36-r3
+        - p36-r4
+        - p36-r5
+        - p36-r6
+        - p36-r7
+        - p36-r8
+        - p36-r9
+        - p36-r10
+        - p36-r11
+        - p36-r12
+  - id: CL-48
+    statement: "A one-time sweep with a capable model decays: escapes return through weaknesses that later changes reintroduce and through classes that the next, more capable model finds."
+    type: engineering-practice
+    premise_group: Flow regimes
+    verdict: honest bet
+    strength: none
+    strength_reason: "The authors' observation and design reasoning; no study follows escapes after a model-driven sweep."
+    untested: true
+    load: "The thesis in every starting point: just-in-time find and fix as the North Star, the loop's case for organizations whose known backlog is already near zero, the post-sweep opening in the tailoring guide, and the near zero regime."
+    falsifier: "Through later model releases after a sweep, the escape rate per deployment stays at its post-sweep level against the organization's historical starting point, and escapes that are reintroduced weaknesses or in classes new since the sweep stay a small share."
+    if_it_flips: "A periodic sweep becomes a credible alternative for organizations already near zero, and the opening for them shifts to trust and independent evidence. The loop and its four rules still apply, and kept regression tests carry less of the case."
+    extrapolation: n/a
+    measured_by: 
+      - U-205
+    evidence: 
+      []
+    rests_on: 
+      parts: 
+        []
+      relationships: 
+        []
+  - id: CL-49
+    statement: "Security debt is the security share of quality debt, which every quality draws from one engineering pool, so findings validated beyond an owning team's fix capacity add interest, in team time lost, without reducing risk."
+    type: organizational
+    premise_group: Capacity
+    verdict: honest bet
+    strength: weak
+    strength_reason: "Technical debt is shown to cost a large share of developer time (23% measured longitudinally, 36% self-estimated), and security risk can be managed as technical debt in concept; no study measures security debt's share of that time, and a 2025 interview study finds limited empirical evidence on security debt practice."
+    untested: true
+    load: The fix cap and its saturation signal read as debt service; security paying for the fix path; the owning-team time lost to security debt measured beside the counts.
+    falsifier: "Owning teams' reported time lost to security debt does not rise while validated findings arrive above their fix cap, or findings above the cap close as fast as those below it without taking time from other quality work."
+    if_it_flips: "Fix capacity is read as a security queue of its own, the fix cap governs on queue age alone, and the time lost to security debt stays a descriptive measure beside the counts."
+    extrapolation: "From technical debt in general, measured mostly through developers' reports in a few companies, to security findings in this loop; and from a conceptual framing of security as technical debt to the claim that both draw on one engineering pool, so that findings beyond fix capacity add interest without reducing risk."
+    measured_by: 
+      - U-205
+      - U-240
+    evidence: 
+      - source: "Besker, Martini and Bosch, 2019, JSS"
+        url: https://doi.org/10.1016/j.jss.2019.06.004
+      - source: "Besker, Martini and Bosch, 2017, ICSME"
+        url: https://doi.org/10.1109/ICSME.2017.42
+      - source: "Besker, Martini and Bosch, 2019, SEAA"
+        url: https://doi.org/10.1109/SEAA.2019.00020
+      - source: "Rindell, Bernsmed and Jaatun, 2019, ARES"
+        url: https://doi.org/10.1145/3339252.3340338
+      - source: "Boufaied, Ghaleb and Masood, 2025, arXiv 2507.11362"
+        url: https://arxiv.org/abs/2507.11362
+      - source: "Jaspan and Green, 2025, TechDebt keynote"
+        url: https://conf.researchr.org/attending/TechDebt-2025/keynotes
+    rests_on: 
+      parts: 
+        - s6.hardening-service
+        - s6.owner-change-connector
+        - s6.fix-cap-gate
+        - people.engineering-owners
+        - people.security-risk-owner
+        - s6.fix-cap-refusal-log
+        - s7.dial-register
+        - s1.consequence-register
+        - s7.flow-cost-telemetry
+      relationships: 
+        - p36-r1
+        - p36-r2
+        - p36-r3
+        - p36-r4
+        - p36-r5
+        - p36-r6
+        - p36-r7
+        - p36-r8
+        - p36-r9
+        - p36-r10
+        - p36-r11
+        - p36-r12
+  - id: CL-50
+    statement: "An auditor or assurance reviewer relies on a record Ratchet generates, such as a closure record, a freshness report or figures computed from the finding ledger, when its accuracy and completeness can be tested, usually through the controls over the system that produces it."
+    type: organizational
+    premise_group: People and organization
+    verdict: holds
+    strength: strong
+    strength_reason: "The audit standards explicitly allow reliance on information produced by the entity when its reliability, accuracy and completeness are tested. The staff observations reinforce that condition in practice. Research literature on security assurance is thin and treats such records as corroborating. Applying the standards to this program still requires the reviewer to test the producing system and the records for the purpose at hand."
+    untested: false
+    load: "The three relief marks for manual evidence gathering for audits: the closure record, the kept-test freshness report and the remediation measures."
+    falsifier: "An assurance reviewer refuses a generated record even after its accuracy, completeness, precision and detail have been tested for the review purpose, or still requires the same record to be gathered by hand."
+    if_it_flips: "The three relief marks fall to none in that organization's reading and the manual work stays; the organization's own patches keep the evidence gathering as a manual duty, and the program still produces the records."
+    extrapolation: From the standards for audit evidence to the generated records this program offers an assurance reviewer. The organization must establish the applicable review purpose and test the records and their producing controls.
+    measured_by: 
+      []
+    evidence: 
+      - source: literature synthesis (2026)
+        published: false
+    rests_on: 
+      parts: 
+        - s6.change-closure-records
+        - s6.regression-catalog
+        - s7.flow-cost-telemetry
+      relationships: 
+        []
