@@ -1,0 +1,663 @@
+# Jig edition 0.3.0. Generated; do not edit.
+moved: 
+  - kind: elements
+    from: ext.engineering-workflows
+    to: shared:ext.engineering-workflows
+  - kind: elements
+    from: ext.secure-creation
+    to: jig:secure-creation
+  - kind: elements
+    from: jig.context-plane
+    to: jig:context-plane
+  - kind: elements
+    from: jig.check-suite
+    to: jig:check-suite
+  - kind: elements
+    from: jig.inner-loop
+    to: jig:inner-loop
+  - kind: elements
+    from: jig.coding-agent
+    to: jig:coding-agent
+  - kind: elements
+    from: jig.harness-full-parity
+    to: jig:harness-full-parity
+  - kind: elements
+    from: jig.harness-no-pinning
+    to: jig:harness-no-pinning
+  - kind: elements
+    from: jig.harness-no-stop-gate
+    to: jig:harness-no-stop-gate
+  - kind: elements
+    from: jig.edit-checks
+    to: jig:edit-checks
+  - kind: elements
+    from: jig.stop-gate
+    to: jig:stop-gate
+  - kind: elements
+    from: jig.quarantined-reader
+    to: jig:quarantined-reader
+  - kind: elements
+    from: jig.reader-schema-gate
+    to: jig:reader-schema-gate
+  - kind: elements
+    from: jig.model-routes
+    to: jig:model-routes
+  - kind: elements
+    from: jig.reader-model-route
+    to: jig:reader-model-route
+  - kind: elements
+    from: jig.repository
+    to: jig:repository
+  - kind: elements
+    from: jig.change-boundary
+    to: jig:change-boundary
+  - kind: elements
+    from: jig.precommit-gate
+    to: jig:precommit-gate
+  - kind: elements
+    from: jig.provenance-stamper
+    to: jig:provenance-stamper
+  - kind: elements
+    from: jig.protected-branch
+    to: jig:protected-branch
+  - kind: elements
+    from: jig.pr-plane
+    to: jig:pr-plane
+  - kind: elements
+    from: jig.pr-analysis
+    to: jig:pr-analysis
+  - kind: elements
+    from: jig.pr-triage
+    to: jig:pr-triage
+  - kind: elements
+    from: jig.ai-reviewer
+    to: jig:ai-reviewer
+  - kind: elements
+    from: jig.hunk-router
+    to: jig:hunk-router
+  - kind: elements
+    from: jig.hunk-risk-advisor
+    to: jig:hunk-risk-advisor
+  - kind: elements
+    from: jig.autofix
+    to: jig:autofix
+  - kind: elements
+    from: jig.measurement-plane
+    to: jig:measurement-plane
+  - kind: elements
+    from: ext.outside-text
+    to: jig:outside-text
+  - kind: elements
+    from: people.creation-developer
+    to: jig:people.creation-developer
+  - kind: elements
+    from: people.change-reviewer
+    to: jig:people.change-reviewer
+  - kind: elements
+    from: people.high-risk-reviewer
+    to: jig:people.high-risk-reviewer
+  - kind: elements
+    from: people.creation-policy-owner
+    to: jig:people.creation-policy-owner
+  - kind: systems
+    from: EXT
+    to: shared:EXT
+  - kind: systems
+    from: PEOPLE
+    to: shared:PEOPLE
+  - kind: trust_zones
+    from: existing
+    to: shared:existing
+  - kind: trust_zones
+    from: third-party
+    to: shared:third-party
+  - kind: planes
+    from: integration
+    to: shared:integration
+  - kind: contracts
+    from: RoadEntry
+    to: shared:RoadEntry
+  - kind: contracts
+    from: DerivedCheck
+    to: shared:DerivedCheck
+  - kind: contracts
+    from: DroppedCheck
+    to: shared:DroppedCheck
+  - kind: contracts
+    from: ProvenClass
+    to: shared:ProvenClass
+  - kind: contracts
+    from: RoadAssuranceStatus
+    to: shared:RoadAssuranceStatus
+  - kind: contracts
+    from: FixBrief
+    to: shared:FixBrief
+  - kind: contracts
+    from: HunkRouteAdvice
+    to: jig:HunkRouteAdvice
+  - kind: contracts
+    from: CreationRule
+    to: shared:CreationRule
+  - kind: contracts
+    from: CatchLayer
+    to: shared:CatchLayer
+  - kind: contracts
+    from: CreationOutcome
+    to: jig:CreationOutcome
+  - kind: contracts
+    from: ReviewerDrift
+    to: jig:ReviewerDrift
+  - kind: contracts
+    from: LayerCatchRate
+    to: jig:LayerCatchRate
+  - kind: contracts
+    from: TrackerText
+    to: shared:TrackerText
+  - kind: contracts
+    from: ClassTestCount
+    to: shared:ClassTestCount
+  - kind: contracts
+    from: CreationLead
+    to: shared:CreationLead
+  - kind: contracts
+    from: ProvenanceStamp
+    to: shared:ProvenanceStamp
+  - kind: contracts
+    from: ReviewerSeedCatch
+    to: shared:ReviewerSeedCatch
+  - kind: contracts
+    from: SeededChange
+    to: shared:SeededChange
+  - kind: contracts
+    from: DerivedCheckMisses
+    to: shared:DerivedCheckMisses
+  - kind: relationships
+    from: r002
+    to: shared:r002
+  - kind: relationships
+    from: r010
+    to: shared:r010
+  - kind: relationships
+    from: p14-r12
+    to: shared:p14-r12
+  - kind: relationships
+    from: p17-r16
+    to: shared:p17-r16
+  - kind: relationships
+    from: p17-r17
+    to: shared:p17-r17
+  - kind: relationships
+    from: p30-r1
+    to: shared:p30-r1
+  - kind: relationships
+    from: p30-r2
+    to: shared:p30-r2
+  - kind: relationships
+    from: p30-r3
+    to: shared:p30-r3
+  - kind: relationships
+    from: p30-r4
+    to: shared:p30-r4
+  - kind: relationships
+    from: p30-r5
+    to: shared:p30-r5
+  - kind: relationships
+    from: p30-r6
+    to: shared:p30-r6
+  - kind: relationships
+    from: p30-r9
+    to: shared:p30-r9
+  - kind: relationships
+    from: p32-r1
+    to: shared:p32-r1
+  - kind: relationships
+    from: p40-r5
+    to: shared:p40-r5
+  - kind: relationships
+    from: p43-r6
+    to: shared:p43-r6
+  - kind: relationships
+    from: p55-r1
+    to: jig:p55-r1
+  - kind: relationships
+    from: p55-r2
+    to: jig:p55-r2
+  - kind: relationships
+    from: p55-r3
+    to: jig:p55-r3
+  - kind: relationships
+    from: p55-r4
+    to: jig:p55-r4
+  - kind: relationships
+    from: p55-r5
+    to: jig:p55-r5
+  - kind: relationships
+    from: p55-r6
+    to: jig:p55-r6
+  - kind: relationships
+    from: p55-r7
+    to: jig:p55-r7
+  - kind: relationships
+    from: p55-r8
+    to: jig:p55-r8
+  - kind: relationships
+    from: p55-r9
+    to: jig:p55-r9
+  - kind: relationships
+    from: p55-r75
+    to: jig:p55-r75
+  - kind: relationships
+    from: p55-r76
+    to: jig:p55-r76
+  - kind: relationships
+    from: p55-r10
+    to: shared:p55-r10
+  - kind: relationships
+    from: p55-r11
+    to: jig:p55-r11
+  - kind: relationships
+    from: p55-r12
+    to: jig:p55-r12
+  - kind: relationships
+    from: p55-r13
+    to: jig:p55-r13
+  - kind: relationships
+    from: p55-r14
+    to: jig:p55-r14
+  - kind: relationships
+    from: p55-r15
+    to: jig:p55-r15
+  - kind: relationships
+    from: p55-r16
+    to: jig:p55-r16
+  - kind: relationships
+    from: p55-r17
+    to: jig:p55-r17
+  - kind: relationships
+    from: p55-r18
+    to: jig:p55-r18
+  - kind: relationships
+    from: p55-r19
+    to: jig:p55-r19
+  - kind: relationships
+    from: p55-r20
+    to: jig:p55-r20
+  - kind: relationships
+    from: p55-r21
+    to: jig:p55-r21
+  - kind: relationships
+    from: p55-r22
+    to: jig:p55-r22
+  - kind: relationships
+    from: p55-r23
+    to: jig:p55-r23
+  - kind: relationships
+    from: p55-r24
+    to: jig:p55-r24
+  - kind: relationships
+    from: p55-r25
+    to: jig:p55-r25
+  - kind: relationships
+    from: p55-r26
+    to: jig:p55-r26
+  - kind: relationships
+    from: p55-r27
+    to: jig:p55-r27
+  - kind: relationships
+    from: p55-r28
+    to: jig:p55-r28
+  - kind: relationships
+    from: p55-r29
+    to: jig:p55-r29
+  - kind: relationships
+    from: p55-r30
+    to: jig:p55-r30
+  - kind: relationships
+    from: p55-r31
+    to: shared:p55-r31
+  - kind: relationships
+    from: p55-r32
+    to: shared:p55-r32
+  - kind: relationships
+    from: p55-r33
+    to: jig:p55-r33
+  - kind: relationships
+    from: p55-r34
+    to: jig:p55-r34
+  - kind: relationships
+    from: p55-r35
+    to: jig:p55-r35
+  - kind: relationships
+    from: p55-r36
+    to: jig:p55-r36
+  - kind: relationships
+    from: p55-r37
+    to: jig:p55-r37
+  - kind: relationships
+    from: p55-r38
+    to: jig:p55-r38
+  - kind: relationships
+    from: p55-r39
+    to: jig:p55-r39
+  - kind: relationships
+    from: p55-r40
+    to: jig:p55-r40
+  - kind: relationships
+    from: p55-r41
+    to: jig:p55-r41
+  - kind: relationships
+    from: p55-r42
+    to: jig:p55-r42
+  - kind: relationships
+    from: p55-r43
+    to: jig:p55-r43
+  - kind: relationships
+    from: p55-r44
+    to: jig:p55-r44
+  - kind: relationships
+    from: p55-r45
+    to: jig:p55-r45
+  - kind: relationships
+    from: p55-r46
+    to: jig:p55-r46
+  - kind: relationships
+    from: p55-r47
+    to: jig:p55-r47
+  - kind: relationships
+    from: p55-r48
+    to: jig:p55-r48
+  - kind: relationships
+    from: p55-r49
+    to: jig:p55-r49
+  - kind: relationships
+    from: p55-r50
+    to: jig:p55-r50
+  - kind: relationships
+    from: p55-r51
+    to: jig:p55-r51
+  - kind: relationships
+    from: p55-r52
+    to: jig:p55-r52
+  - kind: relationships
+    from: p55-r53
+    to: jig:p55-r53
+  - kind: relationships
+    from: p55-r54
+    to: jig:p55-r54
+  - kind: relationships
+    from: p55-r55
+    to: jig:p55-r55
+  - kind: relationships
+    from: p55-r56
+    to: jig:p55-r56
+  - kind: relationships
+    from: p55-r57
+    to: jig:p55-r57
+  - kind: relationships
+    from: p55-r58
+    to: jig:p55-r58
+  - kind: relationships
+    from: p55-r59
+    to: jig:p55-r59
+  - kind: relationships
+    from: p55-r60
+    to: jig:p55-r60
+  - kind: relationships
+    from: p55-r61
+    to: jig:p55-r61
+  - kind: relationships
+    from: p55-r62
+    to: jig:p55-r62
+  - kind: relationships
+    from: p55-r63
+    to: jig:p55-r63
+  - kind: relationships
+    from: p55-r64
+    to: jig:p55-r64
+  - kind: relationships
+    from: p55-r65
+    to: jig:p55-r65
+  - kind: relationships
+    from: p55-r66
+    to: jig:p55-r66
+  - kind: relationships
+    from: p55-r67
+    to: jig:p55-r67
+  - kind: relationships
+    from: p55-r68
+    to: jig:p55-r68
+  - kind: relationships
+    from: p55-r69
+    to: shared:p55-r69
+  - kind: relationships
+    from: p55-r70
+    to: shared:p55-r70
+  - kind: relationships
+    from: p55-r71
+    to: jig:p55-r71
+  - kind: relationships
+    from: p55-r72
+    to: jig:p55-r72
+  - kind: relationships
+    from: p55-r73
+    to: jig:p55-r73
+  - kind: relationships
+    from: p55-r74
+    to: jig:p55-r74
+  - kind: relationships
+    from: p60-r2
+    to: shared:p60-r2
+  - kind: relationships
+    from: p60-r3
+    to: shared:p60-r3
+  - kind: relationships
+    from: p60-r1
+    to: shared:p60-r1
+  - kind: seams
+    from: secure-creation
+    to: shared:secure-creation
+  - kind: failures
+    from: F128
+    to: jig:F128
+  - kind: failures
+    from: F129
+    to: shared:F129
+  - kind: failures
+    from: F130
+    to: jig:F130
+  - kind: failures
+    from: F133
+    to: jig:F133
+  - kind: failures
+    from: F134
+    to: shared:F134
+  - kind: failures
+    from: F135
+    to: shared:F135
+  - kind: units
+    from: U-430
+    to: jig:U-430
+  - kind: units
+    from: U-431
+    to: jig:U-431
+  - kind: units
+    from: U-432
+    to: jig:U-432
+  - kind: units
+    from: U-433
+    to: jig:U-433
+  - kind: units
+    from: U-436
+    to: jig:U-436
+  - kind: units
+    from: U-437
+    to: jig:U-437
+  - kind: units
+    from: U-438
+    to: jig:U-438
+  - kind: claims
+    from: JP-01
+    to: jig:JC-01
+  - kind: claims
+    from: JP-02
+    to: jig:JC-02
+  - kind: claims
+    from: JP-03
+    to: jig:JC-03
+  - kind: claims
+    from: JP-04
+    to: jig:JC-04
+  - kind: claims
+    from: JP-05
+    to: jig:JC-05
+  - kind: claims
+    from: JP-06
+    to: jig:JC-06
+  - kind: claims
+    from: JP-07
+    to: jig:JC-07
+  - kind: claims
+    from: JP-08
+    to: jig:JC-08
+  - kind: claims
+    from: JP-09
+    to: jig:JC-09
+  - kind: claims
+    from: JP-10
+    to: jig:JC-10
+  - kind: claims
+    from: JP-11
+    to: jig:JC-11
+  - kind: claims
+    from: JP-12
+    to: jig:JC-12
+  - kind: claims
+    from: JP-13
+    to: jig:JC-13
+  - kind: claims
+    from: JP-14
+    to: jig:JC-14
+  - kind: claims
+    from: JP-15
+    to: jig:JC-15
+  - kind: claims
+    from: JP-16
+    to: jig:JC-16
+  - kind: claims
+    from: JP-17
+    to: jig:JC-17
+  - kind: claims
+    from: JP-18
+    to: jig:JC-18
+  - kind: claims
+    from: JP-19
+    to: jig:JC-19
+  - kind: claims
+    from: JP-20
+    to: jig:JC-20
+  - kind: claims
+    from: JP-21
+    to: jig:JC-21
+  - kind: claims
+    from: JP-22
+    to: jig:JC-22
+  - kind: claims
+    from: JP-23
+    to: jig:JC-23
+  - kind: claims
+    from: JP-24
+    to: jig:JC-24
+  - kind: claims
+    from: JP-25
+    to: jig:JC-25
+  - kind: claims
+    from: JP-26
+    to: jig:JC-26
+  - kind: claims
+    from: JP-27
+    to: jig:JC-27
+  - kind: claims
+    from: JP-28
+    to: jig:JC-28
+  - kind: claims
+    from: JP-29
+    to: jig:JC-29
+  - kind: claims
+    from: JP-30
+    to: jig:JC-30
+  - kind: claims
+    from: JP-31
+    to: jig:JC-31
+  - kind: claims
+    from: JP-32
+    to: jig:JC-32
+  - kind: claims
+    from: JP-33
+    to: jig:JC-33
+  - kind: claims
+    from: JP-34
+    to: shared:SH-1
+  - kind: claims
+    from: JP-35
+    to: jig:JC-35
+  - kind: claims
+    from: JP-36
+    to: jig:JC-36
+  - kind: contracts
+    from: ClassTestTotals
+    to: shared:ClassTestTotals
+  - kind: relationships
+    from: p65-r1
+    to: shared:p65-r1
+  - kind: views
+    from: design-change-55
+    to: jig:creation-loop
+  - kind: views
+    from: design-change-57
+    to: jig:creation-control
+  - kind: contracts
+    from: GateFailurePosture
+    to: shared:GateFailurePosture
+  - kind: contracts
+    from: ToolLead
+    to: shared:ToolLead
+  - kind: contracts
+    from: DeliveryTelemetry
+    to: shared:DeliveryTelemetry
+  - kind: contracts
+    from: ChangeProvenance
+    to: shared:ChangeProvenance
+  - kind: contracts
+    from: ChangeRecord
+    to: shared:ChangeRecord
+  - kind: contracts
+    from: ratchet:GateFailurePosture
+    to: shared:GateFailurePosture
+  - kind: contracts
+    from: ratchet:ToolLead
+    to: shared:ToolLead
+  - kind: contracts
+    from: ratchet:DeliveryTelemetry
+    to: shared:DeliveryTelemetry
+  - kind: contracts
+    from: ratchet:ChangeProvenance
+    to: shared:ChangeProvenance
+  - kind: contracts
+    from: ratchet:ChangeRecord
+    to: shared:ChangeRecord
+  - kind: contracts
+    from: jig:TrackerText
+    to: shared:TrackerText
+derived: 
+  - kind: failures
+    from: F132
+    to: shared:F132-premise
+  - kind: failures
+    from: F133
+    to: shared:F133-premise
+  - kind: units
+    from: U-434
+    to: jig:JU-01
+  - kind: units
+    from: U-435
+    to: jig:JU-02

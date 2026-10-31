@@ -1,0 +1,114 @@
+# Jig edition 0.3.0. Organization profile template.
+# Jig organization profile (starter). Copy it to org/jig-profile.yaml in the organization's workspace.
+# Every answer is present and unanswered. Each answer is a record of its own:
+#   value       the current answer, null while unanswered
+#   evidence    one entry per source read, {source, date, found}, oldest first; add new readings, never overwrite
+#   confirmed   {by, at}, filled only on a named person's explicit word; the agent never fills it
+#   superseded  earlier confirmed values a person replaced, {value, confirmed, replaced_at}, kept as history
+# Confirming one answer confirms that answer only. An unanswered answer is a gap, never an error.
+# Edit this file in place: these comments carry the field help. A tool that parses the file and writes it back drops
+# every comment; if one is used, say in the session report that the comments are lost and keep this template beside it.
+# Quote every date as text in YYYY-MM-DD form, such as at: "YYYY-MM-DD". Some YAML readers turn a bare date into a date
+# value, and the schema wants text; the profile check warns on each date written without quotes.
+# profile-schema.yaml describes every field; workflow-seed.md and workflow-fill-profile.md say how to fill them, and the
+# profile check shipped beside this file validates it (workflow-fill-profile.md gives the command).
+profile:
+  edition: null
+  filled_by: null
+  updated: null
+# Jig alone: the roles that decide on design changes. With Ratchet, leave these null and use Ratchet's profile.
+governance:
+  security_risk_owner_role: {value: null, evidence: [], confirmed: null, superseded: []}
+  business_risk_owner_role: {value: null, evidence: [], confirmed: null, superseded: []}
+  patch_acceptor_roles: {value: null, evidence: [], confirmed: null, superseded: []}
+  proposer_may_accept: false # fixed: whoever proposed a patch never accepts it
+# One answer per entry. Add an entry for each class, language and build system found.
+creation_surfaces:
+  repository_classes: []
+  languages: []
+  build_systems: []
+# One entry per coding agent in use. Replace this placeholder entry; keep the list empty if no agent is in use yet.
+coding_agents:
+  - name: null
+    runs_where: {value: null, evidence: [], confirmed: null, superseded: []}
+    # Hook answers: yes (it can run a check there and one is configured), none-configured (it can, and the slot is
+    # empty), no (it cannot) or unknown (someone looked and could not tell).
+    edit_hooks: {value: null, evidence: [], confirmed: null, superseded: []} # value: yes, none-configured, no or unknown
+    turn_stop_hook: {value: null, evidence: [], confirmed: null, superseded: []} # value: yes, none-configured, no or unknown
+# One entry per Jig part found in place today, by its id in model.yaml. Add entries as seeding finds them.
+parts: []
+# entry shape: {part: <id>, today: <answer>, baseline: <answer: none, stand-in, existing-tool or built>}
+# One entry per stage, keyed by its id in phases.yaml. The names are shipped; leave them as they are.
+stages:
+  PH-1:
+    name: Attribute
+    current_practice: {value: null, evidence: [], confirmed: null, superseded: []}
+    existing_tools: {value: null, evidence: [], confirmed: null, superseded: []}
+    owner: {value: null, evidence: [], confirmed: null, superseded: []}
+    status: {value: null, evidence: [], confirmed: null, superseded: []} # value: none, stand-in, existing-tool or built
+  PH-2:
+    name: "One check, many places"
+    current_practice: {value: null, evidence: [], confirmed: null, superseded: []}
+    existing_tools: {value: null, evidence: [], confirmed: null, superseded: []}
+    owner: {value: null, evidence: [], confirmed: null, superseded: []}
+    status: {value: null, evidence: [], confirmed: null, superseded: []}
+  PH-3:
+    name: Agent fixes first
+    current_practice: {value: null, evidence: [], confirmed: null, superseded: []}
+    existing_tools: {value: null, evidence: [], confirmed: null, superseded: []}
+    owner: {value: null, evidence: [], confirmed: null, superseded: []}
+    status: {value: null, evidence: [], confirmed: null, superseded: []}
+  PH-4:
+    name: Focus the humans
+    current_practice: {value: null, evidence: [], confirmed: null, superseded: []}
+    existing_tools: {value: null, evidence: [], confirmed: null, superseded: []}
+    owner: {value: null, evidence: [], confirmed: null, superseded: []}
+    status: {value: null, evidence: [], confirmed: null, superseded: []}
+  PH-5:
+    name: Pave the road
+    current_practice: {value: null, evidence: [], confirmed: null, superseded: []}
+    existing_tools: {value: null, evidence: [], confirmed: null, superseded: []}
+    owner: {value: null, evidence: [], confirmed: null, superseded: []}
+    status: {value: null, evidence: [], confirmed: null, superseded: []}
+dependency_admission:
+  current_practice: {value: null, evidence: [], confirmed: null, superseded: []}
+  existing_tools: {value: null, evidence: [], confirmed: null, superseded: []}
+  owner: {value: null, evidence: [], confirmed: null, superseded: []}
+secrets:
+  current_practice: {value: null, evidence: [], confirmed: null, superseded: []}
+  existing_tools: {value: null, evidence: [], confirmed: null, superseded: []}
+  owner: {value: null, evidence: [], confirmed: null, superseded: []}
+paved_roads:
+  current_practice: {value: null, evidence: [], confirmed: null, superseded: []}
+  existing_tools: {value: null, evidence: [], confirmed: null, superseded: []}
+  owner: {value: null, evidence: [], confirmed: null, superseded: []}
+# One entry per Ratchet capability Jig's units wait on (the README's table of waits). A value of ratchet or
+# substitute releases nothing until a person confirms it, and the waiting stage still needs its own exit-test evidence.
+ratchet_waits:
+  "shared:cap.creation-loop-targets":
+    provided_by: {value: null, evidence: [], confirmed: null, superseded: []} # value: ratchet, substitute or absent
+    substitute: {value: null, evidence: [], confirmed: null, superseded: []}
+  "shared:cap.catch-layer":
+    provided_by: {value: null, evidence: [], confirmed: null, superseded: []}
+    substitute: {value: null, evidence: [], confirmed: null, superseded: []}
+  "shared:cap.lagged-cohort-reporting":
+    provided_by: {value: null, evidence: [], confirmed: null, superseded: []}
+    substitute: {value: null, evidence: [], confirmed: null, superseded: []}
+  "shared:cap.class-test-count-published":
+    provided_by: {value: null, evidence: [], confirmed: null, superseded: []}
+    substitute: {value: null, evidence: [], confirmed: null, superseded: []}
+  "shared:cap.derived-checks":
+    provided_by: {value: null, evidence: [], confirmed: null, superseded: []}
+    substitute: {value: null, evidence: [], confirmed: null, superseded: []}
+  "shared:cap.derived-check-misses-counted":
+    provided_by: {value: null, evidence: [], confirmed: null, superseded: []}
+    substitute: {value: null, evidence: [], confirmed: null, superseded: []}
+  "shared:cap.typed-handoff-published":
+    provided_by: {value: null, evidence: [], confirmed: null, superseded: []}
+    substitute: {value: null, evidence: [], confirmed: null, superseded: []}
+# Open questions. Replace this placeholder entry with one row per question.
+gaps:
+  - question: null
+    field: null
+    who_can_answer: null
+    raised: null

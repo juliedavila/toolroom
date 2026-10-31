@@ -1,0 +1,17 @@
+# Jig edition 0.3.0. Generated; do not edit.
+elements: 
+  {}
+contracts: 
+  HunkRouteAdvice: 
+    - at-least-once
+    - "keyed by change id, hunk id and advisor version; a repeat adds nothing, since advice can only add a hunk to the human route"
+  CreationOutcome: 
+    - latest-wins record
+    - "keyed by author, measure and closed cohort; recomputed by rule from the shared record, so a resend replaces the cohort's value; a window with no record reads as silent, never as zero"
+  ReviewerDrift: 
+    - latest-wins record
+    - "keyed by reviewer and window; recomputed by rule from review outcomes and the seeded catch counts Ratchet sends, so a resend replaces the window's value; a window with no record reads as silent, never as zero"
+  LayerCatchRate: 
+    - latest-wins record
+    - "keyed by layer or rule and closed cohort; recomputed by rule from the layer log and the assigned catch layers, so a resend replaces the cohort's value; a window with no record reads as silent, never as zero"
+version: 1

@@ -1,0 +1,265 @@
+# Jig edition 0.3.0. Generated; do not edit.
+version: 1
+planes: 
+  {}
+elements: 
+  secure-creation: 
+    plane: shared:integration
+    class: "The organization's secure-creation loop for developers and coding agents (agent edit hooks, Stop gate, commit, push and pull-request checks)"
+    examples: 
+      - pre-commit
+      - Semgrep
+      - in-toto attestations
+    swap_point: true
+    swap_kind: free
+    existing_tool_default: true
+  context-plane: 
+    plane: shared:integration
+    class: "Paved-road references, skills and instruction files under code ownership, validated in CI"
+    examples: 
+      - CODEOWNERS
+      - Backstage TechDocs
+    swap_point: false
+    existing_tool_default: true
+  check-suite: 
+    plane: shared:integration
+    class: "One versioned policy source compiled into harness configuration, git hooks and required checks"
+    examples: 
+      - pre-commit
+      - Semgrep
+      - Gitleaks
+    swap_point: true
+    swap_kind: requalify
+    existing_tool_default: true
+  inner-loop: 
+    plane: shared:integration
+    class: "The developer's coding session with its agent harness"
+    examples: 
+      []
+    swap_point: false
+    existing_tool_default: true
+  coding-agent: 
+    plane: shared:integration
+    class: Coding agent session in an approved harness
+    examples: 
+      []
+    swap_point: true
+    swap_kind: requalify
+    existing_tool_default: true
+  harness-full-parity: 
+    plane: shared:integration
+    class: "Coding harness with locked managed policy, blocking hooks, stop gate, telemetry export and version pinning"
+    examples: 
+      []
+    swap_point: true
+    swap_kind: requalify
+    existing_tool_default: true
+  harness-no-pinning: 
+    plane: shared:integration
+    class: "Coding harness with locked requirements, hooks and stop gate, partial telemetry and no version pinning"
+    examples: 
+      []
+    swap_point: true
+    swap_kind: requalify
+    existing_tool_default: true
+  harness-no-stop-gate: 
+    plane: shared:integration
+    class: Coding harness with blocking hooks and no stop gate or telemetry export
+    examples: 
+      []
+    swap_point: true
+    swap_kind: requalify
+    existing_tool_default: true
+  edit-checks: 
+    plane: shared:integration
+    class: "Fast deterministic checks invoked by the harness's edit hooks"
+    examples: 
+      - Semgrep
+      - Ruff
+      - ESLint
+    swap_point: true
+    swap_kind: requalify
+    existing_tool_default: true
+  stop-gate: 
+    plane: shared:integration
+    class: "Harness stop hook that runs the deterministic suite on the turn's diff"
+    examples: 
+      []
+    swap_point: false
+    existing_tool_default: true
+  quarantined-reader: 
+    plane: shared:integration
+    class: Tool-less model session with a fixed output schema per question
+    examples: 
+      []
+    swap_point: true
+    swap_kind: requalify
+    existing_tool_default: false
+  reader-schema-gate: 
+    plane: shared:integration
+    class: Schema validator with no model call
+    examples: 
+      - JSON Schema validator
+      - Ajv
+    swap_point: true
+    swap_kind: free
+    existing_tool_default: false
+  model-routes: 
+    plane: shared:integration
+    class: Approved hosted or local model endpoints for coding tools
+    examples: 
+      []
+    swap_point: true
+    swap_kind: requalify
+    existing_tool_default: true
+  reader-model-route: 
+    plane: shared:integration
+    class: "A separate model endpoint, credentials and sessions for reading outside text"
+    examples: 
+      []
+    swap_point: true
+    swap_kind: requalify
+    existing_tool_default: true
+  repository: 
+    plane: shared:integration
+    class: "Source control with protected branches, and a dependency mirror"
+    examples: 
+      - Gitea
+      - Forgejo
+      - Sonatype Nexus Repository
+    swap_point: false
+    existing_tool_default: true
+  change-boundary: 
+    plane: shared:integration
+    class: "Commit, push and merge controls in source control"
+    examples: 
+      []
+    swap_point: false
+    existing_tool_default: true
+  precommit-gate: 
+    plane: shared:integration
+    class: Pre-commit hook runner on a hook path locked by endpoint management
+    examples: 
+      - pre-commit
+      - Lefthook
+    swap_point: true
+    swap_kind: free
+    existing_tool_default: true
+  provenance-stamper: 
+    plane: shared:integration
+    class: Signed commit trailer or attestation from session telemetry
+    examples: 
+      - in-toto attestations
+      - Sigstore gitsign
+    swap_point: true
+    swap_kind: free
+    existing_tool_default: true
+  protected-branch: 
+    plane: shared:integration
+    class: Branch protection with server-side required checks and required independent review
+    examples: 
+      - Gitea branch protection
+      - Forgejo Actions
+    swap_point: false
+    existing_tool_default: true
+  pr-plane: 
+    plane: shared:integration
+    class: Pull-request checks and review routing
+    examples: 
+      []
+    swap_point: false
+    existing_tool_default: true
+  pr-analysis: 
+    plane: shared:integration
+    class: Diff-scoped data-flow static analysis
+    examples: 
+      - CodeQL
+      - Semgrep
+    swap_point: true
+    swap_kind: requalify
+    existing_tool_default: true
+  pr-triage: 
+    plane: shared:integration
+    class: "Model triage of static-analysis findings, as labels"
+    examples: 
+      []
+    swap_point: true
+    swap_kind: requalify
+    existing_tool_default: true
+  ai-reviewer: 
+    plane: shared:integration
+    class: Model code review from a second model family
+    examples: 
+      []
+    swap_point: true
+    swap_kind: requalify
+    existing_tool_default: true
+  hunk-router: 
+    plane: shared:integration
+    class: "Rule-based review routing by path, owner and rule match"
+    examples: 
+      - CODEOWNERS
+      - Danger JS
+    swap_point: true
+    swap_kind: free
+    existing_tool_default: true
+  hunk-risk-advisor: 
+    plane: shared:integration
+    class: "Model that flags hunks for human review, add-only"
+    examples: 
+      []
+    swap_point: true
+    swap_kind: requalify
+    existing_tool_default: false
+  autofix: 
+    plane: shared:integration
+    class: Model patch suggestions validated by the suite before they are shown
+    examples: 
+      []
+    swap_point: true
+    swap_kind: requalify
+    existing_tool_default: true
+  measurement-plane: 
+    plane: shared:integration
+    class: Layer log and outcome reporting over the shared record
+    examples: 
+      - Apache Superset
+      - Metabase
+    swap_point: true
+    swap_kind: free
+    existing_tool_default: false
+  outside-text: 
+    plane: shared:integration
+    class: "Public web content, issue threads and dependency documentation"
+    examples: 
+      []
+    swap_point: false
+    existing_tool_default: true
+  people.creation-developer: 
+    plane: shared:integration
+    class: Identity-provider role
+    examples: 
+      - Keycloak groups
+    swap_point: false
+    existing_tool_default: true
+  people.change-reviewer: 
+    plane: shared:integration
+    class: "Identity-provider role (separate from the authoring developer's identity for each change)"
+    examples: 
+      - Keycloak groups
+    swap_point: false
+    existing_tool_default: true
+  people.high-risk-reviewer: 
+    plane: shared:integration
+    class: "Identity-provider role outside the authoring team, qualified per area"
+    examples: 
+      - Keycloak groups
+    swap_point: false
+    existing_tool_default: true
+  people.creation-policy-owner: 
+    plane: shared:integration
+    class: Identity-provider role
+    examples: 
+      - Keycloak groups
+    swap_point: false
+    existing_tool_default: true

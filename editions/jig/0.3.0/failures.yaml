@@ -1,0 +1,47 @@
+# Jig edition 0.3.0. Generated; do not edit.
+version: 1
+scenarios: 
+  - id: F128
+    title: A coding harness without a stop gate lets an agent end its turn on a failing suite
+    elements: 
+      - harness-no-stop-gate
+      - precommit-gate
+      - protected-branch
+      - measurement-plane
+    trigger: "A harness has no stop gate, or its pre-commit hook is skipped: a commit made with the hook bypassed, a hook path changed off a managed endpoint, or a harness upgrade that drops hook support."
+    required_behavior: "The same suite runs at commit through the locked pre-commit gate in the stop gate's place. A commit that skipped it fails the server-side required checks and cannot merge. Changes from a harness that exports no telemetry count as unlabeled in every provenance measure, never as human-written."
+    invariant: I1
+    detection: "Commits from each harness that reached the protected branch with no pre-commit result, against all its commits (must be zero after the required checks); server-side suite failures on commits that passed no local gate, by harness."
+    runbook: RB-F128
+    test: 
+      kind: pipeline
+      steps: "Run a session in the harness without a stop gate, end the turn on a failing check, and commit with the hook bypassed; assert the protected branch refuses the merge, the bypass is counted for that harness, and the change reads unlabeled in the provenance measures."
+  - id: F130
+    title: A model takes a high-risk hunk off the human route
+    elements: 
+      - hunk-router
+      - hunk-risk-advisor
+      - measurement-plane
+    trigger: "The hunk-risk advisor's output is wired as a filter by a configuration change, or a model replaces the routing rules, so a hunk the rules route to a person can be sent to the lighter pass."
+    required_behavior: "The router routes by rule first; advice can only add a hunk to the human route. A hunk that matched a rule and reached the lighter pass is a defect in the router, and the routing configuration rolls back to its last version that passed this test."
+    invariant: I4
+    detection: "Hunks that matched a routing rule and reached the lighter pass (must be zero); advisor outputs that name a rule-routed hunk as low risk, counted and kept as leads."
+    runbook: RB-F130
+    test: 
+      kind: pipeline
+      steps: Seed advisor output that names a rule-routed authorization hunk as low risk; assert the hunk still reaches a qualified reviewer outside the authoring team and the advice is logged.
+  - id: F133
+    title: "An agent's credentials can skip a required check or set its status on the protected branch"
+    elements: 
+      - protected-branch
+      - coding-agent
+      - check-suite
+      - shared:ext.engineering-workflows
+    trigger: "A branch rule is changed so required checks no longer bind administrators, a check stops being tied to the app that reports it, or an agent identity gains administrator rights or write access that lets it post a check's status."
+    required_behavior: "Merging moves to the merge service the agent's credentials cannot reach, until the owner restores the settings and the test passes again."
+    invariant: I1
+    detection: "After the branch-settings premise test fails, merges outside the merge service or without server-side checks and independent approval (must be zero)."
+    runbook: RB-F133
+    test: 
+      kind: game-day
+      steps: "After the branch-settings premise test fails, assert merging moves to the merge service under an identity no agent holds, with server-side checks and independent approval required until the premise test passes again."
